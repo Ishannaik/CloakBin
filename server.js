@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const Document = require("./models/Document");
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost/cloakbin");
+mongoose.connect("mongodb://127.0.0.1/cloakbin");
 
 app.get("/", (req, res) => {
   const code = `Welcome to CloakBin!
