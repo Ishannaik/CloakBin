@@ -9,7 +9,7 @@ CloakBin is a simple and convenient web application that allows you to share cod
 
 ## Getting Started
 
-To use CloakBin, simply visit the website at [[www.cloakbin.com](http://cloakbin.com/)] and follow these steps:
+To use CloakBin, simply visit the website at [http://cloakbin.com/](cloakbin.onrender.com/) and follow these steps:
 
 1. Copy the code you want to share from your local development environment or any other source.
 2. Paste the code into the provided text area on the CloakBin website.
