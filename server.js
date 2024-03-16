@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
   CloakBin ensures the security and privacy of your content by providing anonymous sharing and editing capabilities. Plus, with automatic syntax highlighting for code snippets in various programming languages, your content is easy to read and share. For example:
   
   function greet(name) {
-    return `Hello, ${name}! Welcome to CloakBin!`;
+    return \`Hello, \${name}! Welcome to CloakBin!\`;
   }
   
   console.log(greet("User"));
