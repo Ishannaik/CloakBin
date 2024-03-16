@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 const path = require("path");
-
+require("dotenv").config();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
@@ -11,7 +11,10 @@ app.use(express.urlencoded({ extended: true }));
 
 const Document = require("./models/Document");
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://127.0.0.1/cloakbin");
+
+const MONGO_URL = process.env.MONGO_URL; //Rotated the MongoDB Api password to prevent unauthorized access
+
+mongoose.connect(MONGO_URL);
 
 app.get("/", (req, res) => {
   const code = `Welcome to CloakBin!
