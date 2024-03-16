@@ -4,7 +4,7 @@ CloakBin is a simple and convenient web application that allows you to share cod
 
 ## Live Website
 
-You can access the live CloakBin website at: [https://cloakbin.onrender.com](https://cloakbin.onrender.com)
+You can access the live CloakBin website at: [cloakbin.com](https://cloakbin.com)
 
 ## Features
 
@@ -14,7 +14,7 @@ You can access the live CloakBin website at: [https://cloakbin.onrender.com](htt
 
 ## Getting Started
 
-To use CloakBin, simply visit the website at [https://cloakbin.onrender.com](https://cloakbin.onrender.com) and follow these steps:
+To use CloakBin, simply visit the website at [cloakbin.com](https://cloakbin.com) and follow these steps:
 
 1. Copy the code you want to share from your local development environment or any other source.
 2. Paste the code into the provided text area on the CloakBin website.
