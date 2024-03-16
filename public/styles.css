@@ -1,0 +1,92 @@
+body {
+  background-color: #282c34;
+  margin: 0;
+}
+
+.wrapper {
+  display: flex;
+  padding: 1rem 0.5rem;
+  font-size: 1rem;
+}
+
+pre {
+  margin: 0;
+}
+
+#code-display {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.line-numbers {
+  color: #abb2bf;
+  font-family: monospace;
+  text-align: end;
+  user-select: none;
+}
+
+textarea {
+  background-color: transparent;
+  resize: none;
+  width: 100%;
+  padding: 0;
+  margin-left: 1rem;
+  color: #abb2bf;
+  min-height: calc(100vh-2rem);
+  border: none;
+  outline: none;
+}
+
+.buttons-wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  opacity: 0.3; /* Increased opacity for better visibility */
+  transition: opacity 200ms ease-in-out;
+  background-color: #3c404d; /* Lighter shade for the background to make the buttons pop */
+  padding: 1rem;
+}
+
+.buttons-wrapper:hover {
+  opacity: 0.9;
+}
+
+.logo {
+  font-size: 2rem;
+  text-align: center;
+  text-decoration: none;
+  color: #61afef; /* Brighter color for the logo for better visibility */
+  width: 100%;
+  display: inline-block;
+}
+
+.logo:hover {
+  text-decoration: underline;
+}
+
+.buttons {
+  display: flex;
+  margin-top: 0.5rem;
+  justify-content: center;
+}
+
+.buttons > * + * {
+  margin-left: 0.25rem;
+}
+
+.btn {
+  cursor: pointer;
+  background: #61afef; /* Use the same bright color as the logo for consistency */
+  border: 1px solid #61afef; /* Border color to match the background */
+  color: #282c34; /* Dark color for the text to contrast the button background */
+  border-radius: 0.25rem;
+  padding: 0.25rem 1rem;
+  transition: background-color 200ms ease-in-out;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: #4e5d73; /* Darker color on hover for a subtle effect */
+  border: 1px solid #4e5d73; /* Border color to match the hover background */
+}
