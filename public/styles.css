@@ -97,3 +97,24 @@ textarea {
   background-color: #4e5d73; /* Darker color on hover for a subtle effect */
   border: 1px solid #4e5d73; /* Border color to match the hover background */
 }
+
+/* Media queries for smaller screens */
+@media (max-width: 767px) {
+  .wrapper {
+    flex-direction: column;
+    padding: 0.5rem;
+    overflow-x: auto;
+  }
+
+  textarea {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    min-height: 50vh;
+    font-size: 14px;
+  }
+
+  .line-numbers {
+    text-align: start;
+    font-size: 12px;
+  }
+}
