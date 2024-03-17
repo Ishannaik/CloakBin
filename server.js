@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 const path = require("path");
+const { nanoid } = require("nanoid");
+
 require("dotenv").config();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -32,13 +34,14 @@ app.get("/new", (req, res) => {
 
 app.post("/save", async (req, res) => {
   const value = req.body.value;
+  // Generate a short ID, specify length if desired (e.g., 10 characters)
+  const id = nanoid(10);
   try {
-    const document = await Document.create({ value });
-    res.redirect(`/${document.id}`);
+    const document = await Document.create({ id, value });
+    res.redirect(`/${id}`);
   } catch (e) {
     res.render("new", { value });
   }
-  console.log(value);
 });
 
 app.get("/:id/duplicate", async (req, res) => {
@@ -52,9 +55,12 @@ app.get("/:id/duplicate", async (req, res) => {
 });
 
 app.get("/:id", async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   try {
-    const document = await Document.findById(id);
+    const document = await Document.findOne({ id: id });
+    if (!document) {
+      return res.redirect("/");
+    }
     res.render("code-display", { code: document.value, id });
   } catch (e) {
     res.redirect("/");
