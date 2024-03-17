@@ -38,6 +38,7 @@ app.post("/save", async (req, res) => {
   const id = nanoid(10);
   try {
     const document = await Document.create({ id, value });
+    console.log(`Document created: https://cloakbin.com/${id}`);
     res.redirect(`/${id}`);
   } catch (e) {
     res.render("new", { value });
@@ -47,7 +48,7 @@ app.post("/save", async (req, res) => {
 app.get("/:id/duplicate", async (req, res) => {
   const id = req.params.id;
   try {
-    const document = await Document.findById(id);
+    const document = await Document.findOne({ id });
     res.render("new", { value: document.value });
   } catch (e) {
     res.redirect(`/${id}`);
