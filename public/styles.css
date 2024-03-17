@@ -98,8 +98,7 @@ textarea {
   border: 1px solid #4e5d73; /* Border color to match the hover background */
 }
 
-/* Media queries for smaller screens */
-@media (max-width: 767px) {
+/* @media (max-width: 767px) {
   .wrapper {
     flex-direction: column;
     padding: 0.5rem;
@@ -118,3 +117,4 @@ textarea {
     font-size: 12px;
   }
 }
+ */
