@@ -2,7 +2,7 @@
 
 CloakBin is a simple and convenient web application that allows you to share code snippets with others easily. With CloakBin, you can quickly copy and paste your code, and then generate a shareable link to provide access to your code.
 
-## Live Website
+## Live Website 
 
 You can access the live CloakBin website at: [cloakbin.com](https://cloakbin.com)
 
