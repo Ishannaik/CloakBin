@@ -6,7 +6,7 @@ CloakBin is a simple and convenient web application that allows you to share cod
 
 You can access the live CloakBin website at: [cloakbin.com](https://cloakbin.com)
 
-## Features
+## Features 
 
 - **Copy/Paste Interface**: Effortlessly copy and paste your code into the provided text area.
 - **Syntax Highlighting**: CloakBin automatically highlights the syntax of your code based on the detected language, making it easier to read and understand.
