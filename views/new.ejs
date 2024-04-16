@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/3.0.20/autosize.min.js" integrity="sha512-EAEoidLzhKrfVg7qX8xZFEAebhmBMsXrIcI0h7VPx2CyAyFHuDvOAUs9CEATB2Ou2/kuWEDtluEVrQcjXBy9yw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/3.0.20/autosize.min.js"
+        integrity="sha512-EAEoidLzhKrfVg7qX8xZFEAebhmBMsXrIcI0h7VPx2CyAyFHuDvOAUs9CEATB2Ou2/kuWEDtluEVrQcjXBy9yw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <title>CloakBin</title>
 </head>
+
 <body>
-   <form action ="/save" method="POST">
-    <%- include('_buttons.ejs', {canSave: true}) %>
-    <div class="wrapper">
-        <div class="line-numbers">
-            &gt;
-        </div>
-        <textarea autofocus name="value"><%=locals.value%></textarea>
-    </div>
-</form>
-<script>
-    autosize(document.querySelectorAll('textarea'));
-</script>
+    <form action="/save" method="POST">
+        <%- include('_buttons.ejs', {canSave: true}) %>
+            <div class="wrapper">
+                <div class="line-numbers">
+                    &gt;
+                </div>
+                <textarea autofocus name="value"><%=locals.value%></textarea>
+            </div>
+    </form>
+    <script>
+        autosize(document.querySelectorAll('textarea'));
+    </script>
 </body>
-</html> 
+
+</html>
