@@ -11,6 +11,7 @@ You can access the live CloakBin website at: [cloakbin.com](https://cloakbin.com
 - **Copy/Paste Interface**: Effortlessly copy and paste your code into the provided text area.
 - **Syntax Highlighting**: CloakBin automatically highlights the syntax of your code based on the detected language, making it easier to read and understand.
 - **Share Links**: After pasting your code, generate a unique shareable link that you can send to others, allowing them to view your code.
+- **ChatBot**: At the bottom right of the cloakbin website there is an AI Chatbot added
 
 ## Getting Started
 
