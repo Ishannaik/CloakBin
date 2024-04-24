@@ -6,8 +6,7 @@ CloakBin is a simple and convenient web application that allows you to share cod
 
 You can access the live CloakBin website at: [cloakbin.com](https://cloakbin.com)
 
-![image](https://github.com/Ishannaik/CloakBin/assets/11766476/bf2f0713-2c4b-46ad-b01d-90178bc345f4)
-
+![image](https://github.com/Ishannaik/CloakBin/assets/11766476/515453a1-f992-4f9e-9f53-d77536e60bb2)
 
 ## Features 
 
