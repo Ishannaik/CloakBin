@@ -48,13 +48,9 @@ app.get("/:id/duplicate", async (req, res) => {
   const id = req.params.id;
   try {
     const document = await Document.findById(id);
-    if (document) {
-      res.render("new", { value: document.value });
-    } else {
-      res.redirect("/");
-    }
+    res.render("new", { value: document.value });
   } catch (e) {
-    res.redirect("/");
+    res.redirect(`/${id}`);
   }
 });
 
