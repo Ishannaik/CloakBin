@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* CloakBin Theme */
+@theme {
+	--color-bg: #1a1d23;
+	--color-bg-secondary: #242830;
+	--color-text: #e4e4e7;
+	--color-text-muted: #71717a;
+	--color-accent: #2dd4bf;
+	--color-accent-hover: #14b8a6;
+	--font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	font-family: 'JetBrains Mono', monospace;
+}
