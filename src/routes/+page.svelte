@@ -14,7 +14,7 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload } from 'lucide-svelte';
+	import { Lock, Files, Upload, WifiOff } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64 } from '$lib/crypto';
@@ -32,10 +32,39 @@
 	let selectedTheme = $state('oneDark');
 	let showDuplicateToast = $state(false);
 	let showShortcuts = $state(false);
+	let isOffline = $state(false);
 
 	// Check for duplicate content from view page (on initial load)
 	onMount(async () => {
 		await checkForDuplicate();
+
+		// Restore draft from localStorage
+		const draft = localStorage.getItem('cloakbin_draft');
+		if (draft && !content) {
+			content = draft;
+		}
+
+		// Auto-save draft every 3 seconds
+		const saveInterval = setInterval(() => {
+			if (content.trim()) {
+				localStorage.setItem('cloakbin_draft', content);
+			} else {
+				localStorage.removeItem('cloakbin_draft');
+			}
+		}, 3000);
+
+		// Offline detection
+		isOffline = !navigator.onLine;
+		const handleOffline = () => (isOffline = true);
+		const handleOnline = () => (isOffline = false);
+		window.addEventListener('offline', handleOffline);
+		window.addEventListener('online', handleOnline);
+
+		return () => {
+			clearInterval(saveInterval);
+			window.removeEventListener('offline', handleOffline);
+			window.removeEventListener('online', handleOnline);
+		};
 	});
 
 	// Also check after client-side navigation (component may already be mounted)
@@ -251,6 +280,9 @@
 			// 5. Handle response
 			const { id } = await res.json();
 
+			// Clear draft on successful create
+			localStorage.removeItem('cloakbin_draft');
+
 			// Redirect to view page with key in URL fragment
 			await goto(`/p/${id}#${urlKey}`);
 		} catch (error) {
@@ -385,6 +417,14 @@
 				<Files size={16} />
 				<span>Content duplicated!</span>
 			</div>
+		</div>
+	{/if}
+
+	<!-- Offline banner -->
+	{#if isOffline}
+		<div class="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-zinc-900 px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
+			<WifiOff size={16} />
+			<span>You're offline. Your draft is saved locally.</span>
 		</div>
 	{/if}
 
