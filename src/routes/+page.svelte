@@ -3,7 +3,7 @@
 	import CodeMirror from 'svelte-codemirror-editor';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
-	import { EditorView } from '@codemirror/view';
+	import { EditorView, keymap } from '@codemirror/view';
 	import {
 		dracula,
 		cobalt,
@@ -14,7 +14,10 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock } from 'lucide-svelte';
+	import { Lock, Files, Upload } from 'lucide-svelte';
+	import { goto, afterNavigate } from '$app/navigation';
+	import { onMount, tick } from 'svelte';
+	import { generateKey, encrypt, keyToBase64 } from '$lib/crypto';
 
 	// Large paste threshold - show loading indicator for pastes over 1M chars
 	const LARGE_PASTE_THRESHOLD = 1_000_000;
@@ -22,10 +25,81 @@
 	let content = $state('');
 	let expiry = $state('1h');
 	let selectedTheme = $state('oneDark');
+	let showDuplicateToast = $state(false);
+
+	// Check for duplicate content from view page (on initial load)
+	onMount(async () => {
+		await checkForDuplicate();
+	});
+
+	// Also check after client-side navigation (component may already be mounted)
+	afterNavigate(async () => {
+		await checkForDuplicate();
+	});
+
+	async function checkForDuplicate() {
+		const duplicate = sessionStorage.getItem('cloakbin_duplicate');
+		if (duplicate) {
+			sessionStorage.removeItem('cloakbin_duplicate');
+			await tick();
+			content = duplicate;
+			showDuplicateToast = true;
+			setTimeout(() => {
+				showDuplicateToast = false;
+			}, 2500);
+		}
+	}
 	let isCreating = $state(false);
 
 	// Large paste loading state
 	let isLoadingPaste = $state(false);
+
+	// Drag and drop state
+	let isDragging = $state(false);
+	let dragCounter = 0; // Track enter/leave to handle nested elements
+
+	function handleDragEnter(e: DragEvent) {
+		e.preventDefault();
+		dragCounter++;
+		if (e.dataTransfer?.types.includes('Files')) {
+			isDragging = true;
+		}
+	}
+
+	function handleDragLeave(e: DragEvent) {
+		e.preventDefault();
+		dragCounter--;
+		if (dragCounter === 0) {
+			isDragging = false;
+		}
+	}
+
+	function handleDragOver(e: DragEvent) {
+		e.preventDefault();
+	}
+
+	async function handleDrop(e: DragEvent) {
+		e.preventDefault();
+		dragCounter = 0;
+		isDragging = false;
+
+		const file = e.dataTransfer?.files[0];
+		if (!file) return;
+
+		// Check if it's a text file
+		if (!file.type.startsWith('text/') && !file.name.match(/\.(txt|js|ts|json|md|css|html|xml|yaml|yml|py|rb|go|rs|java|c|cpp|h|sh|bash|sql|env|conf|cfg|ini|log|csv)$/i)) {
+			alert('Please drop a text file');
+			return;
+		}
+
+		try {
+			const text = await file.text();
+			content = text;
+		} catch (error) {
+			console.error('Failed to read file:', error);
+			alert('Failed to read file');
+		}
+	}
 
 	// New button animation state
 	let newButtonScale = spring(1, { stiffness: 0.3, damping: 0.6 });
@@ -72,6 +146,19 @@
 		{ value: '7d', label: '7 Days' }
 	];
 
+	// CodeMirror extension for Ctrl+A to select only editor content
+	const selectAllExtension = keymap.of([
+		{
+			key: 'Mod-a',
+			run: (view) => {
+				view.dispatch({
+					selection: { anchor: 0, head: view.state.doc.length }
+				});
+				return true; // Prevent default browser behavior
+			}
+		}
+	]);
+
 	// CodeMirror extension for handling large pastes
 	// Shows a brief loading indicator, then lets CodeMirror handle it (it's optimized)
 	const largePasteHandler = EditorView.domEventHandlers({
@@ -101,15 +188,76 @@
 		}
 	});
 
+	// Global keyboard shortcuts handler
+	function handleKeydown(e: KeyboardEvent) {
+		const isMod = e.ctrlKey || e.metaKey;
+
+		// Ctrl+S - Create paste
+		if (isMod && e.key.toLowerCase() === 's') {
+			e.preventDefault();
+			if (content.trim() && !isCreating) {
+				createPaste();
+			}
+			return;
+		}
+
+		// Ctrl+Shift+N - New (clear editor)
+		if (isMod && e.shiftKey && e.key.toLowerCase() === 'n') {
+			e.preventDefault();
+			handleNewClick();
+			return;
+		}
+	}
+
 	async function createPaste() {
 		if (!content.trim()) return;
 		isCreating = true;
-		// TODO: Implement encryption + API call
-		console.log('Creating paste...', { content, expiry });
+
+		try {
+			// 1. Generate encryption key
+			const key = await generateKey();
+
+			// 2. Encrypt content
+			const encrypted = await encrypt(content, key);
+
+			// 3. Export key for URL
+			const urlKey = await keyToBase64(key);
+
+			// 4. POST to API
+			const res = await fetch('/api/paste', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ content: encrypted, expiry })
+			});
+
+			if (!res.ok) {
+				const error = await res.text();
+				throw new Error(error || 'Failed to create paste');
+			}
+
+			// 5. Handle response
+			const { id } = await res.json();
+
+			// Redirect to view page with key in URL fragment
+			await goto(`/p/${id}#${urlKey}`);
+		} catch (error) {
+			console.error('Error creating paste:', error);
+			alert(error instanceof Error ? error.message : 'Failed to create paste. Please try again.');
+		} finally {
+			isCreating = false;
+		}
 	}
 </script>
 
-<div class="h-screen flex flex-col relative overflow-hidden">
+<svelte:window onkeydown={handleKeydown} />
+
+<div
+	class="h-screen flex flex-col relative overflow-hidden"
+	ondragenter={handleDragEnter}
+	ondragleave={handleDragLeave}
+	ondragover={handleDragOver}
+	ondrop={handleDrop}
+>
 	<!-- Header -->
 	<header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
 		<div class="flex items-center gap-3 group cursor-pointer">
@@ -140,7 +288,7 @@
 			bind:value={content}
 			lang={javascript()}
 			theme={currentTheme}
-			extensions={[EditorView.lineWrapping, largePasteHandler]}
+			extensions={[EditorView.lineWrapping, largePasteHandler, selectAllExtension]}
 			styles={{
 				'&': {
 					height: '100%',
@@ -211,6 +359,31 @@
 			<div class="bg-zinc-800 rounded-lg p-6 shadow-2xl flex flex-col items-center gap-3 animate-scale-in">
 				<div class="w-8 h-8 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
 				<p class="text-zinc-300 text-sm">Loading paste...</p>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Duplicate toast notification -->
+	{#if showDuplicateToast}
+		<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-slide-down">
+			<div class="bg-teal-500 text-zinc-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 font-medium">
+				<Files size={16} />
+				<span>Content duplicated!</span>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Drag and drop overlay -->
+	{#if isDragging}
+		<div class="absolute inset-0 bg-zinc-900/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in pointer-events-none">
+			<div class="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-teal-500 rounded-2xl bg-zinc-800/50">
+				<div class="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center">
+					<Upload size={32} class="text-teal-500" />
+				</div>
+				<div class="text-center">
+					<p class="text-xl font-semibold text-zinc-100">Drop file to paste</p>
+					<p class="text-sm text-zinc-400 mt-1">Release to load file contents</p>
+				</div>
 			</div>
 		</div>
 	{/if}

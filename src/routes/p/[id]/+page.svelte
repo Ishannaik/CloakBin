@@ -1,103 +1,380 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { decrypt, base64ToKey } from '$lib/crypto';
+	import CodeMirror from 'svelte-codemirror-editor';
+	import { javascript } from '@codemirror/lang-javascript';
+	import { oneDark } from '@codemirror/theme-one-dark';
+	import { EditorView } from '@codemirror/view';
+	import logo from '$lib/assets/logo.png?enhanced';
+	import { Lock, Copy, Plus, Check, Files, Share2, Key } from 'lucide-svelte';
 
-	// Mock data for now - will come from API + decryption
-	let content = $state(`// CloakBin Encrypted Paste
-const cloak = require('cloakbin-sdk');
-
-async function encryptAndUpload(data, expiry) {
-    const key = await cloak.generateKey();
-    const encrypted = await cloak.encrypt(data, key);
-    const response = await cloak.upload(encrypted, { expiry: expiry });
-
-    console.log('Paste created successfully.');
-    console.log('Share Link:', response.link);
-    console.log('Decryption Key:', key); // Keep this secure!
-}
-
-// Example usage:
-const pasteContent = \`
-    This is a highly sensitive configuration file.
-    API_KEY=12345abcde
-    SECRET_TOKEN=f9e8d7c6b5a4
-\`;
-
-encryptAndUpload(pasteContent, '1h');`);
-
+	// State management
+	let content = $state('');
+	let viewState = $state<'loading' | 'error' | 'success' | 'needKey'>('loading');
+	let errorMessage = $state('');
+	let createdAt = $state<Date | null>(null);
+	let expiresAt = $state<Date | null>(null);
 	let copied = $state(false);
+	let shareCopied = $state(false);
+	let manualKey = $state('');
+	let encryptedContent = $state(''); // Store encrypted content for manual key entry
+	let pasteMetadata = $state<{ createdAt: string; expiresAt: string } | null>(null);
 
-	// Calculate line numbers
-	let lineCount = $derived(content.split('\n').length);
+	// Format relative time
+	function formatRelativeTime(date: Date): string {
+		const now = new Date();
+		const diffMs = date.getTime() - now.getTime();
+		const diffMins = Math.floor(diffMs / 60000);
+		const diffHours = Math.floor(diffMins / 60);
+		const diffDays = Math.floor(diffHours / 24);
 
-	function copyToClipboard() {
-		navigator.clipboard.writeText(content);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
+		if (diffMins < 0) return 'Expired';
+		if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+		if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+		return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
 	}
 
-	function viewRaw() {
-		const blob = new Blob([content], { type: 'text/plain' });
-		const url = URL.createObjectURL(blob);
-		window.open(url, '_blank');
+	// Format time ago
+	function formatTimeAgo(date: Date): string {
+		const now = new Date();
+		const diffMs = now.getTime() - date.getTime();
+		const diffMins = Math.floor(diffMs / 60000);
+		const diffHours = Math.floor(diffMins / 60);
+		const diffDays = Math.floor(diffHours / 24);
+
+		if (diffMins < 1) return 'Just now';
+		if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+		if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+		return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
 	}
+
+	// Derived values for display
+	let createdTimeAgo = $derived(createdAt ? formatTimeAgo(createdAt) : '');
+	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt) : '');
+
+	// Copy content to clipboard
+	async function copyToClipboard() {
+		try {
+			await navigator.clipboard.writeText(content);
+			copied = true;
+			setTimeout(() => {
+				copied = false;
+			}, 2000);
+		} catch (error) {
+			console.error('Failed to copy to clipboard:', error);
+		}
+	}
+
+	// Copy share URL to clipboard
+	async function copyShareUrl() {
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			shareCopied = true;
+			setTimeout(() => {
+				shareCopied = false;
+			}, 2000);
+		} catch (error) {
+			console.error('Failed to copy share URL:', error);
+		}
+	}
+
+	// Duplicate paste - navigate to home with content pre-filled
+	function duplicatePaste() {
+		sessionStorage.setItem('cloakbin_duplicate', content);
+		goto('/');
+	}
+
+	// Decrypt with manual key
+	async function decryptWithManualKey() {
+		if (!manualKey.trim() || !encryptedContent) return;
+
+		try {
+			const key = await base64ToKey(manualKey.trim());
+			const decryptedContent = await decrypt(encryptedContent, key);
+			content = decryptedContent;
+
+			if (pasteMetadata) {
+				createdAt = new Date(pasteMetadata.createdAt);
+				expiresAt = new Date(pasteMetadata.expiresAt);
+			}
+
+			// Update URL with the key
+			window.history.replaceState(null, '', `${window.location.pathname}#${manualKey.trim()}`);
+			viewState = 'success';
+		} catch (error) {
+			console.error('Decryption failed:', error);
+			errorMessage = 'Failed to decrypt. Invalid key?';
+			viewState = 'error';
+		}
+	}
+
+	// Select all content in the editor using native DOM Selection API
+	function selectAllContent() {
+		const contentEl = document.querySelector('.cm-content');
+		if (contentEl) {
+			const range = document.createRange();
+			range.selectNodeContents(contentEl);
+			const selection = window.getSelection();
+			selection?.removeAllRanges();
+			selection?.addRange(range);
+		}
+	}
+
+	// Open raw view
+	function openRawView() {
+		const pasteId = $page.params.id;
+		const urlHash = window.location.hash;
+		window.location.href = `/r/${pasteId}${urlHash}`;
+	}
+
+	// Global keyboard shortcuts handler
+	function handleKeydown(e: KeyboardEvent) {
+		// Only handle when viewing successfully
+		if (viewState !== 'success') return;
+
+		const isMod = e.ctrlKey || e.metaKey;
+
+		// Ctrl+A - Always select only the code content
+		if (isMod && e.key.toLowerCase() === 'a' && !(e.target instanceof HTMLInputElement)) {
+			e.preventDefault();
+			selectAllContent();
+			return;
+		}
+
+		// Ctrl+Shift+R - Open raw view
+		if (isMod && e.shiftKey && e.key.toLowerCase() === 'r') {
+			e.preventDefault();
+			openRawView();
+			return;
+		}
+
+		// Ctrl+D - Duplicate paste
+		if (isMod && e.key.toLowerCase() === 'd') {
+			e.preventDefault();
+			duplicatePaste();
+			return;
+		}
+
+		// Ctrl+S - Copy share URL
+		if (isMod && e.key.toLowerCase() === 's') {
+			e.preventDefault();
+			copyShareUrl();
+			return;
+		}
+	}
+
+	// Fetch and decrypt paste on mount
+	onMount(async () => {
+		try {
+			// Get paste ID from route params
+			const pasteId = $page.params.id;
+
+			// Fetch encrypted paste from API
+			const response = await fetch(`/api/paste/${pasteId}`);
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				viewState = 'error';
+
+				if (response.status === 404) {
+					errorMessage = 'Paste not found or expired';
+				} else {
+					errorMessage = errorData.error || 'Failed to fetch paste';
+				}
+				return;
+			}
+
+			const data = await response.json();
+
+			// Store encrypted content and metadata for potential manual key entry
+			encryptedContent = data.content;
+			pasteMetadata = { createdAt: data.createdAt, expiresAt: data.expiresAt };
+
+			// Get encryption key from URL hash
+			const urlHash = window.location.hash.slice(1); // Remove '#'
+
+			if (!urlHash) {
+				// No key in URL - ask user to enter it
+				viewState = 'needKey';
+				return;
+			}
+
+			// Convert base64 key to CryptoKey
+			const key = await base64ToKey(urlHash);
+
+			// Decrypt content
+			try {
+				const decryptedContent = await decrypt(data.content, key);
+				content = decryptedContent;
+				createdAt = new Date(data.createdAt);
+				expiresAt = new Date(data.expiresAt);
+				viewState = 'success';
+			} catch (error) {
+				console.error('Decryption failed:', error);
+				viewState = 'error';
+				errorMessage = 'Failed to decrypt. Invalid key?';
+			}
+		} catch (error) {
+			console.error('Error loading paste:', error);
+			viewState = 'error';
+			errorMessage = 'Failed to load paste';
+		}
+	});
 </script>
 
-<div class="min-h-screen flex flex-col relative">
+<svelte:window onkeydown={handleKeydown} />
+
+<div class="h-screen flex flex-col relative overflow-hidden">
 	<!-- Header -->
 	<header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
-		<a href="/" class="flex items-center gap-3">
-			<img src="/logo.png" alt="CloakBin" class="w-8 h-8" />
-			<span class="text-xl font-semibold text-teal-400">CloakBin</span>
+		<a href="/" class="flex items-center gap-3 group cursor-pointer">
+			<enhanced:img
+				src={logo}
+				alt="CloakBin"
+				class="w-8 h-8 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
+			/>
+			<span class="text-xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
 		</a>
-		<div class="flex items-center gap-2">
-			<button
-				onclick={copyToClipboard}
-				class="px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium hover:bg-teal-400 transition-colors flex items-center gap-2"
-			>
-				{copied ? '✓ Copied!' : '📋 Copy'}
-			</button>
-			<button
-				onclick={viewRaw}
-				class="px-4 py-2 border border-zinc-700 rounded hover:border-zinc-500 transition-colors flex items-center gap-2"
-			>
-				Raw
-			</button>
-			<a
-				href="/"
-				class="px-4 py-2 border border-zinc-700 rounded hover:border-zinc-500 transition-colors flex items-center gap-2"
-			>
-				+ New
-			</a>
-		</div>
+
+		{#if viewState === 'success'}
+			<div class="flex items-center gap-2">
+				<button
+					onclick={copyToClipboard}
+					class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+				>
+					{#if copied}
+						<Check size={16} />
+						<span>Copied!</span>
+					{:else}
+						<Copy size={16} />
+						<span>Copy</span>
+					{/if}
+				</button>
+				<button
+					onclick={duplicatePaste}
+					class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+				>
+					<Files size={16} />
+					<span>Duplicate</span>
+				</button>
+				<button
+					onclick={copyShareUrl}
+					class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+				>
+					{#if shareCopied}
+						<Check size={16} />
+						<span>Link Copied!</span>
+					{:else}
+						<Share2 size={16} />
+						<span>Share</span>
+					{/if}
+				</button>
+				<a
+					href="/"
+					class="px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2"
+				>
+					<Plus size={16} />
+					<span>New</span>
+				</a>
+			</div>
+		{/if}
 	</header>
 
-	<!-- Content (read-only) -->
-	<div class="flex-1 flex">
-		<!-- Line numbers -->
-		<div
-			class="w-14 bg-[#1e2228] text-zinc-600 text-right pr-4 py-4 select-none text-sm leading-6 font-mono"
-		>
-			{#each Array(lineCount) as _, i}
-				<div>{i + 1}</div>
-			{/each}
+	<!-- Loading State -->
+	{#if viewState === 'loading'}
+		<div class="flex-1 flex items-center justify-center">
+			<div class="flex flex-col items-center gap-4 animate-fade-in">
+				<div class="w-12 h-12 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
+				<p class="text-zinc-400 text-sm">Decrypting paste...</p>
+			</div>
 		</div>
-		<!-- Code display -->
-		<pre class="flex-1 py-4 px-2 text-sm leading-6 font-mono overflow-x-auto"><code>{content}</code
-			></pre>
-	</div>
+	{/if}
 
-	<!-- Bottom bar -->
-	<div
-		class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500"
-	>
-		<span>Created 5 minutes ago</span>
-		<span>·</span>
-		<span>Expires in 55 minutes</span>
-	</div>
+	<!-- Error State -->
+	{#if viewState === 'error'}
+		<div class="flex-1 flex items-center justify-center">
+			<div class="flex flex-col items-center gap-4 max-w-md text-center animate-fade-in">
+				<div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+					<Lock size={32} class="text-red-500" />
+				</div>
+				<h2 class="text-2xl font-semibold text-zinc-200">Unable to Load Paste</h2>
+				<p class="text-zinc-400">{errorMessage}</p>
+				<a
+					href="/"
+					class="mt-4 px-6 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2"
+				>
+					<Plus size={16} />
+					<span>Create New Paste</span>
+				</a>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Need Key State - Ask user to enter decryption key -->
+	{#if viewState === 'needKey'}
+		<div class="flex-1 flex items-center justify-center">
+			<div class="flex flex-col items-center gap-4 max-w-md text-center animate-fade-in">
+				<div class="w-16 h-16 rounded-full bg-teal-500/10 flex items-center justify-center">
+					<Key size={32} class="text-teal-500" />
+				</div>
+				<h2 class="text-2xl font-semibold text-zinc-200">Enter Decryption Key</h2>
+				<p class="text-zinc-400">This paste is encrypted. Enter the decryption key to view it.</p>
+				<div class="w-full mt-2">
+					<input
+						type="text"
+						bind:value={manualKey}
+						placeholder="Paste your decryption key here..."
+						class="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 font-mono text-sm"
+						onkeydown={(e) => e.key === 'Enter' && decryptWithManualKey()}
+					/>
+				</div>
+				<button
+					onclick={decryptWithManualKey}
+					disabled={!manualKey.trim()}
+					class="mt-2 px-6 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-500"
+				>
+					<Lock size={16} />
+					<span>Decrypt</span>
+				</button>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Success State - Display Content -->
+	{#if viewState === 'success'}
+		<!-- CodeMirror Viewer -->
+		<div class="flex-1 min-h-0 overflow-auto">
+			<CodeMirror
+				value={content}
+				lang={javascript()}
+				theme={oneDark}
+				extensions={[EditorView.lineWrapping, EditorView.editable.of(false)]}
+				editable={false}
+				styles={{
+					'&': {
+						height: '100%',
+						fontSize: '14px'
+					},
+					'.cm-scroller': {
+						overflow: 'auto'
+					}
+				}}
+			/>
+		</div>
+
+		<!-- Info Bar -->
+		<div class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500">
+			<span>Created {createdTimeAgo}</span>
+			<span>·</span>
+			<span>Expires in {expiresIn}</span>
+		</div>
+	{/if}
 
 	<!-- Footer badge -->
-	<div class="absolute bottom-4 right-4 flex items-center gap-2 text-xs text-zinc-500">
-		<span>🔒</span>
+	<div class="absolute bottom-4 right-4 flex items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
+		<Lock size={14} class="text-teal-500" />
 		<span>End-to-end encrypted</span>
 	</div>
 </div>

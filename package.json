@@ -43,6 +43,7 @@
 		"@codemirror/view": "^6.38.8",
 		"codemirror": "^6.0.2",
 		"lucide-svelte": "^0.556.0",
+		"nanoid": "^5.1.6",
 		"svelte-codemirror-editor": "^2.1.0",
 		"thememirror": "^2.0.1"
 	}
