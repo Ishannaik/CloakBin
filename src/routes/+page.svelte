@@ -349,12 +349,12 @@
 	</div>
 
 	<!-- Bottom bar -->
-	<div class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800">
+	<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800">
 		<div class="flex items-center gap-2">
-			<span class="text-zinc-500 text-sm">Theme:</span>
+			<span class="text-zinc-500 text-sm hidden sm:inline">Theme:</span>
 			<select
 				bind:value={selectedTheme}
-				class="bg-[#242830] border border-zinc-700 rounded px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+				class="bg-[#242830] border border-zinc-700 rounded px-2 sm:px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 			>
 				{#each Object.entries(themes) as [key, { name }]}
 					<option value={key}>{name}</option>
@@ -362,10 +362,10 @@
 			</select>
 		</div>
 		<div class="flex items-center gap-2">
-			<span class="text-zinc-500 text-sm">Expiry:</span>
+			<span class="text-zinc-500 text-sm hidden sm:inline">Expiry:</span>
 			<select
 				bind:value={expiry}
-				class="bg-[#242830] border border-zinc-700 rounded px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+				class="bg-[#242830] border border-zinc-700 rounded px-2 sm:px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 			>
 				{#each expiryOptions as option}
 					<option value={option.value}>{option.label}</option>
@@ -377,7 +377,7 @@
 			onclick={createPaste}
 			disabled={!content.trim() || isCreating}
 			title="{mod}+S"
-			class="px-6 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+			class="px-4 sm:px-6 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
 		>
 			{#if isCreating}
 				<span class="flex items-center gap-1">
@@ -394,8 +394,8 @@
 		</button>
 	</div>
 
-	<!-- Footer badge -->
-	<div class="absolute bottom-4 right-4 flex items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
+	<!-- Footer badge - hidden on mobile -->
+	<div class="hidden sm:flex absolute bottom-4 right-4 items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
 		<Lock size={14} class="text-teal-500" />
 		<span>End-to-end encrypted</span>
 	</div>

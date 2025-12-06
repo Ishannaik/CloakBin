@@ -252,46 +252,46 @@
 		</a>
 
 		{#if viewState === 'success'}
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-1 sm:gap-2">
 				<button
 					onclick={copyToClipboard}
-					class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+					class="p-2 sm:px-4 sm:py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if copied}
 						<Check size={16} />
-						<span>Copied!</span>
+						<span class="hidden sm:inline">Copied!</span>
 					{:else}
 						<Copy size={16} />
-						<span>Copy</span>
+						<span class="hidden sm:inline">Copy</span>
 					{/if}
 				</button>
 				<button
 					onclick={duplicatePaste}
 					title="{mod}+D"
-					class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+					class="p-2 sm:px-4 sm:py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
 				>
 					<Files size={16} />
-					<span>Duplicate</span>
+					<span class="hidden sm:inline">Duplicate</span>
 				</button>
 				<button
 					onclick={copyShareUrl}
 					title="{mod}+S"
-					class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+					class="p-2 sm:px-4 sm:py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if shareCopied}
 						<Check size={16} />
-						<span>Link Copied!</span>
+						<span class="hidden sm:inline">Link Copied!</span>
 					{:else}
 						<Share2 size={16} />
-						<span>Share</span>
+						<span class="hidden sm:inline">Share</span>
 					{/if}
 				</button>
 				<a
 					href="/"
-					class="px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2"
+					class="p-2 sm:px-4 sm:py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2"
 				>
 					<Plus size={16} />
-					<span>New</span>
+					<span class="hidden sm:inline">New</span>
 				</a>
 			</div>
 		{/if}
@@ -387,8 +387,8 @@
 		</div>
 	{/if}
 
-	<!-- Footer badge -->
-	<div class="absolute bottom-4 right-4 flex items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
+	<!-- Footer badge - hidden on mobile -->
+	<div class="hidden sm:flex absolute bottom-4 right-4 items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
 		<Lock size={14} class="text-teal-500" />
 		<span>End-to-end encrypted</span>
 	</div>
