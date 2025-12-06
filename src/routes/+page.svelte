@@ -18,14 +18,20 @@
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64 } from '$lib/crypto';
+	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// Large paste threshold - show loading indicator for pastes over 1M chars
 	const LARGE_PASTE_THRESHOLD = 1_000_000;
+
+	// OS detection for keyboard shortcut display
+	const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+	const mod = isMac ? '⌘' : 'Ctrl';
 
 	let content = $state('');
 	let expiry = $state('1h');
 	let selectedTheme = $state('oneDark');
 	let showDuplicateToast = $state(false);
+	let showShortcuts = $state(false);
 
 	// Check for duplicate content from view page (on initial load)
 	onMount(async () => {
@@ -190,6 +196,13 @@
 
 	// Global keyboard shortcuts handler
 	function handleKeydown(e: KeyboardEvent) {
+		// Show shortcuts modal on ? or Ctrl+/
+		if (e.key === '?' || ((e.ctrlKey || e.metaKey) && e.key === '/')) {
+			e.preventDefault();
+			showShortcuts = !showShortcuts;
+			return;
+		}
+
 		const isMod = e.ctrlKey || e.metaKey;
 
 		// Ctrl+S - Create paste
@@ -271,6 +284,7 @@
 		<!-- Primary: New -->
 		<button
 			onclick={handleNewClick}
+			title="{mod}+Shift+N"
 			class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {newButtonSuccess ? 'bg-green-500 hover:bg-green-400' : 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
 			style="transform: scale({$newButtonScale})"
 		>
@@ -330,6 +344,7 @@
 		<button
 			onclick={createPaste}
 			disabled={!content.trim() || isCreating}
+			title="{mod}+S"
 			class="px-6 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
 		>
 			{#if isCreating}
@@ -388,3 +403,5 @@
 		</div>
 	{/if}
 </div>
+
+<ShortcutsModal bind:open={showShortcuts} page="home" />

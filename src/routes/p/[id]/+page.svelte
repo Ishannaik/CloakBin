@@ -9,9 +9,15 @@
 	import { EditorView } from '@codemirror/view';
 	import logo from '$lib/assets/logo.png?enhanced';
 	import { Lock, Copy, Plus, Check, Files, Share2, Key } from 'lucide-svelte';
+	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
+
+	// OS detection for keyboard shortcut display
+	const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+	const mod = isMac ? '⌘' : 'Ctrl';
 
 	// State management
 	let content = $state('');
+	let showShortcuts = $state(false);
 	let viewState = $state<'loading' | 'error' | 'success' | 'needKey'>('loading');
 	let errorMessage = $state('');
 	let createdAt = $state<Date | null>(null);
@@ -131,7 +137,14 @@
 
 	// Global keyboard shortcuts handler
 	function handleKeydown(e: KeyboardEvent) {
-		// Only handle when viewing successfully
+		// Show shortcuts modal on ? or Ctrl+/
+		if (e.key === '?' || ((e.ctrlKey || e.metaKey) && e.key === '/')) {
+			e.preventDefault();
+			showShortcuts = !showShortcuts;
+			return;
+		}
+
+		// Only handle other shortcuts when viewing successfully
 		if (viewState !== 'success') return;
 
 		const isMod = e.ctrlKey || e.metaKey;
@@ -254,6 +267,7 @@
 				</button>
 				<button
 					onclick={duplicatePaste}
+					title="{mod}+D"
 					class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
 				>
 					<Files size={16} />
@@ -261,6 +275,7 @@
 				</button>
 				<button
 					onclick={copyShareUrl}
+					title="{mod}+S"
 					class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if shareCopied}
@@ -378,3 +393,5 @@
 		<span>End-to-end encrypted</span>
 	</div>
 </div>
+
+<ShortcutsModal bind:open={showShortcuts} page="view" />
