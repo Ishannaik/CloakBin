@@ -6,7 +6,12 @@
 	<!-- Main content -->
 	<div class="flex-1 flex flex-col items-center justify-center px-4">
 		<!-- Logo -->
-		<img src="/logo.png" alt="CloakBin" style="width: 64px; height: 64px; object-fit: contain;" class="mb-6 opacity-50" />
+		<img
+			src="/logo.png"
+			alt="CloakBin"
+			style="width: 64px; height: 64px; object-fit: contain;"
+			class="mb-6 opacity-50"
+		/>
 
 		<!-- Message -->
 		<h1 class="text-xl md:text-2xl font-semibold text-center mb-3">

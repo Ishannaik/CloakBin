@@ -32,7 +32,7 @@ encryptAndUpload(pasteContent, '1h');`);
 	function copyToClipboard() {
 		navigator.clipboard.writeText(content);
 		copied = true;
-		setTimeout(() => copied = false, 2000);
+		setTimeout(() => (copied = false), 2000);
 	}
 
 	function viewRaw() {
@@ -74,17 +74,22 @@ encryptAndUpload(pasteContent, '1h');`);
 	<!-- Content (read-only) -->
 	<div class="flex-1 flex">
 		<!-- Line numbers -->
-		<div class="w-14 bg-[#1e2228] text-zinc-600 text-right pr-4 py-4 select-none text-sm leading-6 font-mono">
+		<div
+			class="w-14 bg-[#1e2228] text-zinc-600 text-right pr-4 py-4 select-none text-sm leading-6 font-mono"
+		>
 			{#each Array(lineCount) as _, i}
 				<div>{i + 1}</div>
 			{/each}
 		</div>
 		<!-- Code display -->
-		<pre class="flex-1 py-4 px-2 text-sm leading-6 font-mono overflow-x-auto"><code>{content}</code></pre>
+		<pre class="flex-1 py-4 px-2 text-sm leading-6 font-mono overflow-x-auto"><code>{content}</code
+			></pre>
 	</div>
 
 	<!-- Bottom bar -->
-	<div class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500">
+	<div
+		class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500"
+	>
 		<span>Created 5 minutes ago</span>
 		<span>·</span>
 		<span>Expires in 55 minutes</span>

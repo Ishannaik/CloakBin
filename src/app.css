@@ -16,3 +16,117 @@ body {
 	color: var(--color-text);
 	font-family: 'JetBrains Mono', monospace;
 }
+
+/* Custom Scrollbar - Dark Theme */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: #3f3f46 transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: #3f3f46;
+	border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background: #52525b;
+}
+
+/* CodeMirror specific scrollbar */
+.cm-scroller {
+	scrollbar-width: thin;
+	scrollbar-color: #3f3f46 transparent;
+}
+
+.cm-scroller::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+.cm-scroller::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb {
+	background: #3f3f46;
+	border-radius: 5px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+.cm-scroller::-webkit-scrollbar-thumb:hover {
+	background: #52525b;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+.cm-scroller::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+/* Micro-interaction animations */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fade-in {
+	animation: fade-in 0.15s ease-out;
+}
+
+.animate-scale-in {
+	animation: scale-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-slide-up {
+	animation: slide-up 0.2s ease-out;
+}
+
+/* Bouncing dots loader - bounce then pause */
+@keyframes bounce-dot {
+	0%, 20%, 100% {
+		transform: translateY(0);
+	}
+	10% {
+		transform: translateY(-4px);
+	}
+}
+
+.animate-bounce-dot {
+	animation: bounce-dot 1.4s ease-in-out infinite;
+}
