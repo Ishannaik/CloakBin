@@ -5,7 +5,10 @@
  * Success: {
  *   content: string,
  *   createdAt: string,
- *   expiresAt: string
+ *   expiresAt: string,
+ *   hasPassword: boolean,
+ *   salt?: string,
+ *   burnAfterRead: boolean
  * }
  * Error: { error: string }
  */
@@ -54,12 +57,23 @@ export const GET: RequestHandler = async ({ params }) => {
 			);
 		}
 
-		// Return paste data
-		return json({
+		// Prepare response data
+		const responseData = {
 			content: paste.content,
 			createdAt: paste.createdAt.toISOString(),
-			expiresAt: paste.expiresAt.toISOString()
-		});
+			expiresAt: paste.expiresAt.toISOString(),
+			hasPassword: paste.hasPassword,
+			salt: paste.salt ?? undefined,
+			burnAfterRead: paste.burnAfterRead
+		};
+
+		// If burn after read is enabled, delete the paste AFTER preparing the response
+		if (paste.burnAfterRead) {
+			await db.deletePaste(id);
+		}
+
+		// Return paste data
+		return json(responseData);
 
 	} catch (error) {
 		console.error('Error retrieving paste:', error);

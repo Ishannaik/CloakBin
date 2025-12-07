@@ -15,6 +15,8 @@ export class CloudflareKVAdapter implements DatabaseAdapter {
 	async createPaste(input: CreatePasteInput): Promise<Result<{ id: string }>> {
 		// TODO: Implement
 		// - Generate unique ID with nanoid
+		// - Create paste object with hasPassword, salt, burnAfterRead fields
+		// - Default values: hasPassword=false, salt=null, burnAfterRead=false
 		// - kv.put(id, JSON.stringify(paste), { expirationTtl: seconds })
 		throw new Error('TODO: Implement createPaste');
 	}
@@ -22,7 +24,8 @@ export class CloudflareKVAdapter implements DatabaseAdapter {
 	async getPaste(id: string): Promise<Result<Paste | null>> {
 		// TODO: Implement
 		// - kv.get(id, 'json')
-		// - KV doesn't support atomic increment, need workaround for viewCount
+		// - Parse paste including hasPassword, salt, burnAfterRead fields
+		// - If burnAfterRead is true, kv.delete(id) after reading (no view tracking for privacy)
 		throw new Error('TODO: Implement getPaste');
 	}
 

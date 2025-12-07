@@ -4,7 +4,9 @@
  * Request body:
  * {
  *   content: string,    // encrypted ciphertext
- *   expiry: "1h" | "24h" | "7d"
+ *   expiry: "1h" | "24h" | "7d",
+ *   salt?: string,      // optional salt for password-protected pastes
+ *   burnAfterRead?: boolean  // optional burn after read flag
  * }
  *
  * Response:
@@ -29,6 +31,8 @@ type ExpiryOption = keyof typeof EXPIRY_DURATIONS;
 interface CreatePasteRequest {
 	content: string;
 	expiry: ExpiryOption;
+	salt?: string;
+	burnAfterRead?: boolean;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -44,7 +48,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			);
 		}
 
-		const { content, expiry } = body;
+		const { content, expiry, salt, burnAfterRead } = body;
 
 		// Validate content
 		if (typeof content !== 'string') {
@@ -82,7 +86,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Create paste in database
 		const result = await db.createPaste({
 			content,
-			expiresAt
+			expiresAt,
+			hasPassword: !!salt,
+			salt: salt,
+			burnAfterRead: burnAfterRead ?? false
 		});
 
 		if (!result.success) {

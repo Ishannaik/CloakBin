@@ -2,13 +2,13 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { decrypt, base64ToKey } from '$lib/crypto';
+	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
 	import CodeMirror from 'svelte-codemirror-editor';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView } from '@codemirror/view';
 	import logo from '$lib/assets/logo.png?enhanced';
-	import { Lock, Copy, Plus, Check, Files, Share2, Key } from 'lucide-svelte';
+	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// OS detection for keyboard shortcut display
@@ -18,7 +18,7 @@
 	// State management
 	let content = $state('');
 	let showShortcuts = $state(false);
-	let viewState = $state<'loading' | 'error' | 'success' | 'needKey'>('loading');
+	let viewState = $state<'loading' | 'error' | 'success' | 'needKey' | 'needPassword' | 'burnWarning'>('loading');
 	let errorMessage = $state('');
 	let createdAt = $state<Date | null>(null);
 	let expiresAt = $state<Date | null>(null);
@@ -27,6 +27,9 @@
 	let manualKey = $state('');
 	let encryptedContent = $state(''); // Store encrypted content for manual key entry
 	let pasteMetadata = $state<{ createdAt: string; expiresAt: string } | null>(null);
+	let passwordInput = $state('');
+	let showBurnWarning = $state(false);
+	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string } | null>(null);
 
 	// Format relative time
 	function formatRelativeTime(date: Date): string {
@@ -116,6 +119,51 @@
 		}
 	}
 
+	// Decrypt with password
+	async function decryptWithPassword() {
+		if (!passwordInput.trim() || !pasteData) return;
+		try {
+			const key = await deriveKeyFromPassword(passwordInput, pasteData.salt!);
+			const decryptedContent = await decrypt(pasteData.content, key);
+			content = decryptedContent;
+			createdAt = new Date(pasteData.createdAt);
+			expiresAt = new Date(pasteData.expiresAt);
+			viewState = 'success';
+		} catch (e) {
+			errorMessage = 'Wrong password or decryption failed';
+		}
+	}
+
+	// Confirm burn and view
+	async function confirmBurnAndView() {
+		showBurnWarning = false;
+		if (!pasteData) return;
+
+		try {
+			// Get encryption key from URL hash
+			const urlHash = window.location.hash.slice(1);
+			if (!urlHash) {
+				viewState = 'needKey';
+				return;
+			}
+
+			const key = await base64ToKey(urlHash);
+			const decryptedContent = await decrypt(pasteData.content, key);
+			content = decryptedContent;
+			createdAt = new Date(pasteData.createdAt);
+			expiresAt = new Date(pasteData.expiresAt);
+			viewState = 'success';
+
+			// Delete the paste after viewing
+			const pasteId = $page.params.id;
+			await fetch(`/api/paste/${pasteId}`, { method: 'DELETE' });
+		} catch (error) {
+			console.error('Decryption failed:', error);
+			viewState = 'error';
+			errorMessage = 'Failed to decrypt. Invalid key?';
+		}
+	}
+
 	// Select all content in the editor using native DOM Selection API
 	function selectAllContent() {
 		const contentEl = document.querySelector('.cm-content');
@@ -201,9 +249,31 @@
 
 			const data = await response.json();
 
+			// Store paste data for password/burn handling
+			pasteData = {
+				content: data.content,
+				hasPassword: data.hasPassword || false,
+				salt: data.salt,
+				burnAfterRead: data.burnAfterRead || false,
+				createdAt: data.createdAt,
+				expiresAt: data.expiresAt
+			};
+
 			// Store encrypted content and metadata for potential manual key entry
 			encryptedContent = data.content;
 			pasteMetadata = { createdAt: data.createdAt, expiresAt: data.expiresAt };
+
+			// If password-protected, show password prompt
+			if (pasteData.hasPassword) {
+				viewState = 'needPassword';
+				return;
+			}
+
+			// If burn after read, show warning
+			if (pasteData.burnAfterRead) {
+				viewState = 'burnWarning';
+				return;
+			}
 
 			// Get encryption key from URL hash
 			const urlHash = window.location.hash.slice(1); // Remove '#'
@@ -353,6 +423,56 @@
 					<Lock size={16} />
 					<span>Decrypt</span>
 				</button>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Need Password State - Ask user to enter password -->
+	{#if viewState === 'needPassword'}
+		<div class="flex-1 flex items-center justify-center">
+			<div class="bg-zinc-800 rounded-lg p-8 max-w-md text-center">
+				<Lock size={48} class="mx-auto mb-4 text-teal-500" />
+				<h2 class="text-xl font-semibold mb-2">Password Protected</h2>
+				<p class="text-zinc-400 mb-4">Enter the password to decrypt this paste.</p>
+				<input
+					type="password"
+					bind:value={passwordInput}
+					placeholder="Enter password..."
+					class="w-full bg-zinc-900 border border-zinc-700 rounded px-4 py-2 mb-4"
+					onkeydown={(e) => e.key === 'Enter' && decryptWithPassword()}
+				/>
+				<button
+					onclick={decryptWithPassword}
+					class="w-full px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium hover:bg-teal-400"
+				>
+					Decrypt
+				</button>
+				{#if errorMessage}
+					<p class="text-red-400 mt-2 text-sm">{errorMessage}</p>
+				{/if}
+			</div>
+		</div>
+	{/if}
+
+	<!-- Burn Warning State - Warn user before viewing burn-after-read paste -->
+	{#if viewState === 'burnWarning'}
+		<div class="flex-1 flex items-center justify-center">
+			<div class="bg-zinc-800 rounded-lg p-8 max-w-md text-center">
+				<Flame size={48} class="mx-auto mb-4 text-orange-500" />
+				<h2 class="text-xl font-semibold mb-2">Burn After Read</h2>
+				<p class="text-zinc-400 mb-4">This paste will be <strong>permanently deleted</strong> after you view it.</p>
+				<p class="text-zinc-500 text-sm mb-6">You cannot view it again. Make sure to copy the content if needed.</p>
+				<div class="flex gap-3">
+					<a href="/" class="flex-1 px-4 py-2 bg-zinc-700 text-zinc-100 rounded font-medium hover:bg-zinc-600">
+						Cancel
+					</a>
+					<button
+						onclick={confirmBurnAndView}
+						class="flex-1 px-4 py-2 bg-orange-500 text-zinc-900 rounded font-medium hover:bg-orange-400"
+					>
+						View & Delete
+					</button>
+				</div>
 			</div>
 		</div>
 	{/if}

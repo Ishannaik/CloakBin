@@ -17,15 +17,16 @@ export class RedisAdapter implements DatabaseAdapter {
 		// TODO: Implement
 		// - Generate unique ID with nanoid
 		// - Use SET with EX option for automatic expiry
-		// - Store as JSON string
+		// - Store as JSON string with fields: content, expiresAt, hasPassword, salt, burnAfterRead
+		// - Default values: hasPassword=false, salt=null, burnAfterRead=false
 		throw new Error('TODO: Implement createPaste');
 	}
 
 	async getPaste(id: string): Promise<Result<Paste | null>> {
 		// TODO: Implement
 		// - GET by key (paste:{id})
-		// - Parse JSON
-		// - Increment viewCount with separate INCR
+		// - Parse JSON (includes hasPassword, salt, burnAfterRead)
+		// - If burnAfterRead is true, DEL the paste after reading (no view tracking for privacy)
 		throw new Error('TODO: Implement getPaste');
 	}
 

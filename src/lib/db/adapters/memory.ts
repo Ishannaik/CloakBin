@@ -16,7 +16,10 @@ export class MemoryAdapter implements DatabaseAdapter {
 			content: input.content,
 			createdAt: new Date(),
 			expiresAt: input.expiresAt,
-			viewCount: 0
+			// No viewCount - privacy first
+			hasPassword: input.hasPassword ?? false,
+			salt: input.salt ?? null,
+			burnAfterRead: input.burnAfterRead ?? false
 		};
 		this.pastes.set(id, paste);
 		return { success: true, data: { id } };
@@ -36,8 +39,10 @@ export class MemoryAdapter implements DatabaseAdapter {
 			return { success: true, data: null };
 		}
 
-		// Increment view count
-		paste.viewCount++;
+		// Delete if burn after read (no view tracking for privacy)
+		if (paste.burnAfterRead) {
+			this.pastes.delete(id);
+		}
 
 		return { success: true, data: paste };
 	}

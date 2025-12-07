@@ -17,7 +17,7 @@
 	import { Lock, Files, Upload, WifiOff } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
-	import { generateKey, encrypt, keyToBase64 } from '$lib/crypto';
+	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// Large paste threshold - show loading indicator for pastes over 1M chars
@@ -33,6 +33,9 @@
 	let showDuplicateToast = $state(false);
 	let showShortcuts = $state(false);
 	let isOffline = $state(false);
+	let usePassword = $state(false);
+	let password = $state('');
+	let burnAfterRead = $state(false);
 
 	// Check for duplicate content from view page (on initial load)
 	onMount(async () => {
@@ -253,23 +256,38 @@
 
 	async function createPaste() {
 		if (!content.trim()) return;
+		if (usePassword && !password.trim()) return;
 		isCreating = true;
 
 		try {
-			// 1. Generate encryption key
-			const key = await generateKey();
+			let key: CryptoKey;
+			let salt: string | null = null;
+			let urlKey: string | null = null;
 
-			// 2. Encrypt content
+			if (usePassword && password.trim()) {
+				// Password-protected paste: derive key from password
+				salt = generateSalt();
+				key = await deriveKeyFromPassword(password, salt);
+				// No URL key needed - password IS the key
+			} else {
+				// Regular paste: generate random key for URL
+				key = await generateKey();
+				urlKey = await keyToBase64(key);
+			}
+
+			// Encrypt content
 			const encrypted = await encrypt(content, key);
 
-			// 3. Export key for URL
-			const urlKey = await keyToBase64(key);
-
-			// 4. POST to API
+			// POST to API
 			const res = await fetch('/api/paste', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ content: encrypted, expiry })
+				body: JSON.stringify({
+					content: encrypted,
+					expiry,
+					salt,
+					burnAfterRead
+				})
 			});
 
 			if (!res.ok) {
@@ -277,14 +295,20 @@
 				throw new Error(error || 'Failed to create paste');
 			}
 
-			// 5. Handle response
+			// Handle response
 			const { id } = await res.json();
 
 			// Clear draft on successful create
 			localStorage.removeItem('cloakbin_draft');
 
-			// Redirect to view page with key in URL fragment
-			await goto(`/p/${id}#${urlKey}`);
+			// Redirect to view page
+			if (urlKey) {
+				// Regular paste: key in URL fragment
+				await goto(`/p/${id}#${urlKey}`);
+			} else {
+				// Password-protected: no key in URL
+				await goto(`/p/${id}`);
+			}
 		} catch (error) {
 			console.error('Error creating paste:', error);
 			alert(error instanceof Error ? error.message : 'Failed to create paste. Please try again.');
@@ -372,10 +396,38 @@
 				{/each}
 			</select>
 		</div>
+		<!-- Password toggle -->
+		<label class="flex items-center gap-1.5 cursor-pointer">
+			<input
+				type="checkbox"
+				bind:checked={usePassword}
+				class="w-4 h-4 accent-teal-500 cursor-pointer"
+			/>
+			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
+			<Lock size={14} class="text-zinc-400 sm:hidden" />
+		</label>
+		{#if usePassword}
+			<input
+				type="password"
+				bind:value={password}
+				placeholder="Password..."
+				class="bg-[#242830] border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
+			/>
+		{/if}
+		<!-- Burn toggle -->
+		<label class="flex items-center gap-1.5 cursor-pointer" title="Delete after first view">
+			<input
+				type="checkbox"
+				bind:checked={burnAfterRead}
+				class="w-4 h-4 accent-orange-500 cursor-pointer"
+			/>
+			<span class="text-zinc-400 text-sm hidden sm:inline">Burn</span>
+			<span class="text-orange-500 sm:hidden">🔥</span>
+		</label>
 		<!-- Primary: Create -->
 		<button
 			onclick={createPaste}
-			disabled={!content.trim() || isCreating}
+			disabled={!content.trim() || isCreating || (usePassword && !password.trim())}
 			title="{mod}+S"
 			class="px-4 sm:px-6 py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
 		>

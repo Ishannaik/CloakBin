@@ -152,3 +152,52 @@ export async function base64ToKey(base64: string): Promise<CryptoKey> {
 		['encrypt', 'decrypt']
 	);
 }
+
+/**
+ * Generate random salt for PBKDF2 key derivation
+ * @returns Base64-encoded salt string
+ */
+export function generateSalt(): string {
+	const salt = crypto.getRandomValues(new Uint8Array(16));
+	return btoa(String.fromCharCode(...salt));
+}
+
+/**
+ * Derive encryption key from password using PBKDF2
+ * This is used for password-protected pastes instead of random key generation
+ *
+ * @param password - User's password
+ * @param saltBase64 - Base64-encoded salt
+ * @returns CryptoKey for encryption/decryption
+ */
+export async function deriveKeyFromPassword(
+	password: string,
+	saltBase64: string
+): Promise<CryptoKey> {
+	// Decode salt from base64
+	const salt = Uint8Array.from(atob(saltBase64), (c) => c.charCodeAt(0));
+
+	// Import password as key material
+	const encoder = new TextEncoder();
+	const passwordKey = await crypto.subtle.importKey(
+		'raw',
+		encoder.encode(password),
+		'PBKDF2',
+		false,
+		['deriveBits', 'deriveKey']
+	);
+
+	// Derive AES key from password
+	return crypto.subtle.deriveKey(
+		{
+			name: 'PBKDF2',
+			salt: salt,
+			iterations: 100000,
+			hash: 'SHA-256'
+		},
+		passwordKey,
+		{ name: 'AES-GCM', length: 256 },
+		true,
+		['encrypt', 'decrypt']
+	);
+}

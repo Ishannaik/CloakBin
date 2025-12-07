@@ -7,7 +7,7 @@
 
 // TODO: Define Zod schemas for input validation
 // - CreatePasteInput: content (string, max 10MB), expiresAt (Date)
-// - Paste: id, content, createdAt, expiresAt, viewCount
+// - Paste: id, content, createdAt, expiresAt (no viewCount for privacy)
 
 // TODO: Define Result type for consistent error handling
 // - { success: true, data: T } or { success: false, error: string }
@@ -24,12 +24,19 @@ export interface Paste {
 	content: string; // encrypted ciphertext
 	createdAt: Date;
 	expiresAt: Date;
-	viewCount: number;
+	// Privacy: No viewCount tracking - zero-knowledge principle
+	hasPassword: boolean;      // true if password-protected
+	salt: string | null;       // PBKDF2 salt (null if no password)
+	burnAfterRead: boolean;    // true if delete after first view
 }
 
 export interface CreatePasteInput {
 	content: string;
 	expiresAt: Date;
+	// NEW FIELDS:
+	hasPassword?: boolean;
+	salt?: string | null;
+	burnAfterRead?: boolean;
 }
 
 export type Result<T> =

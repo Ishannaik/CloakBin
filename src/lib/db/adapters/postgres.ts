@@ -15,7 +15,10 @@ CREATE TABLE pastes (
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   expires_at TIMESTAMP NOT NULL,
-  view_count INTEGER DEFAULT 0
+  view_count INTEGER DEFAULT 0,
+  has_password BOOLEAN DEFAULT FALSE,
+  salt TEXT,
+  burn_after_read BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX idx_pastes_expires_at ON pastes(expires_at);
@@ -28,7 +31,8 @@ export class PostgresAdapter implements DatabaseAdapter {
 	async createPaste(input: CreatePasteInput): Promise<Result<{ id: string }>> {
 		// TODO: Implement
 		// - Generate unique ID with nanoid
-		// - INSERT INTO pastes
+		// - INSERT INTO pastes (content, expires_at, has_password, salt, burn_after_read)
+		// - Default values: has_password=false, salt=null, burn_after_read=false
 		throw new Error('TODO: Implement createPaste');
 	}
 
@@ -36,6 +40,8 @@ export class PostgresAdapter implements DatabaseAdapter {
 		// TODO: Implement
 		// - SELECT WHERE id = ? AND expires_at > NOW()
 		// - UPDATE view_count = view_count + 1
+		// - If burn_after_read is true, DELETE the paste after reading
+		// - Return all fields including has_password, salt, burn_after_read
 		throw new Error('TODO: Implement getPaste');
 	}
 
