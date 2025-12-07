@@ -58,6 +58,8 @@ export const GET: RequestHandler = async ({ params }) => {
 		}
 
 		// Prepare response data
+		// NOTE: Do NOT delete burn-after-read pastes here!
+		// The client shows a warning first, then calls DELETE explicitly after user confirms.
 		const responseData = {
 			content: paste.content,
 			createdAt: paste.createdAt.toISOString(),
@@ -67,16 +69,42 @@ export const GET: RequestHandler = async ({ params }) => {
 			burnAfterRead: paste.burnAfterRead
 		};
 
-		// If burn after read is enabled, delete the paste AFTER preparing the response
-		if (paste.burnAfterRead) {
-			await db.deletePaste(id);
-		}
-
 		// Return paste data
 		return json(responseData);
 
 	} catch (error) {
 		console.error('Error retrieving paste:', error);
+		return json(
+			{ error: 'Internal server error' },
+			{ status: 500 }
+		);
+	}
+};
+
+export const DELETE: RequestHandler = async ({ params }) => {
+	try {
+		const { id } = params;
+
+		if (!id || typeof id !== 'string' || id.trim().length === 0) {
+			return json(
+				{ error: 'Invalid paste ID' },
+				{ status: 400 }
+			);
+		}
+
+		const result = await db.deletePaste(id);
+
+		if (!result.success) {
+			return json(
+				{ error: result.error },
+				{ status: 500 }
+			);
+		}
+
+		return json({ success: true });
+
+	} catch (error) {
+		console.error('Error deleting paste:', error);
 		return json(
 			{ error: 'Internal server error' },
 			{ status: 500 }
