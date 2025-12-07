@@ -6,6 +6,52 @@
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// ============================================
+	// CSRF PROTECTION
+	// ============================================
+	// For state-changing requests (POST, PUT, DELETE), verify the request
+	// came from our own site by checking the Origin header.
+	// This prevents evil.com from tricking users into making requests.
+
+	if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(event.request.method)) {
+		const origin = event.request.headers.get('origin');
+		const host = event.request.headers.get('host');
+
+		// Origin header is sent by browsers on cross-origin requests
+		// If it exists and doesn't match our host, reject the request
+		if (origin) {
+			try {
+				const originHost = new URL(origin).host;
+				if (originHost !== host) {
+					console.warn(`CSRF blocked: origin=${origin}, host=${host}`);
+					return new Response('Forbidden - CSRF protection', { status: 403 });
+				}
+			} catch {
+				// Invalid origin URL
+				return new Response('Forbidden - Invalid origin', { status: 403 });
+			}
+		}
+
+		// Also check Referer as fallback (some browsers don't send Origin)
+		// Only check if Origin was missing
+		if (!origin) {
+			const referer = event.request.headers.get('referer');
+			if (referer) {
+				try {
+					const refererHost = new URL(referer).host;
+					if (refererHost !== host) {
+						console.warn(`CSRF blocked: referer=${referer}, host=${host}`);
+						return new Response('Forbidden - CSRF protection', { status: 403 });
+					}
+				} catch {
+					// Invalid referer URL - allow (some privacy tools strip referer)
+				}
+			}
+			// If neither Origin nor Referer present, allow the request
+			// This handles direct API calls, curl, etc.
+		}
+	}
+
 	// Run the actual route handler
 	const response = await resolve(event);
 
