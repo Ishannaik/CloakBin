@@ -7,7 +7,8 @@
 		Settings,
 		LogOut,
 		Menu,
-		X
+		X,
+		ExternalLink
 	} from 'lucide-svelte';
 	import { page } from '$app/stores';
 
@@ -49,12 +50,17 @@
 		{sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
 	>
 		<!-- Logo -->
-		<div class="flex h-16 items-center gap-3 border-b border-zinc-800 px-6">
-			<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/20">
-				<span class="text-lg font-bold text-teal-400">C</span>
+		<div class="flex h-16 items-center justify-between border-b border-zinc-800 px-4">
+			<div class="flex items-center gap-2">
+				<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/20">
+					<span class="text-lg font-bold text-teal-400">C</span>
+				</div>
+				<span class="text-lg font-semibold text-zinc-100">CloakBin</span>
+				<span class="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-400">Admin</span>
 			</div>
-			<span class="text-lg font-semibold text-zinc-100">CloakBin</span>
-			<span class="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-400">Admin</span>
+			<a href="/" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Back to Site">
+				<ExternalLink class="h-4 w-4" />
+			</a>
 		</div>
 
 		<!-- Navigation -->

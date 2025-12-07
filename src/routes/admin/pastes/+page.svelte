@@ -2,11 +2,16 @@
 	import {
 		FileText, Lock, Flame, Trash2, Flag, Eye, MoreVertical,
 		Search, Filter, CheckSquare, Square, AlertTriangle, Ban, Download, RefreshCw,
-		ChevronUp, ChevronDown, X
+		ChevronUp, ChevronDown, X, ChevronLeft, ChevronRight
 	} from 'lucide-svelte';
 
 	type SortField = 'id' | 'size' | 'created' | 'expires' | null;
 	type SortDirection = 'asc' | 'desc';
+
+	// Pagination
+	let currentPage = $state(1);
+	let itemsPerPage = $state(10);
+	const itemsPerPageOptions = [10, 25, 50, 100];
 
 	// Raw paste data with numeric values for sorting
 	let pastesRaw = $state([
@@ -108,6 +113,27 @@
 	});
 
 	const expiryOptions = ['all', '1h', '24h', '7d', '30d', 'Never'];
+
+	// Pagination derived values
+	const totalPages = $derived(Math.ceil(filteredPastes.length / itemsPerPage));
+	const paginatedPastes = $derived.by(() => {
+		const start = (currentPage - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		return filteredPastes.slice(start, end);
+	});
+
+	// Reset to page 1 when filters/search change
+	$effect(() => {
+		// Dependencies: filters, searchQuery, itemsPerPage
+		filters; searchQuery; itemsPerPage;
+		currentPage = 1;
+	});
+
+	function goToPage(page: number) {
+		if (page >= 1 && page <= totalPages) {
+			currentPage = page;
+		}
+	}
 </script>
 
 <svelte:head><title>Pastes | CloakBin Admin</title></svelte:head>
@@ -193,7 +219,7 @@
 		</div>
 	{/if}
 
-	<div class="overflow-hidden rounded-lg border border-zinc-800 bg-[#242830]">
+	<div class="overflow-visible rounded-lg border border-zinc-800 bg-[#242830]">
 		<table class="w-full">
 			<thead>
 				<tr class="border-b border-zinc-800 text-left text-xs uppercase text-zinc-500">
@@ -235,7 +261,7 @@
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-zinc-800">
-				{#each filteredPastes as paste, i}
+				{#each paginatedPastes as paste, i}
 					<tr class="hover:bg-zinc-800/50 {paste.flagged ? 'bg-red-500/5' : ''}">
 						<td class="px-4 py-3"><button onclick={() => toggleSelect(paste.id)}>{#if paste.selected}<CheckSquare class="h-4 w-4 text-teal-400" />{:else}<Square class="h-4 w-4 text-zinc-500" />{/if}</button></td>
 						<td class="px-4 py-3">
@@ -259,7 +285,7 @@
 									<MoreVertical class="h-4 w-4 text-zinc-400" />
 								</button>
 								{#if activeDropdown === paste.id}
-									<div class="absolute right-0 z-10 w-44 rounded-lg border border-zinc-700 bg-zinc-800 py-1 shadow-xl {i >= filteredPastes.length - 2 ? 'bottom-full mb-1' : 'top-full mt-1'}">
+									<div class="absolute right-0 z-10 w-44 rounded-lg border border-zinc-700 bg-zinc-800 py-1 shadow-xl {i >= Math.max(2, paginatedPastes.length - 3) ? 'bottom-full mb-1' : 'top-full mt-1'}">
 										<a href="/p/{paste.id}" target="_blank" class="flex items-center gap-2 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-700"><Eye class="h-4 w-4" /> View</a>
 										<button onclick={() => flagPaste(paste.id)} class="flex w-full items-center gap-2 px-3 py-2 text-sm text-amber-400 hover:bg-zinc-700"><Flag class="h-4 w-4" /> {paste.flagged ? 'Unflag' : 'Flag DMCA'}</button>
 										<button class="flex w-full items-center gap-2 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-700"><Ban class="h-4 w-4" /> Block IP</button>
@@ -277,4 +303,52 @@
 			<div class="px-4 py-12 text-center"><FileText class="mx-auto h-8 w-8 text-zinc-600" /><p class="mt-2 text-sm text-zinc-400">No pastes found</p></div>
 		{/if}
 	</div>
+
+	<!-- Pagination -->
+	{#if filteredPastes.length > 0}
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<div class="flex items-center gap-2">
+				<span class="text-sm text-zinc-400">Rows per page:</span>
+				<select bind:value={itemsPerPage}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none">
+					{#each itemsPerPageOptions as opt}
+						<option value={opt}>{opt}</option>
+					{/each}
+				</select>
+				<span class="text-sm text-zinc-500 ml-2">
+					Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredPastes.length)} of {filteredPastes.length}
+				</span>
+			</div>
+			<div class="flex items-center gap-1">
+				<button onclick={() => goToPage(1)} disabled={currentPage === 1}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-200 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed">
+					First
+				</button>
+				<button onclick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 p-1.5 text-zinc-200 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed">
+					<ChevronLeft class="h-4 w-4" />
+				</button>
+				{#each Array(Math.min(5, totalPages)) as _, i}
+					{@const pageNum = totalPages <= 5 ? i + 1 :
+						currentPage <= 3 ? i + 1 :
+						currentPage >= totalPages - 2 ? totalPages - 4 + i :
+						currentPage - 2 + i}
+					{#if pageNum >= 1 && pageNum <= totalPages}
+						<button onclick={() => goToPage(pageNum)}
+							class="rounded-lg border px-3 py-1.5 text-sm {currentPage === pageNum ? 'border-teal-500 bg-teal-500/20 text-teal-400' : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'}">
+							{pageNum}
+						</button>
+					{/if}
+				{/each}
+				<button onclick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 p-1.5 text-zinc-200 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed">
+					<ChevronRight class="h-4 w-4" />
+				</button>
+				<button onclick={() => goToPage(totalPages)} disabled={currentPage === totalPages}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-200 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed">
+					Last
+				</button>
+			</div>
+		</div>
+	{/if}
 </div>

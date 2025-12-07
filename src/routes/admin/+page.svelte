@@ -88,10 +88,10 @@
 		<div class="flex items-center gap-3 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-3">
 			<span class="text-sm text-zinc-400">From:</span>
 			<input type="date" bind:value={customStartDate}
-				class="rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-1.5 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none" />
+				class="rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-1.5 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [color-scheme:dark]" />
 			<span class="text-sm text-zinc-400">To:</span>
 			<input type="date" bind:value={customEndDate}
-				class="rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-1.5 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none" />
+				class="rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-1.5 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [color-scheme:dark]" />
 			<button class="rounded-lg bg-teal-500 px-4 py-1.5 text-sm font-medium text-zinc-900 hover:bg-teal-400">
 				Apply
 			</button>
