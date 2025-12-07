@@ -401,7 +401,7 @@
 			<input
 				type="checkbox"
 				bind:checked={usePassword}
-				class="w-4 h-4 accent-teal-500 cursor-pointer"
+				class="w-4 h-4 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-teal-500 checked:border-teal-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-[10px] checked:after:text-zinc-900 checked:after:font-bold"
 			/>
 			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
 			<Lock size={14} class="text-zinc-400 sm:hidden" />
@@ -419,7 +419,7 @@
 			<input
 				type="checkbox"
 				bind:checked={burnAfterRead}
-				class="w-4 h-4 accent-orange-500 cursor-pointer"
+				class="w-4 h-4 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-orange-500 checked:border-orange-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-[10px] checked:after:text-zinc-900 checked:after:font-bold"
 			/>
 			<span class="text-zinc-400 text-sm hidden sm:inline">Burn</span>
 			<span class="text-orange-500 sm:hidden">🔥</span>
