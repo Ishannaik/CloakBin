@@ -80,5 +80,23 @@ export const handle: Handle = async ({ event, resolve }) => {
 		].join('; ')
 	);
 
+	// 9. Cache-Control: Prevent caching of sensitive paste pages
+	// Without this, browser caches decrypted content - someone hitting "back" sees it
+	// no-store = don't cache at all, must re-fetch
+	// private = only browser can cache (not proxies), but we say no-store anyway
+	if (event.url.pathname.startsWith('/p/') || event.url.pathname.startsWith('/r/')) {
+		response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+	}
+
+	// 10. Cross-Origin-Opener-Policy (COOP): Isolate from cross-origin windows
+	// Prevents other sites from opening your site and accessing window properties
+	// same-origin = only same-origin windows can reference each other
+	response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+
+	// 11. Cross-Origin-Resource-Policy (CORP): Control who can load your resources
+	// Prevents other sites from embedding your resources (images, scripts, etc.)
+	// same-origin = only your site can load your resources
+	response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+
 	return response;
 };
