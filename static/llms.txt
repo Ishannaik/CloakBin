@@ -1,0 +1,48 @@
+# CloakBin
+
+> Zero-knowledge encrypted pastebin for sharing secrets safely.
+
+## What is CloakBin?
+
+CloakBin is a privacy-first pastebin that uses client-side encryption. Your data is encrypted in your browser before it ever reaches our servers. We never see your plaintext content.
+
+## How it works
+
+1. You paste your content
+2. Content is encrypted with AES-256-GCM in your browser
+3. Only the encrypted blob is sent to our server
+4. The encryption key stays in your URL fragment (never sent to server)
+5. Recipients decrypt in their browser using the key from the URL
+
+## Features
+
+- **Zero-knowledge encryption**: Server never sees plaintext
+- **Password protection**: Add an extra layer of encryption
+- **Burn after read**: Paste self-destructs after first view
+- **Expiry options**: 1 hour, 24 hours, or 7 days
+- **No tracking**: No accounts, no cookies, no analytics
+- **Open source**: Code available on GitHub
+
+## Technical Details
+
+- Encryption: AES-256-GCM via Web Crypto API
+- Password protection: PBKDF2 key derivation
+- Framework: SvelteKit
+- Database: MongoDB with TTL indexes
+
+## Privacy Commitment
+
+- No user accounts required
+- No cookies for tracking
+- No analytics or third-party scripts
+- Encryption keys never leave your browser
+- Pastes auto-expire and are permanently deleted
+
+## Links
+
+- Website: https://cloakbin.vercel.app
+- GitHub: https://github.com/Ishannaik/CloakBin
+
+## Contact
+
+For security issues, please report via GitHub issues.

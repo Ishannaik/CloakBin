@@ -1,0 +1,3 @@
+Contact: https://github.com/Ishannaik/CloakBin/issues
+Preferred-Languages: en
+Canonical: https://cloakbin.vercel.app/.well-known/security.txt

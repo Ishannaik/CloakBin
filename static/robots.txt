@@ -1,3 +1,9 @@
-# allow crawling everything by default
+# CloakBin robots.txt
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /p/
+Disallow: /r/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://cloakbin.vercel.app/sitemap.xml
