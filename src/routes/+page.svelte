@@ -30,6 +30,13 @@
 	let content = $state('');
 	let expiry = $state('1h');
 	let selectedTheme = $state('oneDark');
+
+	// Persist theme to localStorage when it changes
+	$effect(() => {
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem('cloakbin_theme', selectedTheme);
+		}
+	});
 	let showDuplicateToast = $state(false);
 	let showShortcuts = $state(false);
 	let isOffline = $state(false);
@@ -40,6 +47,12 @@
 	// Check for duplicate content from view page (on initial load)
 	onMount(async () => {
 		await checkForDuplicate();
+
+		// Restore theme from localStorage
+		const savedTheme = localStorage.getItem('cloakbin_theme');
+		if (savedTheme && savedTheme in themes) {
+			selectedTheme = savedTheme;
+		}
 
 		// Restore draft from localStorage
 		const draft = localStorage.getItem('cloakbin_draft');
@@ -300,6 +313,7 @@
 
 			// Clear draft on successful create
 			localStorage.removeItem('cloakbin_draft');
+			content = ''; // Clear content so back button shows empty editor
 
 			// Redirect to view page
 			if (urlKey) {

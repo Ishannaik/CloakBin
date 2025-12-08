@@ -39,11 +39,8 @@ export class MemoryAdapter implements DatabaseAdapter {
 			return { success: true, data: null };
 		}
 
-		// Delete if burn after read (no view tracking for privacy)
-		if (paste.burnAfterRead) {
-			this.pastes.delete(id);
-		}
-
+		// NOTE: Do NOT delete burn-after-read pastes here!
+		// The client shows a warning first, then calls DELETE explicitly after user confirms.
 		return { success: true, data: paste };
 	}
 

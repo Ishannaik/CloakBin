@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
 	import CodeMirror from 'svelte-codemirror-editor';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
+	import {
+		dracula,
+		cobalt,
+		coolGlow,
+		amy,
+		bespin,
+		espresso,
+		noctisLilac
+	} from 'thememirror';
 	import { EditorView } from '@codemirror/view';
 	import logo from '$lib/assets/logo.png?enhanced';
-	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame } from 'lucide-svelte';
+	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// OS detection for keyboard shortcut display
@@ -30,6 +39,30 @@
 	let passwordInput = $state('');
 	let showBurnWarning = $state(false);
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string } | null>(null);
+
+	// Theme state
+	let selectedTheme = $state('oneDark');
+	let showSettings = $state(false);
+
+	const themes = {
+		oneDark: { name: 'One Dark', theme: oneDark },
+		dracula: { name: 'Dracula', theme: dracula },
+		cobalt: { name: 'Cobalt', theme: cobalt },
+		coolGlow: { name: 'Cool Glow', theme: coolGlow },
+		amy: { name: 'Amy', theme: amy },
+		bespin: { name: 'Bespin', theme: bespin },
+		espresso: { name: 'Espresso', theme: espresso },
+		noctisLilac: { name: 'Noctis Lilac', theme: noctisLilac }
+	};
+
+	const currentTheme = $derived(themes[selectedTheme as keyof typeof themes].theme);
+
+	// Persist theme to localStorage when it changes
+	$effect(() => {
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem('cloakbin_theme', selectedTheme);
+		}
+	});
 
 	// Format relative time
 	function formatRelativeTime(date: Date): string {
@@ -309,10 +342,30 @@
 		}
 	}
 
+	// Clear content when navigating away (SvelteKit client-side navigation)
+	beforeNavigate(() => {
+		content = '';
+		viewState = 'loading';
+	});
+
+	// Re-decrypt when navigating back to this page
+	afterNavigate(({ type }) => {
+		if (type === 'popstate') {
+			// Came back via back/forward button - re-decrypt
+			loadAndDecrypt();
+		}
+	});
+
 	// Handle bfcache (back-forward cache) security
 	// Without this, pressing back then forward shows decrypted content from memory
 	onMount(() => {
-		// Clear sensitive content when navigating away
+		// Restore theme from localStorage
+		const savedTheme = localStorage.getItem('cloakbin_theme');
+		if (savedTheme && savedTheme in themes) {
+			selectedTheme = savedTheme;
+		}
+
+		// Clear sensitive content when navigating away (browser navigation)
 		const handlePageHide = () => {
 			content = '';
 			viewState = 'loading';
@@ -325,8 +378,17 @@
 			}
 		};
 
+		// Close settings dropdown when clicking outside
+		const handleClickOutside = (e: MouseEvent) => {
+			const target = e.target as HTMLElement;
+			if (!target.closest('.settings-dropdown')) {
+				showSettings = false;
+			}
+		};
+
 		window.addEventListener('pagehide', handlePageHide);
 		window.addEventListener('pageshow', handlePageShow);
+		document.addEventListener('click', handleClickOutside);
 
 		// Initial load
 		loadAndDecrypt();
@@ -334,6 +396,7 @@
 		return () => {
 			window.removeEventListener('pagehide', handlePageHide);
 			window.removeEventListener('pageshow', handlePageShow);
+			document.removeEventListener('click', handleClickOutside);
 		};
 	});
 </script>
@@ -394,6 +457,33 @@
 					<Plus size={16} />
 					<span class="hidden sm:inline">New</span>
 				</a>
+				<!-- Settings dropdown -->
+				<div class="relative settings-dropdown">
+					<button
+						onclick={() => showSettings = !showSettings}
+						class="p-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+						title="Settings"
+					>
+						<Settings size={16} />
+					</button>
+					{#if showSettings}
+						<div class="absolute right-0 top-full mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in">
+							<div class="p-3 border-b border-zinc-700">
+								<span class="text-xs text-zinc-500 uppercase tracking-wide">Theme</span>
+							</div>
+							<div class="p-2 max-h-64 overflow-y-auto">
+								{#each Object.entries(themes) as [key, { name }]}
+									<button
+										onclick={() => { selectedTheme = key; showSettings = false; }}
+										class="w-full text-left px-3 py-2 rounded text-sm transition-colors duration-150 {selectedTheme === key ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+									>
+										{name}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</header>
@@ -403,7 +493,7 @@
 		<div class="flex-1 flex items-center justify-center">
 			<div class="flex flex-col items-center gap-4 animate-fade-in">
 				<div class="w-12 h-12 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
-				<p class="text-zinc-400 text-sm">Decrypting paste...</p>
+				<p class="text-zinc-400 text-sm">Loading paste...</p>
 			</div>
 		</div>
 	{/if}
@@ -515,7 +605,7 @@
 			<CodeMirror
 				value={content}
 				lang={javascript()}
-				theme={oneDark}
+				theme={currentTheme}
 				extensions={[EditorView.lineWrapping, EditorView.editable.of(false)]}
 				editable={false}
 				styles={{

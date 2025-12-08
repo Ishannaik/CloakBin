@@ -116,6 +116,8 @@ export class MongoDBAdapter implements DatabaseAdapter {
 			}
 
 			// Convert to Paste type
+			// NOTE: Do NOT delete burn-after-read pastes here!
+			// The client shows a warning first, then calls DELETE explicitly after user confirms.
 			const paste: Paste = {
 				id: doc._id,
 				content: doc.content,
@@ -125,11 +127,6 @@ export class MongoDBAdapter implements DatabaseAdapter {
 				salt: doc.salt,
 				burnAfterRead: doc.burnAfterRead
 			};
-
-			// Delete if burn after read (no view tracking for privacy)
-			if (doc.burnAfterRead) {
-				await Model.findByIdAndDelete(id);
-			}
 
 			return { success: true, data: paste };
 		} catch (error) {
