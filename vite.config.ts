@@ -4,7 +4,16 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [enhancedImages(), sveltekit(), tailwindcss()],
+	plugins: [
+		enhancedImages(),
+		sveltekit(),
+		tailwindcss({
+			exclude: [/node_modules/]
+		})
+	],
+	build: {
+		target: 'es2022'
+	},
 	optimizeDeps: {
 		exclude: [
 			'svelte-codemirror-editor',

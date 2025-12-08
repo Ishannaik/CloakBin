@@ -57,22 +57,22 @@
 			<div>
 				<label class="mb-1.5 block text-sm text-zinc-400">Max Paste Size (KB)</label>
 				<input type="number" bind:value={settings.maxPasteSize}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none" />
+					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
 			</div>
 			<div>
 				<label class="mb-1.5 block text-sm text-zinc-400">Premium Max Size (KB)</label>
 				<input type="number" bind:value={settings.premiumMaxSize}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none" />
+					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
 			</div>
 			<div>
 				<label class="mb-1.5 block text-sm text-zinc-400">Rate Limit (pastes/hour)</label>
 				<input type="number" bind:value={settings.maxPastesPerHour}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none" />
+					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
 			</div>
 			<div>
 				<label class="mb-1.5 block text-sm text-zinc-400">Inactive Delete (days)</label>
 				<input type="number" bind:value={settings.inactiveDeleteDays}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none" />
+					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
 			</div>
 		</div>
 	</div>

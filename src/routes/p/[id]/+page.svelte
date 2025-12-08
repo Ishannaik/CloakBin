@@ -226,8 +226,11 @@
 		}
 	}
 
-	// Fetch and decrypt paste on mount
-	onMount(async () => {
+	// Fetch and decrypt paste
+	async function loadAndDecrypt() {
+		viewState = 'loading';
+		content = '';
+
 		try {
 			// Get paste ID from route params
 			const pasteId = $page.params.id;
@@ -304,6 +307,34 @@
 			viewState = 'error';
 			errorMessage = 'Failed to load paste';
 		}
+	}
+
+	// Handle bfcache (back-forward cache) security
+	// Without this, pressing back then forward shows decrypted content from memory
+	onMount(() => {
+		// Clear sensitive content when navigating away
+		const handlePageHide = () => {
+			content = '';
+			viewState = 'loading';
+		};
+
+		// Re-decrypt if page restored from bfcache
+		const handlePageShow = (e: PageTransitionEvent) => {
+			if (e.persisted) {
+				loadAndDecrypt();
+			}
+		};
+
+		window.addEventListener('pagehide', handlePageHide);
+		window.addEventListener('pageshow', handlePageShow);
+
+		// Initial load
+		loadAndDecrypt();
+
+		return () => {
+			window.removeEventListener('pagehide', handlePageHide);
+			window.removeEventListener('pageshow', handlePageShow);
+		};
 	});
 </script>
 
