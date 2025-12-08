@@ -145,3 +145,8 @@ body {
 .animate-bounce-dot {
 	animation: bounce-dot 1.4s ease-in-out infinite;
 }
+
+/* Hide svelte-codemirror-editor loading state */
+.scm-loading {
+	display: none !important;
+}

@@ -14,7 +14,7 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload, WifiOff } from 'lucide-svelte';
+	import { Lock, Files, Upload, WifiOff, Settings } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
@@ -39,6 +39,7 @@
 	});
 	let showDuplicateToast = $state(false);
 	let showShortcuts = $state(false);
+	let showSettings = $state(false);
 	let isOffline = $state(false);
 	let usePassword = $state(false);
 	let password = $state('');
@@ -76,10 +77,20 @@
 		window.addEventListener('offline', handleOffline);
 		window.addEventListener('online', handleOnline);
 
+		// Close settings dropdown when clicking outside
+		const handleClickOutside = (e: MouseEvent) => {
+			const target = e.target as HTMLElement;
+			if (!target.closest('.settings-dropdown')) {
+				showSettings = false;
+			}
+		};
+		document.addEventListener('click', handleClickOutside);
+
 		return () => {
 			clearInterval(saveInterval);
 			window.removeEventListener('offline', handleOffline);
 			window.removeEventListener('online', handleOnline);
+			document.removeEventListener('click', handleClickOutside);
 		};
 	});
 
@@ -351,19 +362,48 @@
 			/>
 			<span class="text-xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
 		</div>
-		<!-- Primary: New -->
-		<button
-			onclick={handleNewClick}
-			title="{mod}+Shift+N"
-			class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {newButtonSuccess ? 'bg-green-500 hover:bg-green-400' : 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
-			style="transform: scale({$newButtonScale})"
-		>
-			<span
-				class="inline-block"
-				style="transform: rotate({$newButtonRotation}deg)"
-			>+</span>
-			{newButtonSuccess ? 'Cleared!' : 'New'}
-		</button>
+		<div class="flex items-center gap-2">
+			<!-- Primary: New -->
+			<button
+				onclick={handleNewClick}
+				title="{mod}+Shift+N"
+				class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {newButtonSuccess ? 'bg-green-500 hover:bg-green-400' : 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
+				style="transform: scale({$newButtonScale})"
+			>
+				<span
+					class="inline-block"
+					style="transform: rotate({$newButtonRotation}deg)"
+				>+</span>
+				{newButtonSuccess ? 'Cleared!' : 'New'}
+			</button>
+			<!-- Settings dropdown -->
+			<div class="relative settings-dropdown">
+				<button
+					onclick={() => showSettings = !showSettings}
+					class="p-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+					title="Settings"
+				>
+					<Settings size={16} />
+				</button>
+				{#if showSettings}
+					<div class="absolute right-0 top-full mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in">
+						<div class="p-3 border-b border-zinc-700">
+							<span class="text-xs text-zinc-500 uppercase tracking-wide">Theme</span>
+						</div>
+						<div class="p-2 max-h-64 overflow-y-auto">
+							{#each Object.entries(themes) as [key, { name }]}
+								<button
+									onclick={() => { selectedTheme = key; showSettings = false; }}
+									class="w-full text-left px-3 py-2 rounded text-sm transition-colors duration-150 {selectedTheme === key ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+								>
+									{name}
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</div>
+		</div>
 	</header>
 
 	<!-- Editor -->
@@ -388,17 +428,6 @@
 
 	<!-- Bottom bar -->
 	<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800">
-		<div class="flex items-center gap-2">
-			<span class="text-zinc-500 text-sm hidden sm:inline">Theme:</span>
-			<select
-				bind:value={selectedTheme}
-				class="bg-[#242830] border border-zinc-700 rounded px-2 sm:px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
-			>
-				{#each Object.entries(themes) as [key, { name }]}
-					<option value={key}>{name}</option>
-				{/each}
-			</select>
-		</div>
 		<div class="flex items-center gap-2">
 			<span class="text-zinc-500 text-sm hidden sm:inline">Expiry:</span>
 			<select
