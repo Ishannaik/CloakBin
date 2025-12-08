@@ -200,7 +200,7 @@
 	{/if}
 
 	<div class="overflow-x-auto rounded-lg border border-zinc-800 bg-[#242830]">
-		<table class="w-full min-w-[700px]">
+		<table class="w-full min-w-[700px] text-xs sm:text-sm">
 			<thead>
 				<tr class="border-b border-zinc-800 text-left text-xs uppercase text-zinc-500">
 					<th class="px-3 py-3 sm:px-4">

@@ -219,8 +219,8 @@
 		</div>
 	{/if}
 
-	<div class="overflow-visible rounded-lg border border-zinc-800 bg-[#242830]">
-		<table class="w-full">
+	<div class="overflow-x-auto rounded-lg border border-zinc-800 bg-[#242830]">
+		<table class="w-full min-w-[640px] text-xs sm:text-sm">
 			<thead>
 				<tr class="border-b border-zinc-800 text-left text-xs uppercase text-zinc-500">
 					<th class="px-4 py-3"><button onclick={toggleSelectAll}>{#if selectAll}<CheckSquare class="h-4 w-4 text-teal-400" />{:else}<Square class="h-4 w-4" />{/if}</button></th>
