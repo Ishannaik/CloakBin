@@ -2,14 +2,15 @@
 
 <div align="center">
 
-![CloakBin Logo](static/logo.svg)
+<img src="static/logo.svg" alt="CloakBin Logo" width="80">
 
-**Zero-Knowledge Encrypted Pastebin**
+### Zero-Knowledge Encrypted Pastebin
+
+**Your data is encrypted before it leaves your browser. We can't read it. No one can.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-2.0-FF3E00?logo=svelte)](https://kit.svelte.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
 
 [Live Demo](https://cloakbin.vercel.app) • [Report Bug](https://github.com/Ishannaik/CloakBin/issues) • [Request Feature](https://github.com/Ishannaik/CloakBin/issues)
 
@@ -17,139 +18,155 @@
 
 ---
 
-## About
+## Why Zero-Knowledge?
 
-CloakBin is a privacy-first pastebin where your data is encrypted **before** it leaves your browser. The server never sees your plaintext content - only encrypted ciphertext.
+Traditional pastebins store your data in plaintext. Server admins, hackers, or anyone with database access can read everything you share.
 
-### Key Features
+**CloakBin is different.**
 
-- **Zero-Knowledge Encryption** - AES-256-GCM encryption happens entirely in your browser
-- **Password Protection** - Optional password with PBKDF2 key derivation
-- **Burn After Read** - Self-destructing pastes after first view
-- **Syntax Highlighting** - Auto-detected language with 50+ supported languages
-- **Expiration Options** - 1 hour, 24 hours, 7 days, 30 days, 1 year, or never
-- **No Tracking** - No analytics, no cookies, no user accounts
-- **Admin Dashboard** - Manage pastes with filtering, sorting, and bulk operations
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     ZERO-KNOWLEDGE FLOW                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   YOUR BROWSER              SERVER                DATABASE      │
+│   ────────────              ──────                ────────      │
+│                                                                 │
+│   "secret msg"                                                  │
+│        │                                                        │
+│        ▼                                                        │
+│   ┌─────────┐                                                   │
+│   │ ENCRYPT │  AES-256-GCM                                      │
+│   │ locally │  (browser)                                        │
+│   └────┬────┘                                                   │
+│        │                                                        │
+│        ▼                                                        │
+│   "a3f8b2c1..."  ───────►  "a3f8b2c1..."  ───►  "a3f8b2c1..."  │
+│   (ciphertext)             (ciphertext)         (ciphertext)    │
+│                                                                 │
+│   KEY stays in URL fragment (#)                                 │
+│   example.com/p/abc#KEY    ◄── never sent to server             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+The encryption key lives in the URL fragment (`#`), which **browsers never send to servers**. Even if our database is compromised, attackers only get meaningless ciphertext.
+
+## Security Model
+
+| Component | What it sees |
+|-----------|-------------|
+| Your Browser | ✅ Plaintext (you control it) |
+| Network/ISP | 🔒 Encrypted ciphertext only |
+| CloakBin Server | 🔒 Encrypted ciphertext only |
+| Database | 🔒 Encrypted ciphertext only |
+| URL Recipient | ✅ Plaintext (they have the key) |
+
+**Cryptographic Details:**
+- **Encryption**: AES-256-GCM (authenticated encryption)
+- **Key Derivation**: PBKDF2 with 100,000 iterations (for password-protected pastes)
+- **Random Generation**: Web Crypto API (`crypto.getRandomValues`)
+
+## Features
+
+- 🔐 **Zero-Knowledge Encryption** - AES-256-GCM, keys never leave your browser
+- 🔑 **Password Protection** - Optional second layer with PBKDF2
+- 🔥 **Burn After Read** - Self-destructing pastes
+- ⏰ **Flexible Expiration** - 1 hour to never
+- 🎨 **Syntax Highlighting** - 50+ languages auto-detected
+- 🚫 **No Tracking** - No analytics, no cookies, no accounts
+- 📱 **Responsive** - Works on desktop and mobile
+
+## Quick Start
+
+```bash
+# Clone
+git clone https://github.com/Ishannaik/CloakBin.git
+cd CloakBin
+
+# Install
+pnpm install
+
+# Configure
+cp .env.example .env
+# Edit .env with your MongoDB URI
+
+# Run
+pnpm dev
+```
+
+Open [http://localhost:5173](http://localhost:5173)
+
+## Environment Variables
+
+```env
+MONGODB_URI=mongodb://localhost:27017/cloakbin
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-secure-password
+```
 
 ## Tech Stack
 
-- **Frontend**: SvelteKit 2.0, Svelte 5, TypeScript
-- **Styling**: Tailwind CSS 4.0
-- **Database**: MongoDB with Mongoose
-- **Encryption**: Web Crypto API (AES-256-GCM, PBKDF2)
-- **Editor**: CodeMirror 6
-- **Deployment**: Vercel
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm (recommended) or npm
-- MongoDB instance
-
-### Installation
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/Ishannaik/CloakBin.git
-   cd CloakBin
-   git checkout v2
-   ```
-
-2. Install dependencies
-   ```bash
-   pnpm install
-   ```
-
-3. Set up environment variables
-   ```bash
-   cp .env.example .env
-   ```
-
-   Configure your `.env`:
-   ```env
-   MONGODB_URI=mongodb://localhost:27017/cloakbin
-   ADMIN_USERNAME=admin
-   ADMIN_PASSWORD=your-secure-password
-   ```
-
-4. Start development server
-   ```bash
-   pnpm dev
-   ```
-
-5. Open [http://localhost:5173](http://localhost:5173)
-
-### Building for Production
-
-```bash
-pnpm build
-pnpm preview
-```
-
-## How It Works
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Browser   │     │   Server    │     │  Database   │
-│             │     │             │     │             │
-│  Plaintext  │     │             │     │             │
-│      │      │     │             │     │             │
-│      ▼      │     │             │     │             │
-│  Encrypt    │     │             │     │             │
-│  (AES-256)  │     │             │     │             │
-│      │      │     │             │     │             │
-│      ▼      │     │             │     │             │
-│ Ciphertext ─┼────►│ Ciphertext ─┼────►│ Ciphertext  │
-│             │     │             │     │             │
-│ Key in URL# │     │  (no key)   │     │  (no key)   │
-└─────────────┘     └─────────────┘     └─────────────┘
-```
-
-1. **Create**: Content is encrypted in browser with a random key
-2. **Store**: Only ciphertext is sent to server (key stays in URL fragment)
-3. **Share**: URL contains the decryption key after `#` (never sent to server)
-4. **View**: Recipient's browser decrypts using the key from URL
+| Layer | Technology |
+|-------|------------|
+| Framework | SvelteKit 2.0, Svelte 5 |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4.0 |
+| Database | MongoDB |
+| Encryption | Web Crypto API |
+| Editor | CodeMirror 6 |
+| Hosting | Vercel |
 
 ## Project Structure
 
 ```
 src/
 ├── lib/
-│   ├── components/     # Reusable UI components
-│   ├── db/             # Database adapters (MongoDB)
-│   └── crypto.ts       # Encryption utilities
+│   ├── components/     # UI components
+│   ├── db/             # Database adapters
+│   └── crypto.ts       # Encryption (AES-256-GCM, PBKDF2)
 ├── routes/
-│   ├── +page.svelte    # Home page (create paste)
+│   ├── +page.svelte    # Create paste
 │   ├── p/[id]/         # View paste
-│   ├── api/            # API endpoints
+│   ├── api/            # REST endpoints
 │   └── admin/          # Admin dashboard
-└── app.html            # HTML template
+└── app.html
 ```
+
+## Self-Hosting
+
+CloakBin is fully open source. Deploy your own instance:
+
+1. Fork this repository
+2. Deploy to Vercel/Netlify/your server
+3. Set up MongoDB (Atlas free tier works)
+4. Configure environment variables
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+PRs welcome! Please:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Submit a PR
 
 ## Acknowledgments
 
-- [PrivateBin](https://privatebin.info/) - Inspiration for zero-knowledge architecture
-- [CodeMirror](https://codemirror.net/) - Code editor component
-- [Lucide](https://lucide.dev/) - Beautiful icons
+- [PrivateBin](https://privatebin.info/) - Zero-knowledge inspiration
+- [CodeMirror](https://codemirror.net/) - Editor component
+- [Lucide](https://lucide.dev/) - Icons
+
+## License
+
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
 <div align="center">
-Made with ❤️ by <a href="https://github.com/Ishannaik">Ishan Naik</a>
+
+**Your secrets deserve real privacy.**
+
+Made by [Ishan Naik](https://github.com/Ishannaik)
+
 </div>
