@@ -150,3 +150,22 @@ body {
 .scm-loading {
 	display: none !important;
 }
+
+/* Fix fold gutter arrow alignment */
+.cm-foldGutter {
+	width: 14px !important;
+}
+
+.cm-foldGutter .cm-gutterElement {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0 !important;
+}
+
+.cm-foldGutter .cm-gutterElement span {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	line-height: 1 !important;
+}
