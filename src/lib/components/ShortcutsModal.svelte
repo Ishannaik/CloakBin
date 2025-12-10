@@ -43,15 +43,19 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="shortcuts-title"
 		onclick={handleBackdropClick}
+		onkeydown={(e) => e.key === 'Escape' && (open = false)}
+		tabindex="-1"
 	>
 		<div class="bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl w-full max-w-md mx-4 animate-scale-in">
 			<!-- Header -->
 			<div class="flex items-center justify-between px-5 py-4 border-b border-zinc-700">
-				<h2 class="text-lg font-semibold text-zinc-100">Keyboard Shortcuts</h2>
+				<h2 id="shortcuts-title" class="text-lg font-semibold text-zinc-100">Keyboard Shortcuts</h2>
 				<button
 					onclick={() => (open = false)}
 					class="p-1 rounded hover:bg-zinc-700 transition-colors"

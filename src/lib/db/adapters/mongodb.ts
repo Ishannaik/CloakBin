@@ -284,17 +284,109 @@ export class MongoDBAdapter implements AdminAdapter {
 				hasPassword,
 				burnAfterRead,
 				search,
+				sizeMin,
+				sizeMax,
+				createdAfter,
+				createdBefore,
+				status,
 				sortBy = 'createdAt',
 				sortOrder = 'desc'
 			} = options;
 
 			const skip = (page - 1) * limit;
+			const now = new Date();
+			const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
 			const filter: Record<string, unknown> = {};
 			if (hasPassword !== undefined) filter.hasPassword = hasPassword;
 			if (burnAfterRead !== undefined) filter.burnAfterRead = burnAfterRead;
 			if (search) filter._id = { $regex: search, $options: 'i' };
 
+			// Date filter
+			if (createdAfter || createdBefore) {
+				const createdAtFilter: Record<string, Date> = {};
+				if (createdAfter) createdAtFilter.$gte = createdAfter;
+				if (createdBefore) createdAtFilter.$lte = createdBefore;
+				filter.createdAt = createdAtFilter;
+			}
+
+			// Status filter
+			if (status === 'expired') {
+				filter.expiresAt = { $lt: now };
+			} else if (status === 'expiring') {
+				filter.expiresAt = { $gte: now, $lt: in24Hours };
+			} else if (status === 'active') {
+				filter.expiresAt = { $gte: in24Hours };
+			}
+
+			// Check if we need size filtering
+			const needsSizeFilter = sizeMin !== undefined || sizeMax !== undefined;
+
+			// Use aggregation when we need size filtering or size sorting
+			if (needsSizeFilter || sortBy === 'encryptedSize') {
+				const sortDirection = sortOrder === 'asc' ? 1 : -1;
+				const sortField = sortBy === 'encryptedSize' ? 'contentSize' : sortBy;
+
+				// Build aggregation pipeline
+				const pipeline: Parameters<typeof Model.aggregate>[0] = [
+					{ $match: filter },
+					{
+						$addFields: {
+							contentSize: { $strLenBytes: { $ifNull: ['$content', ''] } }
+						}
+					}
+				];
+
+				// Add size filter if needed
+				if (needsSizeFilter) {
+					const sizeMatch: Record<string, unknown> = {};
+					if (sizeMin !== undefined) sizeMatch.$gte = sizeMin;
+					if (sizeMax !== undefined) sizeMatch.$lte = sizeMax;
+					pipeline.push({ $match: { contentSize: sizeMatch } });
+				}
+
+				// Count pipeline (same filters, no pagination)
+				const countPipeline = [...pipeline, { $count: 'total' }];
+
+				// Add sort, skip, limit for main query
+				pipeline.push(
+					{ $sort: { [sortField]: sortDirection as 1 | -1 } },
+					{ $skip: skip },
+					{ $limit: limit },
+					{
+						$project: {
+							_id: 1,
+							createdAt: 1,
+							expiresAt: 1,
+							hasPassword: 1,
+							burnAfterRead: 1,
+							contentSize: 1
+						}
+					}
+				);
+
+				const [docs, countResult] = await Promise.all([
+					Model.aggregate(pipeline),
+					Model.aggregate(countPipeline)
+				]);
+
+				return {
+					success: true,
+					data: {
+						pastes: docs.map((d) => ({
+							id: d._id,
+							createdAt: d.createdAt,
+							expiresAt: d.expiresAt,
+							hasPassword: d.hasPassword,
+							burnAfterRead: d.burnAfterRead,
+							sizeBytes: d.contentSize || 0
+						})),
+						total: countResult[0]?.total || 0
+					}
+				};
+			}
+
+			// Regular query for other cases (no size filter/sort)
 			const [docs, total] = await Promise.all([
 				Model.find(filter)
 					.select('_id createdAt expiresAt hasPassword burnAfterRead content')

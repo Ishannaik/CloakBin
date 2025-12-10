@@ -62,7 +62,12 @@ export interface PasteListOptions {
 	hasPassword?: boolean;
 	burnAfterRead?: boolean;
 	search?: string;
-	sortBy?: 'createdAt' | 'expiresAt';
+	sizeMin?: number; // in bytes
+	sizeMax?: number; // in bytes
+	createdAfter?: Date;
+	createdBefore?: Date;
+	status?: 'expired' | 'expiring' | 'active';
+	sortBy?: 'createdAt' | 'expiresAt' | 'encryptedSize' | string;
 	sortOrder?: 'asc' | 'desc';
 }
 

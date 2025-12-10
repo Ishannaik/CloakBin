@@ -470,9 +470,10 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="h-screen flex flex-col relative overflow-hidden"
+	role="application"
+	aria-label="Paste editor with drag and drop support"
 	ondragenter={handleDragEnter}
 	ondragleave={handleDragLeave}
 	ondragover={handleDragOver}

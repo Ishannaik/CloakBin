@@ -67,10 +67,5 @@
 				</a>
 			</div>
 		</div>
-
-		<!-- Note -->
-		<p class="mt-4 text-center text-xs text-zinc-600">
-			Set ADMIN_USER and ADMIN_PASS in your .env file
-		</p>
 	</div>
 </div>
