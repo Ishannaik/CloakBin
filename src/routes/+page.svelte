@@ -1,9 +1,10 @@
 <script lang="ts">
-	import logo from '$lib/assets/logo.png?enhanced';
+	import logo from '$lib/assets/logo.svg';
 	import CodeMirror from 'svelte-codemirror-editor';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
+	import type { Extension } from '@codemirror/state';
 	import {
 		dracula,
 		cobalt,
@@ -16,9 +17,76 @@
 	import { spring } from 'svelte/motion';
 	import { Lock, Files, Upload, WifiOff, Settings } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
-	import { onMount, tick } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
+	import { detectLanguage } from '$lib/detectLanguage';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
+
+	// Dynamic language extension for CodeMirror (null = plaintext/no highlighting)
+	let languageExtension = $state<Extension | null>(null);
+
+	// Load language extension dynamically
+	async function loadLanguageExtension(lang: string): Promise<Extension | null> {
+		try {
+			switch (lang) {
+				case 'javascript':
+				case 'js':
+					return (await import('@codemirror/lang-javascript')).javascript();
+				case 'typescript':
+				case 'ts':
+					return (await import('@codemirror/lang-javascript')).javascript({ typescript: true });
+				case 'python':
+				case 'py':
+					return (await import('@codemirror/lang-python')).python();
+				case 'json':
+					return (await import('@codemirror/lang-json')).json();
+				case 'html':
+				case 'xml':
+					return (await import('@codemirror/lang-html')).html();
+				case 'css':
+					return (await import('@codemirror/lang-css')).css();
+				case 'markdown':
+				case 'md':
+					return (await import('@codemirror/lang-markdown')).markdown();
+				case 'sql':
+					return (await import('@codemirror/lang-sql')).sql();
+				case 'java':
+					return (await import('@codemirror/lang-java')).java();
+				case 'cpp':
+				case 'c':
+					return (await import('@codemirror/lang-cpp')).cpp();
+				case 'rust':
+				case 'rs':
+					return (await import('@codemirror/lang-rust')).rust();
+				case 'go':
+					return (await import('@codemirror/lang-go')).go();
+				case 'php':
+					return (await import('@codemirror/lang-php')).php();
+				case 'yaml':
+				case 'yml':
+					return (await import('@codemirror/lang-yaml')).yaml();
+				case 'auto':
+				case 'plaintext':
+				default:
+					// No syntax highlighting for auto/plaintext
+					return null;
+			}
+		} catch {
+			return null;
+		}
+	}
+
+	// Update language extension when selectedLanguage changes
+	$effect(() => {
+		if (selectedLanguage && selectedLanguage !== 'auto' && selectedLanguage !== 'plaintext') {
+			loadLanguageExtension(selectedLanguage).then(ext => {
+				languageExtension = ext;
+			});
+		} else {
+			// No highlighting for auto/plaintext mode
+			languageExtension = null;
+		}
+	});
 
 	// Large paste threshold - show loading indicator for pastes over 1M chars
 	const LARGE_PASTE_THRESHOLD = 1_000_000;
@@ -40,10 +108,49 @@
 	let showDuplicateToast = $state(false);
 	let showShortcuts = $state(false);
 	let showSettings = $state(false);
+	let settingsTab = $state<'language' | 'theme'>('language'); // Which tab is active
+	let settingsSearch = $state(''); // Search filter for languages/themes
 	let isOffline = $state(false);
 	let usePassword = $state(false);
 	let password = $state('');
 	let burnAfterRead = $state(false);
+	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
+
+	// Available languages for manual selection
+	const languages = [
+		{ value: 'auto', label: 'Auto-detect' },
+		{ value: 'javascript', label: 'JavaScript' },
+		{ value: 'typescript', label: 'TypeScript' },
+		{ value: 'python', label: 'Python' },
+		{ value: 'rust', label: 'Rust' },
+		{ value: 'go', label: 'Go' },
+		{ value: 'java', label: 'Java' },
+		{ value: 'cpp', label: 'C/C++' },
+		{ value: 'csharp', label: 'C#' },
+		{ value: 'php', label: 'PHP' },
+		{ value: 'ruby', label: 'Ruby' },
+		{ value: 'swift', label: 'Swift' },
+		{ value: 'kotlin', label: 'Kotlin' },
+		{ value: 'sql', label: 'SQL' },
+		{ value: 'html', label: 'HTML' },
+		{ value: 'css', label: 'CSS' },
+		{ value: 'json', label: 'JSON' },
+		{ value: 'yaml', label: 'YAML' },
+		{ value: 'markdown', label: 'Markdown' },
+		{ value: 'bash', label: 'Bash/Shell' },
+		{ value: 'plaintext', label: 'Plain Text' }
+	];
+
+	// Cleanup references (need to be outside onMount for onDestroy to access)
+	let saveInterval: ReturnType<typeof setInterval>;
+	const handleOffline = () => (isOffline = true);
+	const handleOnline = () => (isOffline = false);
+	const handleClickOutside = (e: MouseEvent) => {
+		const target = e.target as HTMLElement;
+		if (!target.closest('.settings-dropdown')) {
+			showSettings = false;
+		}
+	};
 
 	// Check for duplicate content from view page (on initial load)
 	onMount(async () => {
@@ -62,7 +169,7 @@
 		}
 
 		// Auto-save draft every 3 seconds
-		const saveInterval = setInterval(() => {
+		saveInterval = setInterval(() => {
 			if (content.trim()) {
 				localStorage.setItem('cloakbin_draft', content);
 			} else {
@@ -72,26 +179,21 @@
 
 		// Offline detection
 		isOffline = !navigator.onLine;
-		const handleOffline = () => (isOffline = true);
-		const handleOnline = () => (isOffline = false);
 		window.addEventListener('offline', handleOffline);
 		window.addEventListener('online', handleOnline);
 
 		// Close settings dropdown when clicking outside
-		const handleClickOutside = (e: MouseEvent) => {
-			const target = e.target as HTMLElement;
-			if (!target.closest('.settings-dropdown')) {
-				showSettings = false;
-			}
-		};
 		document.addEventListener('click', handleClickOutside);
+	});
 
-		return () => {
-			clearInterval(saveInterval);
+	// Cleanup on component destroy
+	onDestroy(() => {
+		clearInterval(saveInterval);
+		if (typeof window !== 'undefined') {
 			window.removeEventListener('offline', handleOffline);
 			window.removeEventListener('online', handleOnline);
 			document.removeEventListener('click', handleClickOutside);
-		};
+		}
 	});
 
 	// Also check after client-side navigation (component may already be mounted)
@@ -299,6 +401,9 @@
 				urlKey = await keyToBase64(key);
 			}
 
+			// Use selected language or auto-detect
+			const language = selectedLanguage === 'auto' ? detectLanguage(content) : selectedLanguage;
+
 			// Encrypt content
 			const encrypted = await encrypt(content, key);
 
@@ -310,7 +415,8 @@
 					content: encrypted,
 					expiry,
 					salt,
-					burnAfterRead
+					burnAfterRead,
+					language
 				})
 			});
 
@@ -343,8 +449,28 @@
 	}
 </script>
 
+<svelte:head>
+	<title>CloakBin - Zero-Knowledge Encrypted Pastebin</title>
+	<meta name="description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser - we can never see it." />
+
+	<!-- Open Graph -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="CloakBin - Zero-Knowledge Encrypted Pastebin" />
+	<meta property="og:description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser." />
+	<meta property="og:image" content="/og-image-logo.png" />
+	<meta property="og:url" content="https://cloakbin.com" />
+	<meta property="og:site_name" content="CloakBin" />
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="CloakBin - Zero-Knowledge Encrypted Pastebin" />
+	<meta name="twitter:description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser." />
+	<meta name="twitter:image" content="/og-image-logo.png" />
+</svelte:head>
+
 <svelte:window onkeydown={handleKeydown} />
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="h-screen flex flex-col relative overflow-hidden"
 	ondragenter={handleDragEnter}
@@ -354,8 +480,8 @@
 >
 	<!-- Header -->
 	<header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
-		<div class="flex items-center gap-3 group cursor-pointer">
-			<enhanced:img
+		<div class="flex items-center gap-2.5 group cursor-pointer">
+			<img
 				src={logo}
 				alt="CloakBin"
 				class="w-8 h-8 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
@@ -380,25 +506,70 @@
 			<div class="relative settings-dropdown">
 				<button
 					onclick={() => showSettings = !showSettings}
-					class="p-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+					class="px-2.5 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
 					title="Settings"
 				>
-					<Settings size={16} />
+					<Settings size={18} />
 				</button>
 				{#if showSettings}
-					<div class="absolute right-0 top-full mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in">
-						<div class="p-3 border-b border-zinc-700">
-							<span class="text-xs text-zinc-500 uppercase tracking-wide">Theme</span>
+					{@const filteredLanguages = languages.filter(l =>
+						l.label.toLowerCase().includes(settingsSearch.toLowerCase()) ||
+						l.value.toLowerCase().includes(settingsSearch.toLowerCase())
+					)}
+					{@const filteredThemes = Object.entries(themes).filter(([key, { name }]) =>
+						name.toLowerCase().includes(settingsSearch.toLowerCase()) ||
+						key.toLowerCase().includes(settingsSearch.toLowerCase())
+					)}
+					<div class="absolute right-0 top-full mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in">
+						<!-- Tab buttons side by side -->
+						<div class="flex border-b border-zinc-700">
+							<button
+								onclick={() => { settingsTab = 'language'; settingsSearch = ''; }}
+								class="flex-1 px-3 py-2 text-sm font-medium transition-colors duration-150 {settingsTab === 'language' ? 'text-teal-400 border-b-2 border-teal-400 -mb-px' : 'text-zinc-400 hover:text-zinc-300'}"
+							>
+								Language
+							</button>
+							<button
+								onclick={() => { settingsTab = 'theme'; settingsSearch = ''; }}
+								class="flex-1 px-3 py-2 text-sm font-medium transition-colors duration-150 {settingsTab === 'theme' ? 'text-teal-400 border-b-2 border-teal-400 -mb-px' : 'text-zinc-400 hover:text-zinc-300'}"
+							>
+								Theme
+							</button>
 						</div>
-						<div class="p-2 max-h-64 overflow-y-auto">
-							{#each Object.entries(themes) as [key, { name }]}
-								<button
-									onclick={() => { selectedTheme = key; showSettings = false; }}
-									class="w-full text-left px-3 py-2 rounded text-sm transition-colors duration-150 {selectedTheme === key ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
-								>
-									{name}
-								</button>
-							{/each}
+						<!-- Search input -->
+						<div class="p-2 border-b border-zinc-700">
+							<input
+								type="text"
+								bind:value={settingsSearch}
+								placeholder="Search..."
+								class="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-teal-500"
+							/>
+						</div>
+						<!-- Tab content -->
+						<div class="p-2 max-h-52 overflow-y-auto">
+							{#if settingsTab === 'language'}
+								{#each filteredLanguages as { value, label }}
+									<button
+										onclick={() => { selectedLanguage = value; }}
+										class="w-full text-left px-3 py-1.5 rounded text-sm transition-colors duration-150 {selectedLanguage === value ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+									>
+										{label}
+									</button>
+								{:else}
+									<p class="text-xs text-zinc-500 text-center py-2">No matches</p>
+								{/each}
+							{:else}
+								{#each filteredThemes as [key, { name }]}
+									<button
+										onclick={() => { selectedTheme = key; }}
+										class="w-full text-left px-3 py-1.5 rounded text-sm transition-colors duration-150 {selectedTheme === key ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+									>
+										{name}
+									</button>
+								{:else}
+									<p class="text-xs text-zinc-500 text-center py-2">No matches</p>
+								{/each}
+							{/if}
 						</div>
 					</div>
 				{/if}
@@ -410,7 +581,7 @@
 	<div class="flex-1 min-h-0 overflow-auto">
 		<CodeMirror
 			bind:value={content}
-			lang={javascript()}
+			lang={languageExtension}
 			theme={currentTheme}
 			extensions={[EditorView.lineWrapping, largePasteHandler, selectAllExtension]}
 			styles={{
@@ -432,7 +603,7 @@
 			<span class="text-zinc-500 text-sm hidden sm:inline">Expiry:</span>
 			<select
 				bind:value={expiry}
-				class="bg-[#242830] border border-zinc-700 rounded px-2 sm:px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+				class="bg-bg-secondary border border-zinc-700 rounded px-2 sm:px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 			>
 				{#each expiryOptions as option}
 					<option value={option.value}>{option.label}</option>
@@ -454,7 +625,7 @@
 				type="password"
 				bind:value={password}
 				placeholder="Password..."
-				class="bg-[#242830] border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
+				class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
 			/>
 		{/if}
 		<!-- Burn toggle -->

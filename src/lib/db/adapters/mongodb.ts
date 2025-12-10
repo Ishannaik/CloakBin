@@ -6,7 +6,16 @@
 import { env } from '$env/dynamic/private';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { nanoid } from 'nanoid';
-import type { DatabaseAdapter, CreatePasteInput, Paste, Result } from '../types';
+import type {
+	AdminAdapter,
+	AdminPasteStats,
+	CreatePasteInput,
+	DailyCount,
+	Paste,
+	PasteListItem,
+	PasteListOptions,
+	Result
+} from '../types';
 
 // Mongoose document interface
 interface PasteDocument extends Document {
@@ -17,6 +26,7 @@ interface PasteDocument extends Document {
 	hasPassword: boolean;
 	salt: string | null;
 	burnAfterRead: boolean;
+	language: string;
 }
 
 // Mongoose schema
@@ -28,7 +38,8 @@ const pasteSchema = new Schema<PasteDocument>(
 		expiresAt: { type: Date, required: true },
 		hasPassword: { type: Boolean, default: false },
 		salt: { type: String, default: null },
-		burnAfterRead: { type: Boolean, default: false }
+		burnAfterRead: { type: Boolean, default: false },
+		language: { type: String, default: 'plaintext' }
 	},
 	{
 		// TTL index: MongoDB automatically deletes documents when expiresAt is reached
@@ -72,7 +83,7 @@ async function connectDB(): Promise<void> {
 	}
 }
 
-export class MongoDBAdapter implements DatabaseAdapter {
+export class MongoDBAdapter implements AdminAdapter {
 	async createPaste(input: CreatePasteInput): Promise<Result<{ id: string }>> {
 		try {
 			await connectDB();
@@ -86,7 +97,8 @@ export class MongoDBAdapter implements DatabaseAdapter {
 				expiresAt: input.expiresAt,
 				hasPassword: input.hasPassword ?? false,
 				salt: input.salt ?? null,
-				burnAfterRead: input.burnAfterRead ?? false
+				burnAfterRead: input.burnAfterRead ?? false,
+				language: input.language ?? 'plaintext'
 			});
 
 			await paste.save();
@@ -125,7 +137,8 @@ export class MongoDBAdapter implements DatabaseAdapter {
 				expiresAt: doc.expiresAt,
 				hasPassword: doc.hasPassword,
 				salt: doc.salt,
-				burnAfterRead: doc.burnAfterRead
+				burnAfterRead: doc.burnAfterRead,
+				language: doc.language || 'plaintext'
 			};
 
 			return { success: true, data: paste };
@@ -172,6 +185,156 @@ export class MongoDBAdapter implements DatabaseAdapter {
 			return { success: false, error: 'MongoDB not connected' };
 		} catch (error) {
 			return { success: false, error: 'MongoDB health check failed' };
+		}
+	}
+
+
+	// ============================================
+	// Admin methods
+	// ============================================
+
+	async getPasteStats(): Promise<Result<AdminPasteStats>> {
+		try {
+			await connectDB();
+			const Model = getModel();
+
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const [total, todayCount, features, storage] = await Promise.all([
+				Model.countDocuments(),
+				Model.countDocuments({ createdAt: { $gte: today } }),
+				Model.aggregate([
+					{
+						$group: {
+							_id: null,
+							withPassword: { $sum: { $cond: ['$hasPassword', 1, 0] } },
+							burnAfterRead: { $sum: { $cond: ['$burnAfterRead', 1, 0] } }
+						}
+					}
+				]),
+				Model.aggregate([
+					{
+						$group: {
+							_id: null,
+							totalSize: { $sum: { $strLenBytes: '$content' } },
+							avgSize: { $avg: { $strLenBytes: '$content' } }
+						}
+					}
+				])
+			]);
+
+			return {
+				success: true,
+				data: {
+					total,
+					today: todayCount,
+					withPassword: features[0]?.withPassword || 0,
+					burnAfterRead: features[0]?.burnAfterRead || 0,
+					totalSizeBytes: storage[0]?.totalSize || 0,
+					avgSizeBytes: Math.round(storage[0]?.avgSize || 0)
+				}
+			};
+		} catch (error) {
+			console.error('MongoDB getPasteStats error:', error);
+			return { success: false, error: 'Failed to get paste stats' };
+		}
+	}
+
+	async getDailyPasteCounts(days: number): Promise<Result<DailyCount[]>> {
+		try {
+			await connectDB();
+			const Model = getModel();
+
+			const startDate = new Date();
+			startDate.setDate(startDate.getDate() - days);
+			startDate.setHours(0, 0, 0, 0);
+
+			const results = await Model.aggregate([
+				{ $match: { createdAt: { $gte: startDate } } },
+				{
+					$group: {
+						_id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+						count: { $sum: 1 }
+					}
+				},
+				{ $sort: { _id: 1 } }
+			]);
+
+			return {
+				success: true,
+				data: results.map((r) => ({ date: r._id, count: r.count }))
+			};
+		} catch (error) {
+			console.error('MongoDB getDailyPasteCounts error:', error);
+			return { success: false, error: 'Failed to get daily counts' };
+		}
+	}
+
+	async listPastes(
+		options: PasteListOptions
+	): Promise<Result<{ pastes: PasteListItem[]; total: number }>> {
+		try {
+			await connectDB();
+			const Model = getModel();
+
+			const {
+				page = 1,
+				limit = 20,
+				hasPassword,
+				burnAfterRead,
+				search,
+				sortBy = 'createdAt',
+				sortOrder = 'desc'
+			} = options;
+
+			const skip = (page - 1) * limit;
+
+			const filter: Record<string, unknown> = {};
+			if (hasPassword !== undefined) filter.hasPassword = hasPassword;
+			if (burnAfterRead !== undefined) filter.burnAfterRead = burnAfterRead;
+			if (search) filter._id = { $regex: search, $options: 'i' };
+
+			const [docs, total] = await Promise.all([
+				Model.find(filter)
+					.select('_id createdAt expiresAt hasPassword burnAfterRead content')
+					.sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+					.skip(skip)
+					.limit(limit)
+					.lean(),
+				Model.countDocuments(filter)
+			]);
+
+			return {
+				success: true,
+				data: {
+					pastes: docs.map((d) => ({
+						id: d._id,
+						createdAt: d.createdAt,
+						expiresAt: d.expiresAt,
+						hasPassword: d.hasPassword,
+						burnAfterRead: d.burnAfterRead,
+						sizeBytes: d.content?.length || 0
+					})),
+					total
+				}
+			};
+		} catch (error) {
+			console.error('MongoDB listPastes error:', error);
+			return { success: false, error: 'Failed to list pastes' };
+		}
+	}
+
+	async deletePastes(ids: string[]): Promise<Result<{ deleted: number }>> {
+		try {
+			await connectDB();
+			const Model = getModel();
+
+			const result = await Model.deleteMany({ _id: { $in: ids } });
+			return { success: true, data: { deleted: result.deletedCount } };
+		} catch (error) {
+			console.error('MongoDB deletePastes error:', error);
+			return { success: false, error: 'Failed to delete pastes' };
 		}
 	}
 }

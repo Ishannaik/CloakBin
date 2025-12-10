@@ -6,6 +6,7 @@
 	import CodeMirror from 'svelte-codemirror-editor';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
+	import type { Extension } from '@codemirror/state';
 	import {
 		dracula,
 		cobalt,
@@ -16,7 +17,7 @@
 		noctisLilac
 	} from 'thememirror';
 	import { EditorView } from '@codemirror/view';
-	import logo from '$lib/assets/logo.png?enhanced';
+	import logo from '$lib/assets/logo.svg';
 	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
@@ -38,7 +39,9 @@
 	let pasteMetadata = $state<{ createdAt: string; expiresAt: string } | null>(null);
 	let passwordInput = $state('');
 	let showBurnWarning = $state(false);
-	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string } | null>(null);
+	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
+	let detectedLanguage = $state('javascript');
+	let languageExtension = $state<Extension>(javascript());
 
 	// Theme state
 	let selectedTheme = $state('oneDark');
@@ -63,6 +66,53 @@
 			localStorage.setItem('cloakbin_theme', selectedTheme);
 		}
 	});
+
+	// Load language extension dynamically
+	async function loadLanguageExtension(lang: string): Promise<Extension> {
+		try {
+			switch (lang) {
+				case 'javascript':
+				case 'js':
+					return (await import('@codemirror/lang-javascript')).javascript();
+				case 'typescript':
+				case 'ts':
+					return (await import('@codemirror/lang-javascript')).javascript({ typescript: true });
+				case 'python':
+				case 'py':
+					return (await import('@codemirror/lang-python')).python();
+				case 'json':
+					return (await import('@codemirror/lang-json')).json();
+				case 'html':
+				case 'xml':
+					return (await import('@codemirror/lang-html')).html();
+				case 'css':
+					return (await import('@codemirror/lang-css')).css();
+				case 'markdown':
+				case 'md':
+					return (await import('@codemirror/lang-markdown')).markdown();
+				case 'sql':
+					return (await import('@codemirror/lang-sql')).sql();
+				case 'java':
+					return (await import('@codemirror/lang-java')).java();
+				case 'cpp':
+				case 'c':
+					return (await import('@codemirror/lang-cpp')).cpp();
+				case 'rust':
+				case 'rs':
+					return (await import('@codemirror/lang-rust')).rust();
+				case 'go':
+					return (await import('@codemirror/lang-go')).go();
+				case 'php':
+					return (await import('@codemirror/lang-php')).php();
+				default:
+					// Fallback to javascript for unknown languages
+					return javascript();
+			}
+		} catch {
+			// If dynamic import fails, fallback to javascript
+			return javascript();
+		}
+	}
 
 	// Format relative time
 	function formatRelativeTime(date: Date): string {
@@ -292,8 +342,13 @@
 				salt: data.salt,
 				burnAfterRead: data.burnAfterRead || false,
 				createdAt: data.createdAt,
-				expiresAt: data.expiresAt
+				expiresAt: data.expiresAt,
+				language: data.language || 'plaintext'
 			};
+
+			// Load language extension for syntax highlighting
+			detectedLanguage = data.language || 'plaintext';
+			languageExtension = await loadLanguageExtension(detectedLanguage);
 
 			// Store encrypted content and metadata for potential manual key entry
 			encryptedContent = data.content;
@@ -401,13 +456,34 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Encrypted Paste | CloakBin</title>
+	<meta name="description" content="View this encrypted paste on CloakBin. End-to-end encrypted, zero-knowledge pastebin." />
+
+	<!-- Open Graph -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Encrypted Paste | CloakBin" />
+	<meta property="og:description" content="View this encrypted paste on CloakBin. Your content is secure with end-to-end encryption." />
+	<meta property="og:image" content="/og-image-logo.png" />
+	<meta property="og:site_name" content="CloakBin" />
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Encrypted Paste | CloakBin" />
+	<meta name="twitter:description" content="View this encrypted paste on CloakBin. Your content is secure with end-to-end encryption." />
+	<meta name="twitter:image" content="/og-image-logo.png" />
+
+	<!-- Security: prevent robots from indexing paste pages -->
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <svelte:window onkeydown={handleKeydown} />
 
 <div class="h-screen flex flex-col relative overflow-hidden">
 	<!-- Header -->
 	<header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
 		<a href="/" class="flex items-center gap-3 group cursor-pointer">
-			<enhanced:img
+			<img
 				src={logo}
 				alt="CloakBin"
 				class="w-8 h-8 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
@@ -604,7 +680,7 @@
 		<div class="flex-1 min-h-0 overflow-auto">
 			<CodeMirror
 				value={content}
-				lang={javascript()}
+				lang={languageExtension}
 				theme={currentTheme}
 				extensions={[EditorView.lineWrapping, EditorView.editable.of(false)]}
 				editable={false}
@@ -622,6 +698,8 @@
 
 		<!-- Info Bar -->
 		<div class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500">
+			<span class="px-2 py-0.5 bg-zinc-700 text-zinc-300 rounded text-xs font-mono">{detectedLanguage}</span>
+			<span>·</span>
 			<span>Created {createdTimeAgo}</span>
 			<span>·</span>
 			<span>Expires in {expiresIn}</span>

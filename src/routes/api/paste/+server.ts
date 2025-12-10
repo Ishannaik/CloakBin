@@ -33,6 +33,7 @@ interface CreatePasteRequest {
 	expiry: ExpiryOption;
 	salt?: string;
 	burnAfterRead?: boolean;
+	language?: string;
 }
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -48,7 +49,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			);
 		}
 
-		const { content, expiry, salt, burnAfterRead } = body;
+		const { content, expiry, salt, burnAfterRead, language } = body;
 
 		// Validate content
 		if (typeof content !== 'string') {
@@ -89,7 +90,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			expiresAt,
 			hasPassword: !!salt,
 			salt: salt,
-			burnAfterRead: burnAfterRead ?? false
+			burnAfterRead: burnAfterRead ?? false,
+			language: language ?? 'plaintext'
 		});
 
 		if (!result.success) {

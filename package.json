@@ -13,7 +13,10 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"generate:assets": "node generate-assets.mjs && node generate-extra-assets.mjs",
+		"generate:assets:main": "node generate-assets.mjs",
+		"generate:assets:extra": "node generate-extra-assets.mjs"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
@@ -30,6 +33,7 @@
 		"kill-port": "^2.0.1",
 		"prettier": "^3.7.4",
 		"prettier-plugin-svelte": "^3.4.0",
+		"sharp": "^0.34.5",
 		"svelte": "^5.43.8",
 		"svelte-check": "^4.3.4",
 		"tailwindcss": "^4.1.17",
@@ -37,7 +41,20 @@
 		"vite": "^7.2.2"
 	},
 	"dependencies": {
+		"@codemirror/lang-cpp": "^6.0.3",
+		"@codemirror/lang-css": "^6.3.1",
+		"@codemirror/lang-go": "^6.0.1",
+		"@codemirror/lang-html": "^6.4.11",
+		"@codemirror/lang-java": "^6.0.2",
 		"@codemirror/lang-javascript": "^6.2.4",
+		"@codemirror/lang-json": "^6.0.2",
+		"@codemirror/lang-markdown": "^6.5.0",
+		"@codemirror/lang-php": "^6.0.2",
+		"@codemirror/lang-python": "^6.2.1",
+		"@codemirror/lang-rust": "^6.0.2",
+		"@codemirror/lang-sql": "^6.10.0",
+		"@codemirror/lang-yaml": "^6.1.2",
+		"@codemirror/language": "^6.11.3",
 		"@codemirror/state": "^6.5.2",
 		"@codemirror/theme-one-dark": "^6.1.3",
 		"@codemirror/view": "^6.38.8",
@@ -46,6 +63,7 @@
 		"codemirror": "^6.0.2",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.2.0",
+		"highlight.js": "^11.11.1",
 		"layerchart": "^1.0.12",
 		"lucide-svelte": "^0.556.0",
 		"mongoose": "^9.0.1",

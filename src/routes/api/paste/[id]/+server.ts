@@ -66,7 +66,8 @@ export const GET: RequestHandler = async ({ params }) => {
 			expiresAt: paste.expiresAt.toISOString(),
 			hasPassword: paste.hasPassword,
 			salt: paste.salt ?? undefined,
-			burnAfterRead: paste.burnAfterRead
+			burnAfterRead: paste.burnAfterRead,
+			language: paste.language || 'plaintext'
 		};
 
 		// Return paste data
