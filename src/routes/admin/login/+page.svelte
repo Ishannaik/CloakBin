@@ -5,7 +5,7 @@
 	let { form } = $props();
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-[#1a1d23] p-4">
+<div class="flex min-h-screen items-center justify-center bg-bg p-4">
 	<div class="w-full max-w-sm">
 		<div class="rounded-xl border border-zinc-800 bg-bg-secondary p-8">
 			<!-- Header -->

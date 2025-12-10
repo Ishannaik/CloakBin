@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/stores';
 
 	let { children } = $props();
@@ -20,9 +19,7 @@
 	<meta name="author" content="CloakBin" />
 	<meta name="theme-color" content="#14b8a6" />
 
-	<!-- Favicon -->
-	<link rel="icon" href={favicon} />
-	<link rel="apple-touch-icon" href="/logo.svg" />
+	
 
 	<!-- Canonical -->
 	<link rel="canonical" href={siteUrl} />

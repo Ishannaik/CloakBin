@@ -485,7 +485,7 @@
 			<img
 				src={logo}
 				alt="CloakBin"
-				class="w-8 h-8 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
+				class="w-8 h-8 transition-transform duration-200 "
 			/>
 			<span class="text-xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
 		</div>
