@@ -2,12 +2,12 @@
 	import { page } from '$app/stores';
 </script>
 
-<div class="min-h-screen flex flex-col bg-[#1a1d23]">
+<div class="min-h-screen flex flex-col bg-bg">
 	<!-- Main content -->
 	<div class="flex-1 flex flex-col items-center justify-center px-4">
 		<!-- Logo -->
 		<img
-			src="/logo.png"
+			src="/logo.svg"
 			alt="CloakBin"
 			style="width: 64px; height: 64px; object-fit: contain;"
 			class="mb-6 opacity-50"

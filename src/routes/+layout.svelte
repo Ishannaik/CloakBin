@@ -22,7 +22,7 @@
 
 	<!-- Favicon -->
 	<link rel="icon" href={favicon} />
-	<link rel="apple-touch-icon" href="/logo.png" />
+	<link rel="apple-touch-icon" href="/logo.svg" />
 
 	<!-- Canonical -->
 	<link rel="canonical" href={siteUrl} />

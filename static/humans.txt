@@ -1,10 +1,22 @@
 /* TEAM */
-Developer: Ishan Naik
-GitHub: https://github.com/Ishannaik
-Location: India
+Project: CloakBin
+Site: https://cloakbin.com
+
+/* TECH */
+Framework: SvelteKit
+Language: TypeScript
+Styling: Tailwind CSS
+Encryption: AES-256-GCM (Web Crypto API)
+Database: MongoDB
+Editor: CodeMirror 6
+Hosting: Vercel
+
+/* PRINCIPLES */
+- Zero-knowledge encryption
+- Privacy by default
+- No IP logging
+- Open source
 
 /* SITE */
-Last update: 2025-12-07
-Standards: HTML5, CSS3, ES6+
-Components: SvelteKit, Tailwind CSS, CodeMirror
-Software: VS Code, Claude Code
+Last update: 2025-12-10
+Standards: HTML5, CSS3, ES2022

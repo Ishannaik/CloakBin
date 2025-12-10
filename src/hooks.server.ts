@@ -4,6 +4,7 @@
  */
 
 import type { Handle } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 // ============================================
 // RATE LIMITING (In-Memory)
@@ -125,6 +126,24 @@ function getClientIP(event: Parameters<Handle>[0]['event']): string {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// ============================================
+	// ADMIN SESSION CHECK
+	// ============================================
+	const adminSession = event.cookies.get('admin_session');
+	if (adminSession) {
+		try {
+			const decoded = Buffer.from(adminSession, 'base64').toString('utf-8');
+			const [username, timestamp] = decoded.split(':');
+			const sessionAge = Date.now() - parseInt(timestamp, 10);
+			const MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+			if (username === env.ADMIN_USER && sessionAge < MAX_AGE) {
+				event.locals.isAdmin = true;
+			}
+		} catch {
+			// Invalid session format - ignore
+		}
+	}
+
 	// ============================================
 	// RATE LIMITING
 	// ============================================

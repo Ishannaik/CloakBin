@@ -16,7 +16,7 @@
 </script>
 
 <div
-	class="rounded-lg border border-zinc-800 bg-[#242830] p-5 transition-all hover:border-zinc-700"
+	class="rounded-lg border border-zinc-800 bg-bg-secondary p-5 transition-all hover:border-zinc-700"
 >
 	<div class="flex items-start justify-between">
 		<div class="space-y-1">

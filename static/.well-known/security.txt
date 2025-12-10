@@ -1,3 +1,8 @@
-Contact: https://github.com/Ishannaik/CloakBin/issues
+Contact: mailto:security@cloakbin.com
 Preferred-Languages: en
-Canonical: https://cloakbin.vercel.app/.well-known/security.txt
+Canonical: https://cloakbin.com/.well-known/security.txt
+Expires: 2026-12-31T23:59:59.000Z
+
+# CloakBin Security Policy
+# We take security seriously. If you find a vulnerability,
+# please report it responsibly to the email above.
