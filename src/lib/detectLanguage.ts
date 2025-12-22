@@ -55,12 +55,14 @@ hljs.registerLanguage('scala', scala);
  * Detect the programming language of code
  * @param code - The code to analyze
  * @returns The detected language name (e.g., "javascript", "python") or "plaintext"
+ * Only samples first 5KB for performance - no need to analyze entire file
  */
 export function detectLanguage(code: string): string {
 	if (!code || !code.trim()) return 'plaintext';
 
 	try {
-		const result = hljs.highlightAuto(code);
+		const sample = code.length > 5000 ? code.slice(0, 5000) : code;
+		const result = hljs.highlightAuto(sample);
 		// Only return detected language if confidence is high enough
 		if (result.relevance > 5) {
 			return result.language || 'plaintext';
