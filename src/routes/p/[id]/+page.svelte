@@ -202,12 +202,23 @@
 		}
 	}
 
+	// Store pre-decrypted content for password + burn pastes
+	let pendingBurnContent: string | null = null;
+
 	// Decrypt with password
 	async function decryptWithPassword() {
 		if (!passwordInput.trim() || !pasteData) return;
 		try {
 			const key = await deriveKeyFromPassword(passwordInput, pasteData.salt!);
 			const decryptedContent = await decrypt(pasteData.content, key);
+
+			// If this is also a burn-after-read paste, show burn warning first
+			if (pasteData.burnAfterRead) {
+				pendingBurnContent = decryptedContent;
+				viewState = 'burnWarning';
+				return;
+			}
+
 			content = decryptedContent;
 			createdAt = new Date(pasteData.createdAt);
 			expiresAt = new Date(pasteData.expiresAt);
@@ -223,13 +234,6 @@
 		if (!pasteData) return;
 
 		try {
-			// Get encryption key from URL hash
-			const urlHash = window.location.hash.slice(1);
-			if (!urlHash) {
-				viewState = 'needKey';
-				return;
-			}
-
 			// Atomically delete and retrieve the paste via burn endpoint
 			const pasteId = $page.params.id;
 			const burnResponse = await fetch(`/api/paste/${pasteId}/burn`, { method: 'POST' });
@@ -244,9 +248,22 @@
 
 			const burnData = await burnResponse.json();
 
-			const key = await base64ToKey(urlHash);
-			const decryptedContent = await decrypt(burnData.content, key);
-			content = decryptedContent;
+			// If we already decrypted with password, use that content
+			if (pendingBurnContent !== null) {
+				content = pendingBurnContent;
+				pendingBurnContent = null; // Clear for security
+			} else {
+				// Standard URL-hash based decryption
+				const urlHash = window.location.hash.slice(1);
+				if (!urlHash) {
+					viewState = 'needKey';
+					return;
+				}
+				const key = await base64ToKey(urlHash);
+				const decryptedContent = await decrypt(burnData.content, key);
+				content = decryptedContent;
+			}
+
 			createdAt = new Date(burnData.createdAt);
 			expiresAt = new Date(burnData.expiresAt);
 			viewState = 'success';
@@ -451,8 +468,13 @@
 			}
 		};
 
+		const handleHashChange = () => {
+			loadAndDecrypt();
+		};
+
 		window.addEventListener('pagehide', handlePageHide);
 		window.addEventListener('pageshow', handlePageShow);
+		window.addEventListener('hashchange', handleHashChange);
 		document.addEventListener('click', handleClickOutside);
 
 		// Initial load
@@ -461,6 +483,7 @@
 		return () => {
 			window.removeEventListener('pagehide', handlePageHide);
 			window.removeEventListener('pageshow', handlePageShow);
+			window.removeEventListener('hashchange', handleHashChange);
 			document.removeEventListener('click', handleClickOutside);
 		};
 	});
