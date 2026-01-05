@@ -247,6 +247,15 @@
 		dragCounter = 0;
 		isDragging = false;
 
+		const items = e.dataTransfer?.items;
+		if (items && items.length > 0) {
+			const item = items[0];
+			// Silently ignore directory drops
+			if (item.kind === 'file' && item.webkitGetAsEntry()?.isDirectory) {
+				return;
+			}
+		}
+
 		const file = e.dataTransfer?.files[0];
 		if (!file) return;
 
