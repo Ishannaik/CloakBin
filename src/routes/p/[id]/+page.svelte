@@ -514,21 +514,21 @@
 
 <div class="h-screen flex flex-col relative overflow-hidden">
 	<!-- Header -->
-	<header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+	<header class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800">
 		<a href="/" class="flex items-center gap-3 group cursor-pointer">
 			<img
 				src={logo}
 				alt="CloakBin"
-				class="w-8 h-8 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
+				class="w-12 h-12 sm:w-11 sm:h-11 md:w-12 md:h-12 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
 			/>
-			<span class="text-xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
+			<span class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
 		</a>
 
 		{#if viewState === 'success'}
 			<div class="flex items-center gap-1 sm:gap-2">
 				<button
 					onclick={copyToClipboard}
-					class="p-2 sm:px-4 sm:py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if copied}
 						<Check size={16} />
@@ -541,7 +541,7 @@
 				<button
 					onclick={duplicatePaste}
 					title="{mod}+D"
-					class="p-2 sm:px-4 sm:py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
 				>
 					<Files size={16} />
 					<span class="hidden sm:inline">Duplicate</span>
@@ -549,7 +549,7 @@
 				<button
 					onclick={copyShareUrl}
 					title="{mod}+S"
-					class="p-2 sm:px-4 sm:py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if shareCopied}
 						<Check size={16} />
@@ -561,7 +561,7 @@
 				</button>
 				<a
 					href="/"
-					class="p-2 sm:px-4 sm:py-2 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-teal-500 text-zinc-900 rounded font-medium transition-all duration-150 hover:bg-teal-400 active:scale-95 flex items-center gap-2"
 				>
 					<Plus size={16} />
 					<span class="hidden sm:inline">New</span>

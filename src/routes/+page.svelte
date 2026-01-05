@@ -275,6 +275,7 @@
 	}
 
 	// New button animation state
+	let logoClicks = 0;
 	let newButtonScale = spring(1, { stiffness: 0.3, damping: 0.6 });
 	let newButtonRotation = spring(0, { stiffness: 0.2, damping: 0.5 });
 	let newButtonSuccess = $state(false);
@@ -489,37 +490,40 @@
 	ondrop={handleDrop}
 >
 	<!-- Header -->
-	<header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+	<header class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800">
 		<div class="flex items-center gap-2.5 group cursor-pointer">
 			<img
 				src={logo}
 				alt="CloakBin"
-				class="w-8 h-8 transition-transform duration-200 "
+				class="w-12 h-12 sm:w-11 sm:h-11 md:w-12 md:h-12 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3 cursor-pointer"
+				onclick={() => { logoClicks++; if (logoClicks >= 3) { console.log('%c🔒 CloakBin', 'font-size:24px;color:#14b8a6;font-weight:bold;'); console.log('Zero-knowledge encryption. The server never sees your data.'); logoClicks = 0; } }}
+				role="button"
+				tabindex="0"
 			/>
-			<span class="text-xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
+			<span class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
 		</div>
 		<div class="flex items-center gap-2">
 			<!-- Primary: New -->
 			<button
 				onclick={handleNewClick}
 				title="{mod}+Shift+N"
-				class="px-4 py-2 rounded font-medium transition-all duration-150 flex items-center gap-2 {newButtonSuccess ? 'bg-green-500 hover:bg-green-400' : 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
+				class="h-9 sm:h-10 min-w-9 sm:min-w-0 px-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 {newButtonSuccess ? 'bg-green-500 hover:bg-green-400' : 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
 				style="transform: scale({$newButtonScale})"
 			>
 				<span
 					class="inline-block"
 					style="transform: rotate({$newButtonRotation}deg)"
 				>+</span>
-				{newButtonSuccess ? 'Cleared!' : 'New'}
+				<span class="hidden sm:inline">{newButtonSuccess ? 'Cleared!' : 'New'}</span>
 			</button>
 			<!-- Settings dropdown -->
 			<div class="relative settings-dropdown">
 				<button
 					onclick={() => showSettings = !showSettings}
-					class="px-2.5 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+					class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
 					title="Settings"
 				>
-					<Settings size={18} />
+					<Settings size={16} class="sm:hidden" /><Settings size={18} class="hidden sm:block" />
 				</button>
 				{#if showSettings}
 					{@const filteredLanguages = languages.filter(l =>
