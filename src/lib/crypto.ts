@@ -4,7 +4,17 @@
  *
  * The key is generated client-side and stored in the URL fragment (#)
  * Server never sees the plaintext or the key
+ *
+ * Format versions:
+ * - v0 (legacy): [IV: 12 bytes][ciphertext] - no compression
+ * - v1: [magic: "CB"][version: 0x01][IV: 12 bytes][gzip compressed ciphertext]
  */
+
+import { gzipSync, gunzipSync } from 'fflate';
+
+// Magic header "CB" to identify new format pastes
+const MAGIC_HEADER = new Uint8Array([0x43, 0x42]); // "CB"
+const FORMAT_VERSION_COMPRESSED = 0x01;
 
 /**
  * Convert Uint8Array to base64 string without stack overflow
@@ -38,43 +48,65 @@ export async function generateKey(): Promise<CryptoKey> {
 }
 
 /**
- * Encrypt plaintext using AES-256-GCM
- * The IV (Initialization Vector) is prepended to the ciphertext
+ * Encrypt plaintext using AES-256-GCM with gzip compression
+ * Format: [magic: "CB"][version: 0x01][IV: 12 bytes][encrypted gzip data]
  *
  * @param plaintext - The text to encrypt
  * @param key - The CryptoKey to use for encryption
- * @returns Base64-encoded string containing IV + ciphertext
+ * @returns Base64-encoded string containing header + IV + ciphertext
  */
 export async function encrypt(plaintext: string, key: CryptoKey): Promise<string> {
 	// Generate a random 12-byte IV (Initialization Vector)
 	const iv = crypto.getRandomValues(new Uint8Array(12));
 
-	// Encode plaintext to bytes
+	// Encode plaintext to bytes and compress with gzip
 	const encoder = new TextEncoder();
-	const data = encoder.encode(plaintext);
+	const uncompressed = encoder.encode(plaintext);
+	const compressedData = gzipSync(uncompressed, { level: 6 }); // Level 6 = good balance of speed/ratio
+	// Copy to new ArrayBuffer to satisfy TypeScript's strict BufferSource requirements
+	const compressed = new Uint8Array(compressedData).buffer;
 
-	// Encrypt the data
+	// Encrypt the compressed data
 	const ciphertext = await crypto.subtle.encrypt(
 		{
 			name: 'AES-GCM',
 			iv: iv
 		},
 		key,
-		data
+		compressed
 	);
 
-	// Concatenate IV + ciphertext (IV is needed for decryption)
-	const combined = new Uint8Array(iv.length + ciphertext.byteLength);
-	combined.set(iv, 0);
-	combined.set(new Uint8Array(ciphertext), iv.length);
+	// Concatenate: magic header + version + IV + ciphertext
+	const combined = new Uint8Array(
+		MAGIC_HEADER.length + 1 + iv.length + ciphertext.byteLength
+	);
+	let offset = 0;
+	combined.set(MAGIC_HEADER, offset);
+	offset += MAGIC_HEADER.length;
+	combined[offset] = FORMAT_VERSION_COMPRESSED;
+	offset += 1;
+	combined.set(iv, offset);
+	offset += iv.length;
+	combined.set(new Uint8Array(ciphertext), offset);
 
 	// Convert to base64 for storage (using chunked approach to avoid stack overflow)
 	return uint8ArrayToBase64(combined);
 }
 
 /**
+ * Check if data has the new format magic header "CB"
+ */
+function hasNewFormatHeader(data: Uint8Array): boolean {
+	return (
+		data.length >= MAGIC_HEADER.length &&
+		data[0] === MAGIC_HEADER[0] &&
+		data[1] === MAGIC_HEADER[1]
+	);
+}
+
+/**
  * Decrypt ciphertext using AES-256-GCM
- * Expects the IV to be prepended to the ciphertext
+ * Supports both legacy (uncompressed) and new (compressed) formats
  *
  * @param ciphertext - Base64-encoded string containing IV + ciphertext
  * @param key - The CryptoKey to use for decryption
@@ -84,23 +116,45 @@ export async function decrypt(ciphertext: string, key: CryptoKey): Promise<strin
 	// Decode base64 to bytes
 	const combined = Uint8Array.from(atob(ciphertext), (c) => c.charCodeAt(0));
 
-	// Extract IV (first 12 bytes) and ciphertext (remaining bytes)
-	const iv = combined.slice(0, 12);
-	const data = combined.slice(12);
+	let iv: Uint8Array;
+	let data: Uint8Array;
+	let isCompressed = false;
 
-	// Decrypt the data
-	const plaintext = await crypto.subtle.decrypt(
+	// Check for new format (magic header "CB")
+	if (hasNewFormatHeader(combined)) {
+		const version = combined[2];
+		if (version === FORMAT_VERSION_COMPRESSED) {
+			isCompressed = true;
+			// New format: skip magic (2) + version (1), then IV (12), rest is ciphertext
+			iv = combined.slice(3, 15);
+			data = combined.slice(15);
+		} else {
+			throw new Error(`Unknown encryption format version: ${version}`);
+		}
+	} else {
+		// Legacy format: IV (12 bytes) + ciphertext
+		iv = combined.slice(0, 12);
+		data = combined.slice(12);
+	}
+
+	// Decrypt the data (copy iv to new ArrayBuffer for TypeScript compatibility)
+	const decrypted = await crypto.subtle.decrypt(
 		{
 			name: 'AES-GCM',
-			iv: iv
+			iv: new Uint8Array(iv).buffer
 		},
 		key,
-		data
+		new Uint8Array(data).buffer
 	);
 
-	// Decode bytes to string
+	// Decompress if needed, then decode to string
 	const decoder = new TextDecoder();
-	return decoder.decode(plaintext);
+	if (isCompressed) {
+		const decompressed = gunzipSync(new Uint8Array(decrypted));
+		return decoder.decode(decompressed);
+	} else {
+		return decoder.decode(decrypted);
+	}
 }
 
 /**
