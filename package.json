@@ -64,6 +64,7 @@
 		"codemirror": "^6.0.2",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.2.0",
+		"fflate": "^0.8.3",
 		"highlight.js": "^11.11.1",
 		"layerchart": "^1.0.12",
 		"lucide-svelte": "^0.556.0",
