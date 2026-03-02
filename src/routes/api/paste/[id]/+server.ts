@@ -71,11 +71,25 @@ export const GET: RequestHandler = async ({ params }) => {
 			language: paste.language || 'plaintext'
 		};
 
-		// Return paste data - prevent caching of sensitive encrypted content
-		return json(responseData, {
-			headers: {
-				'Cache-Control': 'private, no-store, no-cache, must-revalidate'
-			}
+		// PERF/SECURITY: Decide if this response is safe to share via CDN cache.
+		// Encrypted pastes are immutable once created, so non-burn pastes can be
+		// cached publicly for a short window. Burn-after-read pastes must never
+		// be cached because each fetch may trigger destruction.
+		const isCacheable = !paste.burnAfterRead;
+
+		const responseHeaders = new Headers({
+			'Content-Type': 'application/json'
+		});
+
+		if (isCacheable) {
+			responseHeaders.set('Cache-Control', 'public, s-maxage=60');
+		} else {
+			responseHeaders.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+		}
+
+		return new Response(JSON.stringify(responseData), {
+			status: 200,
+			headers: responseHeaders
 		});
 
 	} catch (error) {
