@@ -51,6 +51,15 @@ export class TursoAdapter implements DatabaseAdapter {
 		throw new Error('TODO: Implement deletePaste');
 	}
 
+	async burnPaste(id: string): Promise<Result<Paste | null>> {
+		// TODO: Implement
+		// - SELECT * FROM pastes WHERE id = ? AND burn_after_read = 1 AND expires_at > datetime('now')
+		// - If found, DELETE FROM pastes WHERE id = ?
+		// - Convert INTEGER booleans to JS booleans
+		// - Return the paste data if found and burned, null otherwise
+		throw new Error('TODO: Implement burnPaste');
+	}
+
 	async cleanupExpired(): Promise<Result<{ deleted: number }>> {
 		// TODO: Implement
 		throw new Error('TODO: Implement cleanupExpired');

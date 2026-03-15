@@ -36,6 +36,14 @@ export class RedisAdapter implements DatabaseAdapter {
 		throw new Error('TODO: Implement deletePaste');
 	}
 
+	async burnPaste(id: string): Promise<Result<Paste | null>> {
+		// TODO: Implement
+		// - Use WATCH/MULTI/EXEC transaction or Lua script for atomicity:
+		//   GET paste:{id}, check burnAfterRead === true, DEL paste:{id}
+		// - Return the paste data if found and burned, null otherwise
+		throw new Error('TODO: Implement burnPaste');
+	}
+
 	async cleanupExpired(): Promise<Result<{ deleted: number }>> {
 		// Redis TTL handles this automatically
 		// This is a no-op for Redis

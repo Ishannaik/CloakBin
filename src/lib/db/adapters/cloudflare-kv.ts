@@ -35,6 +35,14 @@ export class CloudflareKVAdapter implements DatabaseAdapter {
 		throw new Error('TODO: Implement deletePaste');
 	}
 
+	async burnPaste(id: string): Promise<Result<Paste | null>> {
+		// TODO: Implement
+		// - kv.get(id, 'json'), check burnAfterRead === true, kv.delete(id)
+		// - Note: KV doesn't support atomic read+delete, so there's a small race window
+		// - Return the paste data if found and burned, null otherwise
+		throw new Error('TODO: Implement burnPaste');
+	}
+
 	async cleanupExpired(): Promise<Result<{ deleted: number }>> {
 		// KV TTL handles this automatically
 		return { success: true, data: { deleted: 0 } };

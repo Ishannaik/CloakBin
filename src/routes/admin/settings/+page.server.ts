@@ -1,7 +1,9 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/db';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.isAdmin) throw redirect(302, '/admin/login');
 	// Check database connection
 	let dbConnected = false;
 	try {
@@ -29,13 +31,15 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	save: async ({ request }) => {
+	save: async ({ locals, request }) => {
+		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		// Settings would be saved to database in full implementation
 		// For now, just return success (settings are read-only placeholder)
 		return { success: true };
 	},
 
-	clearExpired: async () => {
+	clearExpired: async ({ locals }) => {
+		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		try {
 			const result = await db.cleanupExpired();
 			if (result.success) {

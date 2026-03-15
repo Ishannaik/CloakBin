@@ -1,8 +1,10 @@
+import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import type { AdminAdapter } from '$lib/db/types';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.isAdmin) throw redirect(302, '/admin/login');
 	const adminDb = db as AdminAdapter;
 
 	// Fetch stats and chart data in parallel

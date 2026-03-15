@@ -30,6 +30,13 @@ export interface DatabaseAdapter {
 	createPaste(input: CreatePasteInput): Promise<Result<{ id: string }>>;
 	getPaste(id: string): Promise<Result<Paste | null>>;
 	deletePaste(id: string): Promise<Result<void>>;
+	/**
+	 * Atomically delete a burn-after-read paste and return its content.
+	 * Returns the paste data if found and burnAfterRead is true, null otherwise.
+	 * This must be atomic: the paste is deleted in the same operation that reads it,
+	 * ensuring it can only be viewed once.
+	 */
+	burnPaste(id: string): Promise<Result<Paste | null>>;
 	cleanupExpired(): Promise<Result<{ deleted: number }>>;
 	healthCheck(): Promise<Result<void>>;
 }

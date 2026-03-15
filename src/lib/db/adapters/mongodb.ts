@@ -161,6 +161,40 @@ export class MongoDBAdapter implements AdminAdapter {
 		}
 	}
 
+	async burnPaste(id: string): Promise<Result<Paste | null>> {
+		try {
+			await connectDB();
+			const Model = getModel();
+
+			// Atomically find, verify burnAfterRead, and delete in one operation
+			const doc = await Model.findOneAndDelete({
+				_id: id,
+				burnAfterRead: true,
+				expiresAt: { $gt: new Date() }
+			});
+
+			if (!doc) {
+				return { success: true, data: null };
+			}
+
+			const paste: Paste = {
+				id: doc._id,
+				content: doc.content,
+				createdAt: doc.createdAt,
+				expiresAt: doc.expiresAt,
+				hasPassword: doc.hasPassword,
+				salt: doc.salt,
+				burnAfterRead: doc.burnAfterRead,
+				language: doc.language || 'plaintext'
+			};
+
+			return { success: true, data: paste };
+		} catch (error) {
+			console.error('MongoDB burnPaste error:', error);
+			return { success: false, error: 'Failed to burn paste' };
+		}
+	}
+
 	async cleanupExpired(): Promise<Result<{ deleted: number }>> {
 		try {
 			await connectDB();

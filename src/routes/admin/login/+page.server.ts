@@ -1,5 +1,6 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { createHmac } from 'crypto';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -35,10 +36,11 @@ export const actions: Actions = {
 			return fail(401, { error: 'Invalid username or password' });
 		}
 
-		// Create session
+		// Create HMAC-signed session token
 		const timestamp = Date.now();
-		const sessionData = username + ':' + timestamp;
-		const sessionToken = Buffer.from(sessionData).toString('base64');
+		const payload = timestamp + ':' + username;
+		const signature = createHmac('sha256', adminPass).update(payload).digest('hex');
+		const sessionToken = Buffer.from(payload + ':' + signature).toString('base64');
 
 		cookies.set('admin_session', sessionToken, {
 			path: '/',

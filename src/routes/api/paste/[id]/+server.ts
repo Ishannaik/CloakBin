@@ -58,8 +58,9 @@ export const GET: RequestHandler = async ({ params }) => {
 		}
 
 		// Prepare response data
-		// NOTE: Do NOT delete burn-after-read pastes here!
-		// The client shows a warning first, then calls DELETE explicitly after user confirms.
+		// NOTE: Burn-after-read pastes are NOT deleted here.
+		// The client shows a warning first, then calls POST /api/paste/[id]/burn
+		// which atomically deletes and returns the content.
 		const responseData = {
 			content: paste.content,
 			createdAt: paste.createdAt.toISOString(),
@@ -70,8 +71,12 @@ export const GET: RequestHandler = async ({ params }) => {
 			language: paste.language || 'plaintext'
 		};
 
-		// Return paste data
-		return json(responseData);
+		// Return paste data - prevent caching of sensitive encrypted content
+		return json(responseData, {
+			headers: {
+				'Cache-Control': 'private, no-store, no-cache, must-revalidate'
+			}
+		});
 
 	} catch (error) {
 		console.error('Error retrieving paste:', error);
@@ -82,33 +87,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params }) => {
-	try {
-		const { id } = params;
-
-		if (!id || typeof id !== 'string' || id.trim().length === 0) {
-			return json(
-				{ error: 'Invalid paste ID' },
-				{ status: 400 }
-			);
-		}
-
-		const result = await db.deletePaste(id);
-
-		if (!result.success) {
-			return json(
-				{ error: result.error },
-				{ status: 500 }
-			);
-		}
-
-		return json({ success: true });
-
-	} catch (error) {
-		console.error('Error deleting paste:', error);
-		return json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
-	}
-};
+// DELETE handler removed: paste deletion should only happen via:
+// - POST /api/paste/[id]/burn (for burn-after-read, atomic delete+return)
+// - Automatic TTL expiry (MongoDB TTL index / cleanup cron)
+// - Admin panel (admin-authenticated bulk delete)

@@ -1,12 +1,13 @@
 import { db } from '$lib/db';
 import type { AdminAdapter } from '$lib/db/types';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100, 200];
 const DEFAULT_PAGE_SIZE = 20;
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
+	if (!locals.isAdmin) throw redirect(302, '/admin/login');
 	const adminDb = db as AdminAdapter;
 
 	const page = parseInt(url.searchParams.get('page') || '1');
@@ -78,7 +79,8 @@ export const load: PageServerLoad = async ({ url }) => {
 };
 
 export const actions: Actions = {
-	delete: async ({ request }) => {
+	delete: async ({ locals, request }) => {
+		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		const formData = await request.formData();
 		const id = formData.get('id')?.toString();
 
@@ -94,7 +96,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	bulkDelete: async ({ request }) => {
+	bulkDelete: async ({ locals, request }) => {
+		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		const adminDb = db as AdminAdapter;
 		const formData = await request.formData();
 		const idsStr = formData.get('ids')?.toString();

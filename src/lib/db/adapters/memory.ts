@@ -49,6 +49,29 @@ export class MemoryAdapter implements DatabaseAdapter {
 		return { success: true, data: undefined };
 	}
 
+	async burnPaste(id: string): Promise<Result<Paste | null>> {
+		const paste = this.pastes.get(id);
+
+		if (!paste) {
+			return { success: true, data: null };
+		}
+
+		// Check expiry
+		if (paste.expiresAt < new Date()) {
+			this.pastes.delete(id);
+			return { success: true, data: null };
+		}
+
+		// Only burn if burnAfterRead is true
+		if (!paste.burnAfterRead) {
+			return { success: true, data: null };
+		}
+
+		// Atomically read and delete
+		this.pastes.delete(id);
+		return { success: true, data: paste };
+	}
+
 	async cleanupExpired(): Promise<Result<{ deleted: number }>> {
 		const now = new Date();
 		let deleted = 0;

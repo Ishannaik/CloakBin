@@ -1,10 +1,12 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/db';
 import type { AdminAdapter } from '$lib/db/types';
 
 const adminDb = db as AdminAdapter;
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
+	if (!locals.isAdmin) throw redirect(302, '/admin/login');
 	const range = url.searchParams.get('range') || '7d';
 
 	// Calculate days from range

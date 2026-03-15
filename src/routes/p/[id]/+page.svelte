@@ -217,7 +217,7 @@
 		}
 	}
 
-	// Confirm burn and view
+	// Confirm burn and view - uses atomic burn endpoint to ensure paste is only viewed once
 	async function confirmBurnAndView() {
 		showBurnWarning = false;
 		if (!pasteData) return;
@@ -230,16 +230,26 @@
 				return;
 			}
 
-			const key = await base64ToKey(urlHash);
-			const decryptedContent = await decrypt(pasteData.content, key);
-			content = decryptedContent;
-			createdAt = new Date(pasteData.createdAt);
-			expiresAt = new Date(pasteData.expiresAt);
-			viewState = 'success';
-
-			// Delete the paste after viewing
+			// Atomically delete and retrieve the paste via burn endpoint
 			const pasteId = $page.params.id;
-			await fetch(`/api/paste/${pasteId}`, { method: 'DELETE' });
+			const burnResponse = await fetch(`/api/paste/${pasteId}/burn`, { method: 'POST' });
+
+			if (!burnResponse.ok) {
+				viewState = 'error';
+				errorMessage = burnResponse.status === 404
+					? 'Paste not found or already burned'
+					: 'Failed to retrieve paste';
+				return;
+			}
+
+			const burnData = await burnResponse.json();
+
+			const key = await base64ToKey(urlHash);
+			const decryptedContent = await decrypt(burnData.content, key);
+			content = decryptedContent;
+			createdAt = new Date(burnData.createdAt);
+			expiresAt = new Date(burnData.expiresAt);
+			viewState = 'success';
 		} catch (error) {
 			console.error('Decryption failed:', error);
 			viewState = 'error';

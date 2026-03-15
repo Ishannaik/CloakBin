@@ -2,7 +2,8 @@ import { db } from '$lib/db';
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ locals, params }) => {
+	if (!locals.isAdmin) throw redirect(302, '/admin/login');
 	const result = await db.getPaste(params.id);
 
 	if (!result.success) {
@@ -36,7 +37,8 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
-	delete: async ({ params }) => {
+	delete: async ({ locals, params }) => {
+		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		const result = await db.deletePaste(params.id);
 
 		if (!result.success) {

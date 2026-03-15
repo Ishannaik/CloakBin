@@ -51,6 +51,14 @@ export class PostgresAdapter implements DatabaseAdapter {
 		throw new Error('TODO: Implement deletePaste');
 	}
 
+	async burnPaste(id: string): Promise<Result<Paste | null>> {
+		// TODO: Implement
+		// - DELETE FROM pastes WHERE id = ? AND burn_after_read = TRUE AND expires_at > NOW()
+		//   RETURNING *
+		// - Return the deleted row as Paste, or null if not found
+		throw new Error('TODO: Implement burnPaste');
+	}
+
 	async cleanupExpired(): Promise<Result<{ deleted: number }>> {
 		// TODO: Implement
 		// - DELETE WHERE expires_at < NOW()
