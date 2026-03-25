@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	import { X } from 'lucide-svelte';
 
 	let { open = $bindable(false), page = 'view' }: { open: boolean; page: 'home' | 'view' } = $props();
@@ -25,11 +26,15 @@
 		{ keys: `${mod}+/`, description: 'Show shortcuts' },
 	];
 
-	const shortcuts = page === 'home' ? homeShortcuts : viewShortcuts;
+	const shortcuts = $derived(page === 'home' ? homeShortcuts : viewShortcuts);
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			open = false;
+		}
+		if (e.key === '/' && (e.ctrlKey || e.metaKey)) {
+			e.preventDefault();
+			open = !open;
 		}
 	}
 
@@ -44,15 +49,19 @@
 
 {#if open}
 	<div
-		class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+		class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="shortcuts-title"
 		onclick={handleBackdropClick}
 		onkeydown={(e) => e.key === 'Escape' && (open = false)}
 		tabindex="-1"
+		transition:fade={{ duration: 150 }}
 	>
-		<div class="bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl w-full max-w-md mx-4 animate-scale-in">
+		<div
+			class="bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl w-full max-w-md mx-4"
+			transition:fade={{ duration: 200, delay: 50 }}
+		>
 			<!-- Header -->
 			<div class="flex items-center justify-between px-5 py-4 border-b border-zinc-700">
 				<h2 id="shortcuts-title" class="text-lg font-semibold text-zinc-100">Keyboard Shortcuts</h2>
