@@ -89,6 +89,11 @@ async function connectDB(): Promise<void> {
 	return connectionPromise;
 }
 
+// Short-lived in-process cache for the expensive stats aggregation (scans all content)
+type StatsCache = { data: AdminPasteStats; ts: number };
+let statsCache: StatsCache | null = null;
+const STATS_CACHE_TTL = 30_000; // 30 seconds
+
 export class MongoDBAdapter implements AdminAdapter {
 	async createPaste(input: CreatePasteInput): Promise<Result<{ id: string }>> {
 		try {
@@ -237,6 +242,11 @@ export class MongoDBAdapter implements AdminAdapter {
 
 	async getPasteStats(): Promise<Result<AdminPasteStats>> {
 		try {
+			// Serve cached stats if fresh — the $strLenBytes aggregation scans all content
+			if (statsCache && Date.now() - statsCache.ts < STATS_CACHE_TTL) {
+				return { success: true, data: statsCache.data };
+			}
+
 			await connectDB();
 			const Model = getModel();
 
@@ -266,17 +276,16 @@ export class MongoDBAdapter implements AdminAdapter {
 				])
 			]);
 
-			return {
-				success: true,
-				data: {
-					total,
-					today: todayCount,
-					withPassword: features[0]?.withPassword || 0,
-					burnAfterRead: features[0]?.burnAfterRead || 0,
-					totalSizeBytes: storage[0]?.totalSize || 0,
-					avgSizeBytes: Math.round(storage[0]?.avgSize || 0)
-				}
+			const data: AdminPasteStats = {
+				total,
+				today: todayCount,
+				withPassword: features[0]?.withPassword || 0,
+				burnAfterRead: features[0]?.burnAfterRead || 0,
+				totalSizeBytes: storage[0]?.totalSize || 0,
+				avgSizeBytes: Math.round(storage[0]?.avgSize || 0)
 			};
+			statsCache = { data, ts: Date.now() };
+			return { success: true, data };
 		} catch (error) {
 			console.error('MongoDB getPasteStats error:', error);
 			return { success: false, error: 'Failed to get paste stats' };
@@ -361,82 +370,56 @@ export class MongoDBAdapter implements AdminAdapter {
 				filter.expiresAt = { $gte: in24Hours };
 			}
 
-			// Check if we need size filtering
 			const needsSizeFilter = sizeMin !== undefined || sizeMax !== undefined;
+			const needsSizeSort = sortBy === 'encryptedSize';
+			const sortDirection = sortOrder === 'asc' ? 1 : -1;
+			const sortField = needsSizeSort ? 'contentSize' : sortBy;
 
-			// Use aggregation when we need size filtering or size sorting
-			if (needsSizeFilter || sortBy === 'encryptedSize') {
-				const sortDirection = sortOrder === 'asc' ? 1 : -1;
-				const sortField = sortBy === 'encryptedSize' ? 'contentSize' : sortBy;
+			// PERF: never fetch content field — always use aggregation so $strLenBytes
+			// computes size in-DB. When filtering/sorting by size we must compute it BEFORE
+			// sort/filter; otherwise we compute it AFTER $limit (only N docs, not the whole set).
+			const earlySize = needsSizeFilter || needsSizeSort;
 
-				// Build aggregation pipeline
-				const pipeline: Parameters<typeof Model.aggregate>[0] = [
-					{ $match: filter },
-					{
-						$addFields: {
-							contentSize: { $strLenBytes: { $ifNull: ['$content', ''] } }
-						}
-					}
-				];
+			const basePipeline: Parameters<typeof Model.aggregate>[0] = [{ $match: filter }];
 
-				// Add size filter if needed
+			if (earlySize) {
+				basePipeline.push({
+					$addFields: { contentSize: { $strLenBytes: { $ifNull: ['$content', ''] } } }
+				});
 				if (needsSizeFilter) {
 					const sizeMatch: Record<string, unknown> = {};
 					if (sizeMin !== undefined) sizeMatch.$gte = sizeMin;
 					if (sizeMax !== undefined) sizeMatch.$lte = sizeMax;
-					pipeline.push({ $match: { contentSize: sizeMatch } });
+					basePipeline.push({ $match: { contentSize: sizeMatch } });
 				}
-
-				// Count pipeline (same filters, no pagination)
-				const countPipeline = [...pipeline, { $count: 'total' }];
-
-				// Add sort, skip, limit for main query
-				pipeline.push(
-					{ $sort: { [sortField]: sortDirection as 1 | -1 } },
-					{ $skip: skip },
-					{ $limit: limit },
-					{
-						$project: {
-							_id: 1,
-							createdAt: 1,
-							expiresAt: 1,
-							hasPassword: 1,
-							burnAfterRead: 1,
-							contentSize: 1
-						}
-					}
-				);
-
-				const [docs, countResult] = await Promise.all([
-					Model.aggregate(pipeline),
-					Model.aggregate(countPipeline)
-				]);
-
-				return {
-					success: true,
-					data: {
-						pastes: docs.map((d) => ({
-							id: d._id,
-							createdAt: d.createdAt,
-							expiresAt: d.expiresAt,
-							hasPassword: d.hasPassword,
-							burnAfterRead: d.burnAfterRead,
-							sizeBytes: d.contentSize || 0
-						})),
-						total: countResult[0]?.total || 0
-					}
-				};
 			}
 
-			// Regular query for other cases (no size filter/sort)
-			const [docs, total] = await Promise.all([
-				Model.find(filter)
-					.select('_id createdAt expiresAt hasPassword burnAfterRead content')
-					.sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-					.skip(skip)
-					.limit(limit)
-					.lean(),
-				Model.countDocuments(filter)
+			const countPipeline = [...basePipeline, { $count: 'total' }];
+
+			const dataPipeline: Parameters<typeof Model.aggregate>[0] = [
+				...basePipeline,
+				{ $sort: { [sortField]: sortDirection as 1 | -1 } },
+				{ $skip: skip },
+				{ $limit: limit },
+				// Compute size AFTER pagination — only runs on the N returned docs
+				...(!earlySize
+					? [{ $addFields: { contentSize: { $strLenBytes: { $ifNull: ['$content', ''] } } } }]
+					: []),
+				{
+					$project: {
+						_id: 1,
+						createdAt: 1,
+						expiresAt: 1,
+						hasPassword: 1,
+						burnAfterRead: 1,
+						contentSize: 1
+					}
+				}
+			];
+
+			const [docs, countResult] = await Promise.all([
+				Model.aggregate(dataPipeline),
+				Model.aggregate(countPipeline)
 			]);
 
 			return {
@@ -448,9 +431,9 @@ export class MongoDBAdapter implements AdminAdapter {
 						expiresAt: d.expiresAt,
 						hasPassword: d.hasPassword,
 						burnAfterRead: d.burnAfterRead,
-						sizeBytes: d.content?.length || 0
+						sizeBytes: d.contentSize || 0
 					})),
-					total
+					total: countResult[0]?.total || 0
 				}
 			};
 		} catch (error) {
