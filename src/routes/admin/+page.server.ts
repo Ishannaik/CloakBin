@@ -7,19 +7,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.isAdmin) throw redirect(302, '/admin/login');
 	const adminDb = db as AdminAdapter;
 
-	// Fetch stats and chart data in parallel
-	const [statsResult, chartResult] = await Promise.all([
+	// Fetch all dashboard data in parallel — no sequential round-trips
+	const [statsResult, chartResult, recentResult] = await Promise.all([
 		adminDb.getPasteStats(),
-		adminDb.getDailyPasteCounts(30)
+		adminDb.getDailyPasteCounts(30),
+		adminDb.listPastes({ page: 1, limit: 5, sortBy: 'createdAt', sortOrder: 'desc' })
 	]);
-
-	// Get recent pastes for activity feed
-	const recentResult = await adminDb.listPastes({
-		page: 1,
-		limit: 5,
-		sortBy: 'createdAt',
-		sortOrder: 'desc'
-	});
 
 	return {
 		stats: statsResult.success
