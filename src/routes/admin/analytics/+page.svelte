@@ -3,12 +3,14 @@
 		FileText, HardDrive,
 		Clock, Lock, Flame, Calendar
 	} from 'lucide-svelte';
-	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	let { data } = $props();
 
 	type TimeRange = '1h' | '24h' | '7d' | '30d' | '1y' | 'all';
-	let selectedRange = $state<TimeRange>(data.range as TimeRange);
+
+	// Derive from URL so it stays in sync after navigation
+	const selectedRange = $derived(($page.url.searchParams.get('range') || data.range) as TimeRange);
 
 	const timeRanges: { value: TimeRange; label: string }[] = [
 		{ value: '1h', label: '1 Hour' },
@@ -18,11 +20,6 @@
 		{ value: '1y', label: '1 Year' },
 		{ value: 'all', label: 'All Time' },
 	];
-
-	function selectRange(range: TimeRange) {
-		selectedRange = range;
-		goto(`?range=${range}`, { replaceState: true, noScroll: true });
-	}
 
 	// Format bytes to human readable
 	function formatBytes(bytes: number): string {
@@ -58,12 +55,14 @@
 			<Calendar class="h-4 w-4 text-zinc-500" />
 			<div class="flex flex-wrap rounded-lg border border-zinc-700 bg-zinc-800 p-1">
 				{#each timeRanges as range}
-					<button
-						onclick={() => selectRange(range.value)}
+					<a
+						href="?range={range.value}"
+						data-sveltekit-replacestate
+						data-sveltekit-noscroll
 						class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors {selectedRange === range.value ? 'bg-teal-500 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'}"
 					>
 						{range.label}
-					</button>
+					</a>
 				{/each}
 			</div>
 		</div>

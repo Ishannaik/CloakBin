@@ -75,6 +75,7 @@
 					{@const active = isActive(item.href)}
 					<a
 						href={item.href}
+						data-sveltekit-preload-data="viewport"
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors
 						{active
 							? 'bg-teal-500/10 text-teal-400'
