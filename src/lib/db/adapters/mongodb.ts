@@ -94,6 +94,9 @@ type StatsCache = { data: AdminPasteStats; ts: number };
 let statsCache: StatsCache | null = null;
 const STATS_CACHE_TTL = 30_000; // 30 seconds
 
+type DailyCountsCache = { data: DailyCount[]; ts: number };
+const dailyCountsCache = new Map<number, DailyCountsCache>();
+
 export class MongoDBAdapter implements AdminAdapter {
 	async createPaste(input: CreatePasteInput): Promise<Result<{ id: string }>> {
 		try {
@@ -294,6 +297,11 @@ export class MongoDBAdapter implements AdminAdapter {
 
 	async getDailyPasteCounts(days: number): Promise<Result<DailyCount[]>> {
 		try {
+			const cached = dailyCountsCache.get(days);
+			if (cached && Date.now() - cached.ts < STATS_CACHE_TTL) {
+				return { success: true, data: cached.data };
+			}
+
 			await connectDB();
 			const Model = getModel();
 
@@ -312,10 +320,9 @@ export class MongoDBAdapter implements AdminAdapter {
 				{ $sort: { _id: 1 } }
 			]);
 
-			return {
-				success: true,
-				data: results.map((r) => ({ date: r._id, count: r.count }))
-			};
+			const data = results.map((r) => ({ date: r._id, count: r.count }));
+			dailyCountsCache.set(days, { data, ts: Date.now() });
+			return { success: true, data };
 		} catch (error) {
 			console.error('MongoDB getDailyPasteCounts error:', error);
 			return { success: false, error: 'Failed to get daily counts' };
