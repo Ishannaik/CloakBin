@@ -49,6 +49,7 @@ const pasteSchema = new Schema<PasteDocument>(
 
 // Create TTL index for automatic expiry (using expireAfterSeconds: 0 means delete when expiresAt is reached)
 pasteSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+pasteSchema.index({ createdAt: -1 }); // For default admin sort (newest first)
 
 // Model (lazy initialization to avoid issues with hot reloading)
 let PasteModel: Model<PasteDocument>;
@@ -62,25 +63,30 @@ function getModel(): Model<PasteDocument> {
 	return PasteModel;
 }
 
-// Connection state
-let isConnected = false;
+// In-flight connection promise guards against concurrent connect() calls on cold starts
+let connectionPromise: Promise<void> | null = null;
 
 async function connectDB(): Promise<void> {
-	if (isConnected) return;
+	if (mongoose.connection.readyState === 1) return;
+	if (connectionPromise) return connectionPromise;
 
 	const uri = env.MONGODB_URI;
 	if (!uri) {
 		throw new Error('MONGODB_URI environment variable is not set');
 	}
 
-	try {
-		await mongoose.connect(uri);
-		isConnected = true;
-		console.log('MongoDB connected');
-	} catch (error) {
-		console.error('MongoDB connection error:', error);
-		throw error;
-	}
+	connectionPromise = mongoose
+		.connect(uri)
+		.then(() => {
+			console.log('MongoDB connected');
+		})
+		.catch((error) => {
+			connectionPromise = null; // Allow retry on next request
+			console.error('MongoDB connection error:', error);
+			throw error;
+		});
+
+	return connectionPromise;
 }
 
 export class MongoDBAdapter implements AdminAdapter {
@@ -114,7 +120,9 @@ export class MongoDBAdapter implements AdminAdapter {
 			await connectDB();
 			const Model = getModel();
 
-			const doc = await Model.findById(id);
+			// PERF: .lean() bypasses Mongoose document hydration — returns a plain JS object.
+			// Saves ~10-20% CPU per paste read. Safe here: we only map to a DTO, no .save() calls.
+			const doc = await Model.findById(id).lean();
 
 			if (!doc) {
 				return { success: true, data: null };
