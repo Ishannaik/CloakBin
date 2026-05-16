@@ -2,6 +2,7 @@
 	"name": "cloakbin-v2",
 	"private": true,
 	"version": "0.0.1",
+	"license": "AGPL-3.0-only",
 	"type": "module",
 	"scripts": {
 		"dev": "kill-port 5173 && vite dev",

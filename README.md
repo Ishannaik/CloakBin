@@ -8,7 +8,7 @@
 
 **Your data is encrypted before it leaves your browser. We can't read it. No one can.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-2.0-FF3E00?logo=svelte)](https://kit.svelte.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 
@@ -159,7 +159,9 @@ PRs welcome! Please:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+GNU Affero General Public License v3.0 (AGPL-3.0) - see [LICENSE](LICENSE)
+
+If you run a modified version of CloakBin as a network service, AGPL §13 requires you to offer the modified source to your users.
 
 ---
 
