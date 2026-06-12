@@ -588,7 +588,7 @@
 	</header>
 
 	<!-- Editor -->
-	<div class="flex-1 min-h-0 overflow-auto">
+	<div class="flex-1 min-h-0 overflow-auto relative">
 		<CodeMirror
 			bind:value={content}
 			lang={languageExtension}

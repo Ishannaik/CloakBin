@@ -710,7 +710,7 @@
 	<!-- Success State - Display Content -->
 	{#if viewState === 'success'}
 		<!-- CodeMirror Viewer -->
-		<div class="flex-1 min-h-0 overflow-auto">
+		<div class="flex-1 min-h-0 overflow-auto relative">
 			<CodeMirror
 				value={content}
 				lang={languageExtension}
