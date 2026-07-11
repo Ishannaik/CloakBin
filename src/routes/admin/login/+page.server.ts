@@ -1,7 +1,15 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { createHmac } from 'crypto';
+import { createHmac, createHash, timingSafeEqual } from 'crypto';
 import type { Actions, PageServerLoad } from './$types';
+
+function safeEqual(a: string, b: string): boolean {
+	// Hash both sides to fixed 32-byte buffers so timingSafeEqual gets equal-length
+	// inputs (no length leak) and the comparison runs in constant time.
+	const ha = createHash('sha256').update(a).digest();
+	const hb = createHash('sha256').update(b).digest();
+	return timingSafeEqual(ha, hb);
+}
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// If already logged in, redirect to admin
@@ -32,7 +40,11 @@ export const actions: Actions = {
 			return fail(400, { error: 'Username and password are required' });
 		}
 
-		if (username !== adminUser || password !== adminPass) {
+		// Constant-time credential comparison. Both sides are computed before the
+		// branch so the || cannot reintroduce a short-circuit timing difference.
+		const userOk = safeEqual(username, adminUser);
+		const passOk = safeEqual(password, adminPass);
+		if (!userOk || !passOk) {
 			return fail(401, { error: 'Invalid username or password' });
 		}
 
