@@ -1,8 +1,10 @@
+Contact: https://github.com/Ishannaik/CloakBin/security/advisories/new
 Contact: mailto:security@cloakbin.com
 Preferred-Languages: en
-Canonical: https://cloakbin.com/.well-known/security.txt
-Expires: 2026-12-31T23:59:59.000Z
+Canonical: https://oss.cloakbin.com/.well-known/security.txt
+Expires: 2027-07-11T00:00:00.000Z
 
 # CloakBin Security Policy
-# We take security seriously. If you find a vulnerability,
-# please report it responsibly to the email above.
+# CloakBin is a zero-knowledge encrypted pastebin. Please report
+# vulnerabilities responsibly via the GitHub advisory link above
+# (preferred) or the security@ email. See SECURITY.md for scope.

@@ -67,6 +67,18 @@ The encryption key lives in the URL fragment (`#`), which **browsers never send 
 - **Key Derivation**: PBKDF2 with 100,000 iterations (for password-protected pastes)
 - **Random Generation**: Web Crypto API (`crypto.getRandomValues`)
 
+## Verify the Zero-Knowledge Claim Yourself
+
+Don't take our word for it — the guarantee is verifiable in your browser:
+
+1. Open your browser's **DevTools** (F12) and switch to the **Network** tab.
+2. Type some text and **create a paste**.
+3. Inspect the outgoing `POST` request that saves the paste and look at its **request body**. You'll see only **ciphertext** and a **salt** — never your plaintext, and never the encryption key.
+4. Look at the resulting paste URL: the decryption key is the part after the `#` (the **URL fragment**). By web standard, browsers **never send the fragment to the server** — it stays client-side.
+5. Open the paste and watch the Network tab again: the server returns the stored **ciphertext**, and decryption happens **in your browser** using the key from the `#fragment`.
+
+Because the key only ever exists in the fragment and in your recipient's browser, the server (and its database, and anyone on the network) only ever sees encrypted blobs. There is no server-side code path that can read your content — even under subpoena, only ciphertext exists to hand over.
+
 ## Features
 
 - 🔐 **Zero-Knowledge Encryption** - AES-256-GCM, keys never leave your browser
