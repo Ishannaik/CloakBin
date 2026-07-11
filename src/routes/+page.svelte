@@ -1,6 +1,6 @@
 <script lang="ts">
 	import logo from '$lib/assets/logo.svg';
-	import CodeMirror from 'svelte-codemirror-editor';
+	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
@@ -20,7 +20,7 @@
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
-	import { detectLanguage } from '$lib/detectLanguage';
+	// PERF: detectLanguage pulls highlight.js (~60-80KB) — dynamically imported at save time only (see below)
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// Dynamic language extension for CodeMirror (null = plaintext/no highlighting)
@@ -412,8 +412,12 @@
 				urlKey = await keyToBase64(key);
 			}
 
-			// Use selected language or auto-detect
-			const language = selectedLanguage === 'auto' ? detectLanguage(content) : selectedLanguage;
+			// Use selected language or auto-detect (highlight.js loaded lazily only when needed)
+			let language = selectedLanguage;
+			if (selectedLanguage === 'auto') {
+				const { detectLanguage } = await import('$lib/detectLanguage');
+				language = detectLanguage(content);
+			}
 
 			// Encrypt content
 			const encrypted = await encrypt(content, key);
@@ -594,7 +598,7 @@
 
 	<!-- Editor -->
 	<div class="flex-1 min-h-0 overflow-auto relative">
-		<CodeMirror
+		<LazyCodeMirror
 			bind:value={content}
 			lang={languageExtension}
 			theme={currentTheme}
