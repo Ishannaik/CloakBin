@@ -3,6 +3,7 @@
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
 	import EncryptionOverlay from '$lib/components/EncryptionOverlay.svelte';
+	import ImportModal from '$lib/components/ImportModal.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
@@ -18,7 +19,7 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload, WifiOff, Settings } from 'lucide-svelte';
+	import { Lock, Files, Upload, WifiOff, Settings, FileUp } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
@@ -111,6 +112,16 @@
 	let showDuplicateToast = $state(false);
 	let showShortcuts = $state(false);
 	let showSettings = $state(false);
+	let showImportModal = $state(false);
+
+	// Match hosted: mobile-viewport-aware height via --app-height (updates on resize)
+	$effect(() => {
+		const setAppHeight = () =>
+			document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+		setAppHeight();
+		window.addEventListener('resize', setAppHeight);
+		return () => window.removeEventListener('resize', setAppHeight);
+	});
 	let settingsTab = $state<'language' | 'theme'>('language'); // Which tab is active
 	let settingsSearch = $state(''); // Search filter for languages/themes
 	let isOffline = $state(false);
@@ -477,12 +488,12 @@
 </script>
 
 <svelte:head>
-	<title>CloakBin - Zero-Knowledge Encrypted Pastebin</title>
+	<title>CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption</title>
 	<meta name="description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser - we can never see it." />
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="CloakBin - Zero-Knowledge Encrypted Pastebin" />
+	<meta property="og:title" content="CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption" />
 	<meta property="og:description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser." />
 	<meta property="og:image" content="/og-image-logo.png" />
 	<meta property="og:url" content="https://cloakbin.com" />
@@ -490,7 +501,7 @@
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="CloakBin - Zero-Knowledge Encrypted Pastebin" />
+	<meta name="twitter:title" content="CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption" />
 	<meta name="twitter:description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser." />
 	<meta name="twitter:image" content="/og-image-logo.png" />
 </svelte:head>
@@ -498,7 +509,8 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div
-	class="h-screen flex flex-col relative overflow-hidden"
+	class="flex flex-col relative overflow-hidden"
+	style="background-color:#1a1d23; height:var(--app-height,100vh)"
 	role="application"
 	aria-label="Paste editor with drag and drop support"
 	ondragenter={handleDragEnter}
@@ -506,9 +518,10 @@
 	ondragover={handleDragOver}
 	ondrop={handleDrop}
 >
+	<h1 class="sr-only">CloakBin — Free Encrypted Pastebin with Zero-Knowledge Client-Side Encryption</h1>
 	<!-- Header -->
 	<header class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800">
-		<div class="flex items-center gap-2.5 group cursor-pointer">
+		<a href="/" class="flex items-center gap-2.5 group cursor-pointer">
 			<img
 				src={logo}
 				alt="CloakBin"
@@ -518,7 +531,7 @@
 				tabindex="0"
 			/>
 			<span class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
-		</div>
+		</a>
 		<div class="flex items-center gap-2">
 			<!-- Primary: New -->
 			<button
@@ -532,6 +545,15 @@
 					style="transform: rotate({$newButtonRotation}deg)"
 				>+</span>
 				<span class="hidden sm:inline">{newButtonSuccess ? 'Cleared!' : 'New'}</span>
+			</button>
+			<!-- Import -->
+			<button
+				onclick={() => (showImportModal = true)}
+				title="Import a file"
+				class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-1.5"
+			>
+				<FileUp size={16} class="sm:hidden" /><FileUp size={18} class="hidden sm:block" />
+				<span class="hidden md:inline text-sm">Import</span>
 			</button>
 			<!-- Settings dropdown -->
 			<div class="relative settings-dropdown">
@@ -740,3 +762,10 @@
 </div>
 
 <ShortcutsModal bind:open={showShortcuts} page="home" />
+
+<ImportModal
+	bind:open={showImportModal}
+	onImport={(text) => {
+		content = text;
+	}}
+/>
