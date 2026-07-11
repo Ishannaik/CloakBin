@@ -8,9 +8,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const adminDb = db as AdminAdapter;
 
 	// Fetch all dashboard data in parallel — no sequential round-trips
-	const [statsResult, chartResult, recentResult] = await Promise.all([
+	const [statsResult, recentResult] = await Promise.all([
 		adminDb.getPasteStats(),
-		adminDb.getDailyPasteCounts(30),
 		adminDb.listPastes({ page: 1, limit: 5, sortBy: 'createdAt', sortOrder: 'desc' })
 	]);
 
@@ -25,7 +24,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 					totalSizeBytes: 0,
 					avgSizeBytes: 0
 				},
-		chartData: chartResult.success ? chartResult.data : [],
 		recentPastes: recentResult.success ? recentResult.data.pastes : []
 	};
 };
