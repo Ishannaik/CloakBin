@@ -5,7 +5,7 @@
 
 import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { verifyAdminSession } from '$lib/server/admin-auth';
 
 // ============================================
 // RATE LIMITING (In-Memory)
@@ -131,33 +131,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// ADMIN SESSION CHECK
 	// ============================================
 	const adminSession = event.cookies.get('admin_session');
-	if (adminSession && env.ADMIN_PASS) {
-		try {
-			const decoded = Buffer.from(adminSession, 'base64').toString('utf-8');
-			const parts = decoded.split(':');
-			// Token format: timestamp:username:hmac_hex
-			if (parts.length === 3) {
-				const [timestamp, username, providedSig] = parts;
-				const sessionAge = Date.now() - parseInt(timestamp, 10);
-				const MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-
-				if (username === env.ADMIN_USER && sessionAge >= 0 && sessionAge < MAX_AGE) {
-					// Recompute HMAC and verify with timing-safe comparison
-					const expectedSig = createHmac('sha256', env.ADMIN_PASS)
-						.update(timestamp + ':' + username)
-						.digest('hex');
-					const sigBuffer = Buffer.from(providedSig, 'utf-8');
-					const expectedBuffer = Buffer.from(expectedSig, 'utf-8');
-					if (
-						sigBuffer.length === expectedBuffer.length &&
-						timingSafeEqual(sigBuffer, expectedBuffer)
-					) {
-						event.locals.isAdmin = true;
-					}
-				}
-			}
-		} catch {
-			// Invalid session format - ignore
+	if (adminSession && env.ADMIN_USER && env.ADMIN_PASS) {
+		if (verifyAdminSession(adminSession, env.ADMIN_USER, env.ADMIN_PASS)) {
+			event.locals.isAdmin = true;
 		}
 	}
 
