@@ -5,6 +5,7 @@
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
 	import type { Extension } from '@codemirror/state';
+	import type { LanguageSupport } from '@codemirror/language';
 	import {
 		dracula,
 		cobalt,
@@ -23,10 +24,10 @@
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// Dynamic language extension for CodeMirror (null = plaintext/no highlighting)
-	let languageExtension = $state<Extension | null>(null);
+	let languageExtension = $state<LanguageSupport | null>(null);
 
 	// Load language extension dynamically
-	async function loadLanguageExtension(lang: string): Promise<Extension | null> {
+	async function loadLanguageExtension(lang: string): Promise<LanguageSupport | null> {
 		try {
 			switch (lang) {
 				case 'javascript':

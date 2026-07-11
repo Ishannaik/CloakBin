@@ -19,7 +19,8 @@ export class MemoryAdapter implements DatabaseAdapter {
 			// No viewCount - privacy first
 			hasPassword: input.hasPassword ?? false,
 			salt: input.salt ?? null,
-			burnAfterRead: input.burnAfterRead ?? false
+			burnAfterRead: input.burnAfterRead ?? false,
+			language: input.language ?? 'plaintext'
 		};
 		this.pastes.set(id, paste);
 		return { success: true, data: { id } };
