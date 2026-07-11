@@ -2,6 +2,7 @@
 	import logo from '$lib/assets/logo.svg';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
+	import EncryptionOverlay from '$lib/components/EncryptionOverlay.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
@@ -216,6 +217,7 @@
 		}
 	}
 	let isCreating = $state(false);
+	let encryptedPreview = $state(''); // ciphertext fed to the encrypt animation overlay
 
 	// Large paste loading state
 	let isLoadingPaste = $state(false);
@@ -422,6 +424,9 @@
 
 			// Encrypt content
 			const encrypted = await encrypt(content, key);
+			// Feed the ciphertext to the encrypt-animation overlay (morphs the editor content)
+			encryptedPreview = encrypted;
+			const morphStart = performance.now();
 
 			// POST to API
 			const res = await fetch('/api/paste', {
@@ -446,6 +451,11 @@
 
 			// Clear draft on successful create
 			localStorage.removeItem('cloakbin_draft');
+
+			// Let the encrypt animation play its full duration before navigating away
+			const MORPH_MS = 2000;
+			const remaining = MORPH_MS - (performance.now() - morphStart);
+			if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
 			content = ''; // Clear content so back button shows empty editor
 
 			// Redirect to view page
@@ -461,6 +471,7 @@
 			alert(error instanceof Error ? error.message : 'Failed to create paste. Please try again.');
 		} finally {
 			isCreating = false;
+			encryptedPreview = '';
 		}
 	}
 </script>
@@ -614,6 +625,13 @@
 				}
 			}}
 			placeholder="// Paste something private..."
+		/>
+		<!-- Encrypt animation: cipher-morph overlay while creating -->
+		<EncryptionOverlay
+			active={isCreating}
+			sourceText={content}
+			encryptedText={encryptedPreview}
+			onFrame={(text) => { content = text; }}
 		/>
 	</div>
 

@@ -2,6 +2,8 @@
 	import '../app.css';
 	import { page, navigating } from '$app/stores';
 	import MatrixRain from '$lib/components/MatrixRain.svelte';
+	import EncryptionBanner from '$lib/components/EncryptionBanner.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { jsonLd } from '$lib/utils/json-ld';
 
 	let { children } = $props();
@@ -162,9 +164,13 @@
 	</div>
 {/if}
 
+<!-- Zero-knowledge teaching banner -->
+<EncryptionBanner />
+
 <!-- Easter egg: "cloak" typing fades page to 10% opacity -->
 <div class="transition-opacity duration-500 {isCloaked ? 'opacity-10' : 'opacity-100'}">
 	{@render children()}
+	<Footer />
 </div>
 
 <style>
