@@ -7,6 +7,7 @@
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import type { Extension } from '@codemirror/state';
+	import type { LanguageSupport } from '@codemirror/language';
 	import {
 		dracula,
 		cobalt,
@@ -41,7 +42,7 @@
 	let showBurnWarning = $state(false);
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
-	let languageExtension = $state<Extension>(javascript());
+	let languageExtension = $state<LanguageSupport>(javascript());
 
 	// Theme state
 	let selectedTheme = $state('oneDark');
@@ -68,7 +69,7 @@
 	});
 
 	// Load language extension dynamically
-	async function loadLanguageExtension(lang: string): Promise<Extension> {
+	async function loadLanguageExtension(lang: string): Promise<LanguageSupport> {
 		try {
 			switch (lang) {
 				case 'javascript':

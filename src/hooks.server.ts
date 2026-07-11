@@ -169,7 +169,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const method = event.request.method;
 
 	// Determine which rate limit to apply
-	let limit = RATE_LIMITS.default;
+	let limit: (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS] = RATE_LIMITS.default;
 	let limitType = 'default';
 
 	if (method === 'POST' && path === '/api/paste') {

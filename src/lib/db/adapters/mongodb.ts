@@ -18,7 +18,7 @@ import type {
 } from '../types';
 
 // Mongoose document interface
-interface PasteDocument extends Document {
+interface PasteDocument extends Omit<Document, '_id'> {
 	_id: string;
 	content: string;
 	createdAt: Date;
