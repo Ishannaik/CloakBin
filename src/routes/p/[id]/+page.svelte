@@ -3,7 +3,7 @@
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
-	import CodeMirror from 'svelte-codemirror-editor';
+	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import type { Extension } from '@codemirror/state';
@@ -712,12 +712,11 @@
 	{#if viewState === 'success'}
 		<!-- CodeMirror Viewer -->
 		<div class="flex-1 min-h-0 overflow-auto relative">
-			<CodeMirror
+			<LazyCodeMirror
 				value={content}
 				lang={languageExtension}
 				theme={currentTheme}
 				extensions={[EditorView.lineWrapping, EditorView.editable.of(false)]}
-				editable={false}
 				styles={{
 					'&': {
 						height: '100%',
