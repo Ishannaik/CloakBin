@@ -1,6 +1,7 @@
 <script lang="ts">
 	import logo from '$lib/assets/logo.svg';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
+	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
@@ -618,17 +619,7 @@
 
 	<!-- Bottom bar -->
 	<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800">
-		<div class="flex items-center gap-2">
-			<span class="text-zinc-500 text-sm hidden sm:inline">Expiry:</span>
-			<select
-				bind:value={expiry}
-				class="bg-bg-secondary border border-zinc-700 rounded px-2 sm:px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
-			>
-				{#each expiryOptions as option}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</select>
-		</div>
+		<ExpirySelect bind:value={expiry} options={expiryOptions} />
 		<!-- Password toggle -->
 		<label class="flex items-center gap-1.5 cursor-pointer">
 			<input
@@ -636,14 +627,15 @@
 				bind:checked={usePassword}
 				class="w-4 h-4 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-teal-500 checked:border-teal-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-[10px] checked:after:text-zinc-900 checked:after:font-bold"
 			/>
+			<Lock size={14} class="text-zinc-400" />
 			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
-			<Lock size={14} class="text-zinc-400 sm:hidden" />
 		</label>
 		{#if usePassword}
 			<input
 				type="password"
 				bind:value={password}
 				placeholder="Password..."
+				maxlength={128}
 				class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
 			/>
 		{/if}
@@ -654,8 +646,8 @@
 				bind:checked={burnAfterRead}
 				class="w-4 h-4 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-orange-500 checked:border-orange-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-[10px] checked:after:text-zinc-900 checked:after:font-bold"
 			/>
+			<span class="text-orange-500">🔥</span>
 			<span class="text-zinc-400 text-sm hidden sm:inline">Burn</span>
-			<span class="text-orange-500 sm:hidden">🔥</span>
 		</label>
 		<!-- Primary: Create -->
 		<button
