@@ -113,8 +113,8 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/cloakbin
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your-secure-password
+ADMIN_USER=admin
+ADMIN_PASS=your-secure-password
 ```
 
 ## Tech Stack
