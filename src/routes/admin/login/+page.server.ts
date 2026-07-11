@@ -1,15 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { createHmac, createHash, timingSafeEqual } from 'crypto';
+import { safeEqual, signAdminSession } from '$lib/server/admin-auth';
 import type { Actions, PageServerLoad } from './$types';
-
-function safeEqual(a: string, b: string): boolean {
-	// Hash both sides to fixed 32-byte buffers so timingSafeEqual gets equal-length
-	// inputs (no length leak) and the comparison runs in constant time.
-	const ha = createHash('sha256').update(a).digest();
-	const hb = createHash('sha256').update(b).digest();
-	return timingSafeEqual(ha, hb);
-}
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// If already logged in, redirect to admin
@@ -49,10 +41,7 @@ export const actions: Actions = {
 		}
 
 		// Create HMAC-signed session token
-		const timestamp = Date.now();
-		const payload = timestamp + ':' + username;
-		const signature = createHmac('sha256', adminPass).update(payload).digest('hex');
-		const sessionToken = Buffer.from(payload + ':' + signature).toString('base64');
+		const sessionToken = signAdminSession(username, adminPass);
 
 		cookies.set('admin_session', sessionToken, {
 			path: '/',

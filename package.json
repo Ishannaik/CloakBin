@@ -17,7 +17,8 @@
 		"format:check": "prettier --check .",
 		"generate:assets": "node generate-assets.mjs && node generate-extra-assets.mjs",
 		"generate:assets:main": "node generate-assets.mjs",
-		"generate:assets:extra": "node generate-extra-assets.mjs"
+		"generate:assets:extra": "node generate-extra-assets.mjs",
+		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
@@ -43,7 +44,8 @@
 		"tailwindcss": "^4.1.17",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.63.0",
-		"vite": "^7.2.2"
+		"vite": "^7.2.2",
+		"vitest": "^4.1.10"
 	},
 	"dependencies": {
 		"@codemirror/lang-cpp": "^6.0.3",
