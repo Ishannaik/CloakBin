@@ -22,13 +22,44 @@
 		<!-- Theme Color -->
 		<meta name="theme-color" content="#1d2731" />
 
-		<!-- Fonts -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<!-- PERF + PRIVACY: self-hosted JetBrains Mono (no external Google Fonts request) -->
 		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
-			rel="stylesheet"
+			rel="preload"
+			as="font"
+			href="/fonts/JetBrainsMono-Regular.woff2"
+			type="font/woff2"
+			crossorigin
 		/>
+		<style>
+			@font-face {
+				font-family: 'JetBrains Mono';
+				font-style: normal;
+				font-weight: 400;
+				font-display: swap;
+				src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+			}
+			@font-face {
+				font-family: 'JetBrains Mono';
+				font-style: normal;
+				font-weight: 500;
+				font-display: swap;
+				src: url('/fonts/JetBrainsMono-Medium.woff2') format('woff2');
+			}
+			@font-face {
+				font-family: 'JetBrains Mono';
+				font-style: normal;
+				font-weight: 600;
+				font-display: swap;
+				src: url('/fonts/JetBrainsMono-SemiBold.woff2') format('woff2');
+			}
+			@font-face {
+				font-family: 'JetBrains Mono';
+				font-style: normal;
+				font-weight: 700;
+				font-display: swap;
+				src: url('/fonts/JetBrainsMono-Bold.woff2') format('woff2');
+			}
+		</style>
 
 		%sveltekit.head%
 	</head>
