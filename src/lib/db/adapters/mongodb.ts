@@ -76,8 +76,11 @@ async function connectDB(): Promise<void> {
 	}
 
 	connectionPromise = mongoose
-		.connect(uri)
-		.then(() => {
+		.connect(uri, { autoIndex: false, maxPoolSize: 10, bufferCommands: false })
+		.then(async () => {
+			// autoIndex is off (don't rebuild indexes on every serverless cold start).
+			// Create them explicitly so the TTL (expiresAt) + createdAt indexes still exist.
+			await getModel().createIndexes();
 			console.log('MongoDB connected');
 		})
 		.catch((error) => {
