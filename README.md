@@ -169,6 +169,14 @@ PRs welcome! Please:
 - [CodeMirror](https://codemirror.net/) - Editor component
 - [Lucide](https://lucide.dev/) - Icons
 
+## Contributors
+
+[![Contributors](https://readme-contribs.as93.net/contributors/Ishannaik/CloakBin?shape=circle)](https://github.com/Ishannaik/CloakBin/graphs/contributors)
+
+## Star Gazers
+
+[![Star Gazers](https://readme-contribs.as93.net/stargazers/Ishannaik/CloakBin?shape=circle)](https://github.com/Ishannaik/CloakBin/stargazers)
+
 ## License
 
 GNU Affero General Public License v3.0 (AGPL-3.0) - see [LICENSE](LICENSE)
