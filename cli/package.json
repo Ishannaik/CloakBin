@@ -15,7 +15,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/roundtrip.test.js"
+    "test": "node test/roundtrip.test.js && node test/units.test.js"
   },
   "dependencies": {
     "fflate": "^0.8.2"
