@@ -1,0 +1,37 @@
+{
+  "name": "cloakbin",
+  "version": "0.1.0",
+  "description": "Zero-knowledge encrypted pastebin CLI — content is encrypted on your machine before upload",
+  "type": "module",
+  "bin": {
+    "cloakbin": "./bin/cloakbin.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/roundtrip.test.js"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2"
+  },
+  "license": "MIT",
+  "author": "Ishan Naik",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ishannaik/CloakBin.git",
+    "directory": "cli"
+  },
+  "keywords": [
+    "pastebin",
+    "encryption",
+    "aes-gcm",
+    "zero-knowledge",
+    "cli"
+  ]
+}
