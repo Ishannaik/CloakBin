@@ -2,10 +2,11 @@
 
 import { readFileSync } from 'node:fs';
 import { encrypt, decrypt } from '../src/crypto.js';
+import { detectLanguage } from '../src/lang-detect.js';
+import { resolveExpiry } from '../src/duration.js';
 
 const VERSION = '0.1.0';
 const DEFAULT_HOST = 'https://cloakbin.com';
-const VALID_EXPIRY = new Set(['1h', '24h', '7d', '30d', '1y']);
 const LANG_RE = /^[a-zA-Z0-9_-]{1,30}$/;
 const UA = `cloakbin-cli/${VERSION}`;
 
@@ -18,10 +19,10 @@ Usage:
   cat file | cloakbin [flags]      Encrypt from pipe
 
 Flags:
-  -e, --expiry <1h|24h|7d|30d|1y>  Expiry (default: 7d)
+  -e, --expiry <bucket|duration>   Expiry: 1h|24h|7d|30d|1y or e.g. 2h30m, 3d (default: 7d)
       --burn                       Burn after first browser read
   -p, --password <pw>              Password-protect (no key in URL)
-      --lang <language>            Syntax language hint
+      --lang <language>            Syntax language hint (auto-detected from file ext)
       --host <url>                 API host (default: https://cloakbin.com)
   -h, --help                       Show help
   -v, --version                    Show version
@@ -152,6 +153,10 @@ function readStdin() {
   });
 }
 
+/**
+ * @returns {Promise<{ content: string, filename: string|null } | null>}
+ * filename is set only when input came from a real file argument (not `-` / stdin).
+ */
 async function readInput(positionals) {
   // priority: file arg > `-` > piped stdin
   const fileArg = positionals.find((p) => p !== 'get');
@@ -160,7 +165,8 @@ async function readInput(positionals) {
 
   if (fileArg && fileArg !== '-') {
     try {
-      return readFileSync(fileArg, 'utf8');
+      const content = readFileSync(fileArg, 'utf8');
+      return { content, filename: fileArg };
     } catch (err) {
       fail(`cannot read file: ${fileArg} (${err.message})`);
     }
@@ -168,16 +174,26 @@ async function readInput(positionals) {
 
   if (fileArg === '-' || !process.stdin.isTTY) {
     const data = await readStdin();
-    return data;
+    return { content: data, filename: null };
   }
 
   return null; // no input
 }
 
 async function createPaste(plaintext, flags) {
-  if (!VALID_EXPIRY.has(flags.expiry)) {
-    fail(`invalid expiry "${flags.expiry}" — must be one of: 1h, 24h, 7d, 30d, 1y`);
+  const resolved = resolveExpiry(flags.expiry);
+  if (!resolved) {
+    fail(
+      `invalid expiry "${flags.expiry}" — use 1h|24h|7d|30d|1y or a duration like 2h30m, 3d, 1w2d`
+    );
   }
+  if (resolved.snapped || resolved.capped) {
+    process.stderr.write(
+      `⏳ expiry ${flags.expiry} → applied ${resolved.bucket} (free tier uses fixed buckets; exact expiry is a premium feature)\n`
+    );
+  }
+  flags.expiry = resolved.bucket;
+
   if (flags.lang != null && !LANG_RE.test(flags.lang)) {
     fail(`invalid --lang "${flags.lang}" — use 1-30 chars: letters, digits, _ or -`);
   }
@@ -360,11 +376,23 @@ async function main() {
     process.stderr.write(usage());
     process.exit(1);
   }
-  if (input === '') {
+  if (input.content === '') {
     fail('no input');
   }
 
-  await createPaste(input, flags);
+  // auto-detect language from real file when --lang not given
+  if (flags.lang == null && input.filename) {
+    const detected = detectLanguage(input.filename);
+    if (detected != null && LANG_RE.test(detected)) {
+      flags.lang = detected;
+      const ext = input.filename.includes('.')
+        ? input.filename.slice(input.filename.lastIndexOf('.'))
+        : input.filename;
+      process.stderr.write(`🎨 language: ${detected} (auto-detected from ${ext})\n`);
+    }
+  }
+
+  await createPaste(input.content, flags);
 }
 
 main().catch((err) => {

@@ -18,6 +18,11 @@ Requires Node.js 18+.
 # encrypt a file and print a shareable URL
 cloakbin secret.txt
 
+# language is auto-detected from the file extension (override with --lang)
+cloakbin script.py --expiry 3d
+# → stderr: language python (from .py); expiry 3d snapped up to 7d
+# → stdout: https://cloakbin.com/<id>#<key>
+
 # from stdin
 echo "hello" | cloakbin
 cloakbin - < secret.txt
@@ -28,7 +33,11 @@ cloakbin notes.md --password 's3cret'
 # burn after first browser view
 cloakbin leak.txt --burn --expiry 1h
 
-# syntax language hint
+# human-friendly durations (snapped up to free-tier buckets)
+cloakbin notes.txt --expiry 2h30m   # → applied 24h
+cloakbin notes.txt --expiry 1w2d    # → applied 30d
+
+# syntax language hint (overrides auto-detect)
 cloakbin main.rs --lang rust
 
 # fetch & decrypt
@@ -39,14 +48,16 @@ cloakbin get 'https://cloakbin.com/abc123' --password 's3cret'
 
 Only the final URL (or decrypted plaintext for `get`) goes to stdout. Status and errors go to stderr.
 
+When uploading a real file (not stdin/`-`), the CLI auto-detects a syntax language from the extension (e.g. `.py` → `python`, `Dockerfile` → `dockerfile`). Pass `--lang` to override; stdin input sends no language unless `--lang` is set.
+
 ## Flags
 
 | Flag | Description |
 |------|-------------|
-| `-e, --expiry <1h\|24h\|7d\|30d\|1y>` | Paste lifetime (default: `7d`) |
+| `-e, --expiry <bucket\|duration>` | Paste lifetime (default: `7d`). Exact free-tier buckets: `1h`, `24h`, `7d`, `30d`, `1y`. Or a human duration like `2h30m`, `3d`, `1w2d`, `45m` (units `w`/`d`/`h`/`m`, each at most once, any order). Durations snap **up** to the smallest bucket that fits; values over 1 year cap at `1y`. Exact custom expiry is a premium feature. |
 | `--burn` | Burn after first read in the browser |
 | `-p, --password <pw>` | Password mode (PBKDF2); no `#key` in URL |
-| `--lang <language>` | Language hint (`[a-zA-Z0-9_-]{1,30}`) |
+| `--lang <language>` | Language hint (`[a-zA-Z0-9_-]{1,30}`); auto-detected from file extension when omitted |
 | `--host <url>` | API base URL (default: `https://cloakbin.com`) |
 | `-h, --help` | Show help |
 | `-v, --version` | Show version |
