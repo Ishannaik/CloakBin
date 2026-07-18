@@ -120,6 +120,12 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173)
 
+### Type coverage
+
+CI runs `pnpm run type-coverage` to catch regressions in typed source coverage.
+The current source baseline is 93.22%, with generated `.svelte-kit` route types ignored,
+so the gate fails below 93%.
+
 ## Environment Variables
 
 ```env
