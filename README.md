@@ -8,6 +8,7 @@
 
 **Your data is encrypted before it leaves your browser. We can't read it. No one can.**
 
+[![GitHub stars](https://img.shields.io/github/stars/Ishannaik/CloakBin?style=social)](https://github.com/Ishannaik/CloakBin/stargazers)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-2.0-FF3E00?logo=svelte)](https://kit.svelte.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
@@ -15,6 +16,14 @@
 <img src="static/demo.gif" alt="CloakBin demo — a secret is typed, encrypted in the browser, shared via a #key link, then burned" width="85%">
 
 [Live Demo](https://oss.cloakbin.com) • [Report Bug](https://github.com/Ishannaik/CloakBin/issues) • [Request Feature](https://github.com/Ishannaik/CloakBin/issues)
+
+**Share a secret from your terminal — encrypted locally, before it ever leaves your machine:**
+
+```sh
+echo "my-api-key" | npx cloakbin
+```
+
+⭐ **If CloakBin is useful to you, [star the repo](https://github.com/Ishannaik/CloakBin) — it genuinely helps the project reach more people.**
 
 </div>
 
