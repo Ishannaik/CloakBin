@@ -165,6 +165,14 @@ CloakBin is fully open source. Deploy your own instance:
 3. Set up MongoDB (Atlas free tier works)
 4. Configure environment variables
 
+## Deploy CloakBin at your company
+
+CloakBin is free to self-host. If you want it running on your own infrastructure without doing the setup yourself, I can handle it for you.
+
+I cover deployment, custom domains, SSO, security hardening, and ongoing support, priced to what your team needs. This is a paid engagement.
+
+Email me at [ishannaik7@gmail.com](mailto:ishannaik7@gmail.com) with your requirements and I'll send a quote.
+
 ## Contributing
 
 PRs welcome! Please:
