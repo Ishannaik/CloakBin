@@ -13,17 +13,17 @@
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-2.0-FF3E00?logo=svelte)](https://kit.svelte.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 
-<img src="static/demo.gif" alt="CloakBin demo — a secret is typed, encrypted in the browser, shared via a #key link, then burned" width="85%">
+<img src="static/demo.gif" alt="CloakBin demo: type a secret, encrypt it in the browser, share a #key link, then burn it" width="85%">
 
 [Live Demo](https://oss.cloakbin.com) • [Report Bug](https://github.com/Ishannaik/CloakBin/issues) • [Request Feature](https://github.com/Ishannaik/CloakBin/issues)
 
-**Share a secret from your terminal — encrypted locally, before it ever leaves your machine:**
+**Share a secret straight from your terminal. It encrypts on your machine before anything uploads:**
 
 ```sh
 echo "my-api-key" | npx cloakbin
 ```
 
-⭐ **If CloakBin is useful to you, [star the repo](https://github.com/Ishannaik/CloakBin) — it genuinely helps the project reach more people.**
+⭐ **If CloakBin is useful to you, [star the repo](https://github.com/Ishannaik/CloakBin). It helps more people find the project.**
 
 </div>
 
@@ -33,7 +33,7 @@ echo "my-api-key" | npx cloakbin
 
 Traditional pastebins store your data in plaintext. Server admins, hackers, or anyone with database access can read everything you share.
 
-**CloakBin is different.**
+**CloakBin encrypts everything in your browser before it reaches the server.**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -80,7 +80,7 @@ The encryption key lives in the URL fragment (`#`), which **browsers never send 
 
 ## Verify the Zero-Knowledge Claim Yourself
 
-Don't take our word for it — the guarantee is verifiable in your browser:
+You can check the guarantee yourself, in your browser:
 
 1. Open your browser's **DevTools** (F12) and switch to the **Network** tab.
 2. Type some text and **create a paste**.
@@ -88,7 +88,7 @@ Don't take our word for it — the guarantee is verifiable in your browser:
 4. Look at the resulting paste URL: the decryption key is the part after the `#` (the **URL fragment**). By web standard, browsers **never send the fragment to the server** — it stays client-side.
 5. Open the paste and watch the Network tab again: the server returns the stored **ciphertext**, and decryption happens **in your browser** using the key from the `#fragment`.
 
-Because the key only ever exists in the fragment and in your recipient's browser, the server (and its database, and anyone on the network) only ever sees encrypted blobs. There is no server-side code path that can read your content — even under subpoena, only ciphertext exists to hand over.
+The key only ever exists in the fragment and in your recipient's browser, so the server, its database, and anyone on the network see encrypted blobs and nothing else. No server-side code path can read your content. Even under subpoena, only ciphertext exists to hand over.
 
 ## Features
 
