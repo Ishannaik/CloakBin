@@ -680,14 +680,18 @@
 			/>
 		{/if}
 		<!-- Burn toggle -->
-		<label class="flex items-center gap-1.5 cursor-pointer" title="Delete after first view">
+		<label class="relative flex items-center gap-1.5 cursor-pointer group">
 			<input
 				type="checkbox"
 				bind:checked={burnAfterRead}
+				aria-describedby="burn-tooltip"
 				class="w-4 h-4 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-orange-500 checked:border-orange-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-[10px] checked:after:text-zinc-900 checked:after:font-bold"
 			/>
 			<span class="text-orange-500">🔥</span>
 			<span class="text-zinc-400 text-sm hidden sm:inline">Burn</span>
+			<span id="burn-tooltip" role="tooltip" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-zinc-900 text-xs text-zinc-100 whitespace-nowrap opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 z-10">
+				Paste is permanently deleted after the first view
+			</span>
 		</label>
 		<!-- Primary: Create -->
 		<button

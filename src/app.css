@@ -400,3 +400,29 @@ body {
 .markdown-preview tr:nth-child(even) td {
 	background-color: #1f2127;
 }
+
+.tooltip-trigger {
+	position: relative;
+}
+
+.tooltip-trigger::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%) translateY(-4px);
+	background: #27272a;
+	color: #f4f4f5;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: nowrap;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease;
+}
+
+.tooltip-trigger:hover::after,
+.tooltip-trigger:focus-visible::after {
+	opacity: 1;
+}
