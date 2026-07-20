@@ -84,8 +84,8 @@ You can check the guarantee yourself, in your browser:
 
 1. Open your browser's **DevTools** (F12) and switch to the **Network** tab.
 2. Type some text and **create a paste**.
-3. Inspect the outgoing `POST` request that saves the paste and look at its **request body**. You'll see only **ciphertext** and a **salt** — never your plaintext, and never the encryption key.
-4. Look at the resulting paste URL: the decryption key is the part after the `#` (the **URL fragment**). By web standard, browsers **never send the fragment to the server** — it stays client-side.
+3. Inspect the outgoing `POST` request that saves the paste and look at its **request body**. You'll see only **ciphertext** and a **salt**, never your plaintext, and never the encryption key.
+4. Look at the resulting paste URL: the decryption key is the part after the `#` (the **URL fragment**). By web standard, browsers **never send the fragment to the server**. It stays client-side.
 5. Open the paste and watch the Network tab again: the server returns the stored **ciphertext**, and decryption happens **in your browser** using the key from the `#fragment`.
 
 The key only ever exists in the fragment and in your recipient's browser, so the server, its database, and anyone on the network see encrypted blobs and nothing else. No server-side code path can read your content. Even under subpoena, only ciphertext exists to hand over.
