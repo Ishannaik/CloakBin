@@ -84,6 +84,11 @@ function isRateLimited(
 	const key = ip;
 	const entry = rateLimitStore.get(key);
 
+	//Skip rate limiting for health checks
+	if (path === '/api/health') {
+		return resolve(event);
+	}
+
 	// First request or window expired
 	if (!entry || now > entry.resetTime) {
 		rateLimitStore.set(key, {
@@ -135,6 +140,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (verifyAdminSession(adminSession, env.ADMIN_USER, env.ADMIN_PASS)) {
 			event.locals.isAdmin = true;
 		}
+	}
+
+	// ============================================
+	// HEALTH CHECK — exclude from rate limiting and CSRF entirely
+	// ============================================
+	if (event.url.pathname === '/api/health') {
+		return resolve(event);
 	}
 
 	// ============================================

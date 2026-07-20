@@ -165,6 +165,22 @@ CloakBin is fully open source. Deploy your own instance:
 3. Set up MongoDB (Atlas free tier works)
 4. Configure environment variables
 
+### Health Check
+
+For container orchestrators (Docker, Kubernetes, Fly.io, Railway, etc.) to monitor readiness and trigger restarts:
+
+**Healthy** — `200`:
+```json
+{ "ok": true, "db": "mongodb" }
+```
+
+**Unhealthy** — `503` (e.g. database unreachable):
+```json
+{ "ok": false, "error": "database unavailable" }
+```
+
+This endpoint is excluded from rate limiting so orchestrators can poll it frequently.
+
 ## Deploy CloakBin at your company
 
 CloakBin is free to self-host. If you want it running on your own infrastructure without doing the setup yourself, I can handle it for you.
