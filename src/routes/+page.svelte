@@ -690,7 +690,7 @@
 			<span class="text-orange-500">🔥</span>
 			<span class="text-zinc-400 text-sm hidden sm:inline">Burn</span>
 			<span id="burn-tooltip" role="tooltip" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-zinc-900 text-xs text-zinc-100 whitespace-nowrap opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 z-10">
-				Paste is permanently deleted after the first view
+				Paste is permanently deleted after the first view.
 			</span>
 		</label>
 		<!-- Primary: Create -->
