@@ -6,7 +6,7 @@
 
 ### Zero-Knowledge Encrypted Pastebin
 
-**Your data is encrypted before it leaves your browser. We can't read it. No one can.**
+**Your data is encrypted in your browser before it leaves your machine. The server only ever stores ciphertext.**
 
 [![GitHub stars](https://img.shields.io/github/stars/Ishannaik/CloakBin?style=social)](https://github.com/Ishannaik/CloakBin/stargazers)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
@@ -23,7 +23,7 @@
 echo "my-api-key" | npx cloakbin
 ```
 
-⭐ **If CloakBin is useful to you, [star the repo](https://github.com/Ishannaik/CloakBin). It helps more people find the project.**
+⭐ **Find CloakBin useful? [Star the repo](https://github.com/Ishannaik/CloakBin) so more people can find it.**
 
 </div>
 
@@ -61,7 +61,7 @@ Traditional pastebins store your data in plaintext. Server admins, hackers, or a
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-The encryption key lives in the URL fragment (`#`), which **browsers never send to servers**. Even if our database is compromised, attackers only get meaningless ciphertext.
+The encryption key lives in the URL fragment (`#`), which **browsers never send to servers**. Steal our database and you get ciphertext you can't read.
 
 ## Security Model
 
@@ -88,7 +88,7 @@ You can check the guarantee yourself, in your browser:
 4. Look at the resulting paste URL: the decryption key is the part after the `#` (the **URL fragment**). By web standard, browsers **never send the fragment to the server**. It stays client-side.
 5. Open the paste and watch the Network tab again: the server returns the stored **ciphertext**, and decryption happens **in your browser** using the key from the `#fragment`.
 
-The key only ever exists in the fragment and in your recipient's browser, so the server, its database, and anyone on the network see encrypted blobs and nothing else. No server-side code path can read your content. Even under subpoena, only ciphertext exists to hand over.
+The key exists only in the fragment and in your recipient's browser. The server, its database, and anyone on the network see encrypted blobs. No server-side code path can read your content, so a subpoena turns up ciphertext and nothing more.
 
 ## Features
 
@@ -158,7 +158,7 @@ src/
 
 ## Self-Hosting
 
-CloakBin is fully open source. Deploy your own instance:
+CloakBin is open source. Deploy your own instance:
 
 1. Fork this repository
 2. Deploy to Vercel/Netlify/your server
@@ -205,8 +205,6 @@ If you run a modified version of CloakBin as a network service, AGPL §13 requir
 ---
 
 <div align="center">
-
-**Your secrets deserve real privacy.**
 
 Made by [Ishan Naik](https://github.com/Ishannaik)
 
