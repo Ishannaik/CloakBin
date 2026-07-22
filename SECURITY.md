@@ -2,6 +2,8 @@
 
 CloakBin is a **zero-knowledge encrypted pastebin**: encryption happens in the browser and the decryption key lives only in the URL `#fragment`, so the server ever only stores ciphertext. Because privacy is the entire point of the project, we treat any issue that could leak plaintext, keys, or user data — or that weakens the client-side cryptography — as **high priority**.
 
+How the zero-knowledge model is implemented (crypto, storage, burn-after-read, threat model) is documented in **[docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)**. This file covers reporting and program scope only.
+
 ## Reporting a Vulnerability
 
 Please report vulnerabilities **privately** — do not open a public issue for a security bug.

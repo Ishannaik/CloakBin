@@ -78,6 +78,8 @@ The encryption key lives in the URL fragment (`#`), which **browsers never send 
 - **Key Derivation**: PBKDF2 with 100,000 iterations (for password-protected pastes)
 - **Random Generation**: Web Crypto API (`crypto.getRandomValues`)
 
+For a deeper walkthrough of key generation, ciphertext formats (v0/v1), password mode, burn-after-read atomicity, and the threat model (mapped to the current code), see **[docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)**.
+
 ## Verify the Zero-Knowledge Claim Yourself
 
 You can check the guarantee yourself, in your browser:
