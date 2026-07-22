@@ -17,6 +17,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
+import { normalizePasteLanguage } from '$lib/languages';
 
 const MAX_CONTENT_SIZE = 100_000_000; // 100MB in characters
 
@@ -84,6 +85,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Calculate expiration date
 		const expiresAt = new Date(Date.now() + EXPIRY_DURATIONS[expiry]);
 
+		// Allowlist language ids; unknown / malicious values fall back to plaintext
+		const safeLanguage = normalizePasteLanguage(language);
+
 		// Create paste in database
 		const result = await db.createPaste({
 			content,
@@ -91,7 +95,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			hasPassword: !!salt,
 			salt: salt,
 			burnAfterRead: burnAfterRead ?? false,
-			language: language ?? 'plaintext'
+			language: safeLanguage
 		});
 
 		if (!result.success) {
