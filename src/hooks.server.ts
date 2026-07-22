@@ -254,11 +254,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'camera=(), microphone=(), geolocation=(), interest-cohort=()'
 	);
 
-	// 5. X-XSS-Protection: Legacy XSS filter (for older browsers)
-	// Modern browsers have better protection, but this helps older ones
-	// 1; mode=block = enable filter and block the page if attack detected
-	response.headers.set('X-XSS-Protection', '1; mode=block');
-
 	// 6. X-DNS-Prefetch-Control: Control DNS prefetching
 	// Browsers sometimes pre-resolve DNS for links on the page
 	// 'off' = disable this (minor privacy improvement)
@@ -276,6 +271,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// 8. Content-Security-Policy (CSP): Control what resources can load
+	// AUDIT (issue #81): `unsafe-eval` is still present. Removing it breaks
+	// SvelteKit's client runtime / HMR in development; production builds may
+	// still rely on it depending on adapters. Do not drop without a full
+	// smoke test of create/view/burn paste + CLI upload flows.
 	// This is the most powerful security header - defines allowed sources
 	// - default-src 'self' = only load resources from your own domain
 	// - script-src 'self' 'unsafe-inline' = scripts from self + inline scripts (needed for Svelte)
@@ -287,7 +286,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'Content-Security-Policy',
 		[
 			"default-src 'self'",
-			"script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval needed for some Svelte features
+			"script-src 'self' 'unsafe-inline' 'unsafe-eval'", // retained: SvelteKit/Vite client needs eval in dev; see comment above
 			"style-src 'self' 'unsafe-inline'",
 			"img-src 'self' data: blob:",
 			"font-src 'self' data:",
