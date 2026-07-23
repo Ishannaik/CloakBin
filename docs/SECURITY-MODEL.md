@@ -35,7 +35,7 @@ Password-protected pastes do **not** use a random key. They derive one with PBKD
 
 ## 2. Why the key lives in the URL fragment
 
-Share links look like:
+**Random (non-password) pastes** share links like:
 
 ```text
 https://example.com/p/<paste-id>#<base64url-key>
@@ -43,10 +43,12 @@ https://example.com/p/<paste-id>#<base64url-key>
 
 Browsers **do not send the `#fragment` to the server** on normal navigations and API requests. The fragment is available only to client-side JavaScript on the view page (`base64ToKey`).
 
+**Password-protected pastes do not put a key in `#`.** The share URL is only `…/p/<paste-id>` (no fragment). Recipients type the password in the browser; the client re-derives the AES key with PBKDF2 from that password plus the server-stored salt (see §4). The create UI already states this; do not assume every paste URL carries `#key`.
+
 Implications:
 
-- The CloakBin server can store and return ciphertext for `paste-id` without ever receiving the decryption key.
-- Anyone who receives the full URL (including the fragment) can decrypt — treat the link like a secret.
+- The CloakBin server can store and return ciphertext for `paste-id` without ever receiving the decryption key (or the password).
+- Anyone who receives a full random-paste URL (including the fragment) can decrypt — treat that link like a secret.
 - Referrer leakage, screenshots, browser history, and shoulder-surfing are out of the crypto boundary (see threat model).
 
 ---
@@ -115,6 +117,7 @@ Typical stored fields (adapters may name columns differently):
 | Field | Meaning |
 |-------|---------|
 | `content` | Ciphertext blob (base64 of v0/v1 frame) |
+| `createdAt` | Creation timestamp |
 | `expiresAt` | TTL |
 | `hasPassword` / `salt` | Password mode metadata (salt is not secret by itself) |
 | `burnAfterRead` | One-shot burn flag |

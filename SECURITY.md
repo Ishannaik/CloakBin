@@ -32,7 +32,3 @@ Security fixes are applied to the latest `main` branch and the most recent tagge
 ## Response
 
 We aim to acknowledge a valid report within a few days and to address confirmed high-impact issues promptly. We're happy to credit reporters in the release notes unless you prefer to remain anonymous.
-
-## How the crypto works
-
-For a technical description of client-side AES-GCM, URL-fragment keys, ciphertext formats (v0/v1), PBKDF2 password pastes, and the threat model, see **[docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)**.
