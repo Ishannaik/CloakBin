@@ -16,10 +16,13 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/db';
 import { normalizePasteLanguage } from '$lib/languages';
+import { resolveMaxPasteBytes, utf8ByteLength } from '$lib/server/maxPasteBytes';
 
-const MAX_CONTENT_SIZE = 100_000_000; // 100MB in characters
+/** Max UTF-8 bytes for paste content; override with MAX_PASTE_BYTES (default 10 MiB). */
+const MAX_PASTE_BYTES = resolveMaxPasteBytes(env.MAX_PASTE_BYTES);
 
 const EXPIRY_DURATIONS = {
 	'1h': 60 * 60 * 1000,           // 1 hour in ms
@@ -67,10 +70,10 @@ export const POST: RequestHandler = async ({ request }) => {
 			);
 		}
 
-		if (content.length > MAX_CONTENT_SIZE) {
+		if (utf8ByteLength(content) > MAX_PASTE_BYTES) {
 			return json(
-				{ error: `Content exceeds maximum size of ${MAX_CONTENT_SIZE} characters` },
-				{ status: 400 }
+				{ error: `Content exceeds maximum size of ${MAX_PASTE_BYTES} bytes` },
+				{ status: 413 }
 			);
 		}
 
