@@ -8,6 +8,7 @@
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import type { Extension } from '@codemirror/state';
 	import type { LanguageSupport } from '@codemirror/language';
+	import { isAllowedPasteLanguage } from '$lib/languages';
 	import {
 		dracula,
 		cobalt,
@@ -71,6 +72,10 @@
 	// Load language extension dynamically
 	async function loadLanguageExtension(lang: string): Promise<LanguageSupport> {
 		try {
+			// Guard: only load highlighters for allowlisted language ids
+			if (!isAllowedPasteLanguage(lang)) {
+				return javascript();
+			}
 			switch (lang) {
 				case 'javascript':
 				case 'js':

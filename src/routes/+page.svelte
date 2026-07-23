@@ -9,6 +9,7 @@
 	import { EditorView, keymap } from '@codemirror/view';
 	import type { Extension } from '@codemirror/state';
 	import type { LanguageSupport } from '@codemirror/language';
+	import { LANGUAGE_PICKER_OPTIONS, isAllowedPasteLanguage } from '$lib/languages';
 	import {
 		dracula,
 		cobalt,
@@ -32,6 +33,9 @@
 	// Load language extension dynamically
 	async function loadLanguageExtension(lang: string): Promise<LanguageSupport | null> {
 		try {
+			if (!isAllowedPasteLanguage(lang) && lang !== 'auto') {
+				return null;
+			}
 			switch (lang) {
 				case 'javascript':
 				case 'js':
@@ -130,30 +134,8 @@
 	let burnAfterRead = $state(false);
 	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
 
-	// Available languages for manual selection
-	const languages = [
-		{ value: 'auto', label: 'Auto-detect' },
-		{ value: 'javascript', label: 'JavaScript' },
-		{ value: 'typescript', label: 'TypeScript' },
-		{ value: 'python', label: 'Python' },
-		{ value: 'rust', label: 'Rust' },
-		{ value: 'go', label: 'Go' },
-		{ value: 'java', label: 'Java' },
-		{ value: 'cpp', label: 'C/C++' },
-		{ value: 'csharp', label: 'C#' },
-		{ value: 'php', label: 'PHP' },
-		{ value: 'ruby', label: 'Ruby' },
-		{ value: 'swift', label: 'Swift' },
-		{ value: 'kotlin', label: 'Kotlin' },
-		{ value: 'sql', label: 'SQL' },
-		{ value: 'html', label: 'HTML' },
-		{ value: 'css', label: 'CSS' },
-		{ value: 'json', label: 'JSON' },
-		{ value: 'yaml', label: 'YAML' },
-		{ value: 'markdown', label: 'Markdown' },
-		{ value: 'bash', label: 'Bash/Shell' },
-		{ value: 'plaintext', label: 'Plain Text' }
-	];
+	// Available languages for manual selection (shared allowlist)
+	const languages = LANGUAGE_PICKER_OPTIONS;
 
 	// Cleanup references (need to be outside onMount for onDestroy to access)
 	let saveInterval: ReturnType<typeof setInterval>;
