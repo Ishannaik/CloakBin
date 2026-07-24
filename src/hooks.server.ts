@@ -84,6 +84,8 @@ function isRateLimited(
 	const key = ip;
 	const entry = rateLimitStore.get(key);
 
+
+
 	// First request or window expired
 	if (!entry || now > entry.resetTime) {
 		rateLimitStore.set(key, {
@@ -138,45 +140,54 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// ============================================
+	// HEALTH CHECK — exclude from rate limiting and CSRF entirely
+	// ============================================
+	const isHealthCheck = event.url.pathname === '/api/health';
+
+	// ============================================
 	// RATE LIMITING
 	// ============================================
-	const ip = getClientIP(event);
-	const path = event.url.pathname;
-	const method = event.request.method;
+	if (!isHealthCheck) {
+		const ip = getClientIP(event);
+		const path = event.url.pathname;
+		const method = event.request.method;
 
-	// Determine which rate limit to apply
-	let limit: (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS] = RATE_LIMITS.default;
-	let limitType = 'default';
+		// Determine which rate limit to apply
+		let limit: (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS] = RATE_LIMITS.default;
+		let limitType = 'default';
 
-	if (method === 'POST' && path === '/api/paste') {
-		limit = RATE_LIMITS.createPaste;
-		limitType = 'createPaste';
-	} else if (method === 'GET' && path.startsWith('/api/paste/')) {
-		limit = RATE_LIMITS.readPaste;
-		limitType = 'readPaste';
-	}
+		if (method === 'POST' && path === '/api/paste') {
+			limit = RATE_LIMITS.createPaste;
+			limitType = 'createPaste';
+		} else if (method === 'GET' && path.startsWith('/api/paste/')) {
+			limit = RATE_LIMITS.readPaste;
+			limitType = 'readPaste';
+		}
 
-	// Check rate limit
-	const { limited, remaining, resetIn } = isRateLimited(`${ip}:${limitType}`, limit);
+		// Check rate limit
+		const { limited, resetIn } = isRateLimited(`${ip}:${limitType}`, limit);
 
-	if (limited) {
-		console.warn(`Rate limited: IP=${ip}, type=${limitType}, resetIn=${Math.ceil(resetIn / 1000)}s`);
-		return new Response(
-			JSON.stringify({
-				error: 'Too many requests',
-				retryAfter: Math.ceil(resetIn / 1000)
-			}),
-			{
-				status: 429,
-				headers: {
-					'Content-Type': 'application/json',
-					'Retry-After': String(Math.ceil(resetIn / 1000)),
-					'X-RateLimit-Remaining': '0',
-					'X-RateLimit-Reset': String(Math.ceil(resetIn / 1000))
+		if (limited) {
+			console.warn(`Rate limited: IP=${ip}, type=${limitType}, resetIn=${Math.ceil(resetIn / 1000)}s`);
+			return new Response(
+				JSON.stringify({
+					error: 'Too many requests',
+					retryAfter: Math.ceil(resetIn / 1000)
+				}),
+				{
+					status: 429,
+					headers: {
+						'Content-Type': 'application/json',
+						'Retry-After': String(Math.ceil(resetIn / 1000)),
+						'X-RateLimit-Remaining': '0',
+						'X-RateLimit-Reset': String(Math.ceil(resetIn / 1000))
+					}
 				}
-			}
-		);
+			);
+		}
+
 	}
+
 
 	// ============================================
 	// CSRF PROTECTION
@@ -185,7 +196,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// came from our own site by checking the Origin header.
 	// This prevents evil.com from tricking users into making requests.
 
-	if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(event.request.method)) {
+	if (!isHealthCheck && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(event.request.method)) {
 		const origin = event.request.headers.get('origin');
 		const host = event.request.headers.get('host');
 
