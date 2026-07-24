@@ -4,9 +4,12 @@ import { db } from '$lib/db';
 
 export const GET: RequestHandler = async () => {
     try {
-        await db.healthCheck();
-        return json({ ok: true, db: 'mongodb' }, { status: 200 }); 
-    } catch (err) {
+        const result = await db.healthCheck();
+        if (!result.success) {
+            return json({ ok: false, error: 'database unavailable' }, { status: 503 });
+        }
+        return json({ ok: true }, { status: 200 });
+    } catch {
         return json({ ok: false, error: 'database unavailable' }, { status: 503 });
     }
 };
