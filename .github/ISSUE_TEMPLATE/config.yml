@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a security vulnerability (privately)
+    url: https://github.com/Ishannaik/CloakBin/security/advisories/new
+    about: CloakBin is an encryption tool. Report crypto or disclosure bugs through a private advisory, never a public issue.
+  - name: 💬 Chat on Discord
+    url: https://discord.gg/KKvtRhQvRv
+    about: Ask a question, sanity-check an approach, or claim an issue before you start.

@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an improvement to the editor, paste view, or CLI
+title: "[feat]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What should change?
+      description: What you want, and the situation where you would reach for it.
+    validations:
+      required: true
+  - type: textarea
+    id: crypto-impact
+    attributes:
+      label: Does this touch encryption or key handling?
+      description: |
+        CloakBin encrypts in the browser and keeps the key in the URL fragment,
+        so the server never sees it. Say so if your idea moves data or keys
+        across that line. Answer "no" if it does not.
+      placeholder: "No, this is a UI change only."
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety
+      options:
+        - label: Any examples here are synthetic, with no live paste links
+          required: true

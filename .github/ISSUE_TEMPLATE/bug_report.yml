@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in the editor, paste view, or CLI behaved wrong
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Never paste a real secret or a live paste URL.** The decryption key
+        lives in the URL fragment, so a full link hands over the plaintext.
+        Strip everything after the `#`, or make a throwaway paste that
+        reproduces the problem.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - Creating a paste (editor)
+        - Viewing a paste
+        - Raw view
+        - CLI (npx cloakbin)
+        - Somewhere else
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, what you got.
+      placeholder: |
+        1. Pasted 200 lines of JSON
+        2. Set expiry to 1 hour, ticked burn-after-read
+        3. Opened the link in a second browser and ...
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Firefox 141 on Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      description: Anything red in devtools. Redact URLs that carry a key fragment.
+      render: text
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety
+      options:
+        - label: This report contains no live paste links and no real secrets
+          required: true
