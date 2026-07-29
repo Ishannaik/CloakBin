@@ -12,6 +12,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-2.0-FF3E00?logo=svelte)](https://kit.svelte.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Discord](https://img.shields.io/discord/1529918028236455967?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/KKvtRhQvRv)
 
 <img src="static/demo.gif" alt="CloakBin demo: type a secret, encrypt it in the browser, share a #key link, then burn it" width="85%">
 
@@ -205,6 +206,8 @@ PRs welcome! Please:
 2. Create a feature branch
 3. Make your changes
 4. Submit a PR
+
+Ask questions or swap ideas with other contributors on [Discord](https://discord.gg/KKvtRhQvRv).
 
 ## Acknowledgments
 
