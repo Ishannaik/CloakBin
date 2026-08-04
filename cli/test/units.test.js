@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict';
 import { detectLanguage, LANGUAGE_MAP } from '../src/lang-detect.js';
 import { parseDuration, resolveExpiry } from '../src/duration.js';
+import { validateHost } from '../src/host.js';
 
 let passed = 0;
 let failed = 0;
@@ -190,6 +191,36 @@ async function run() {
 
   await test('resolveExpiry invalid foo → null', () => {
     assert.equal(resolveExpiry('foo'), null);
+  });
+
+  // --- validateHost ---
+  await test('validateHost rejects host without scheme', () => {
+    assert.throws(
+      () => validateHost('paste.example.com'),
+      (err) => /http:\/\/ or https:\/\//i.test(err.message) && /paste\.example\.com/.test(err.message),
+    );
+  });
+
+  await test('validateHost rejects non-URL values', () => {
+    assert.throws(
+      () => validateHost('not a url'),
+      (err) => /valid URL|http:\/\/ or https:\/\//i.test(err.message),
+    );
+  });
+
+  await test('validateHost accepts https with trailing slash', () => {
+    assert.equal(validateHost('https://example.com/'), 'https://example.com/');
+  });
+
+  await test('validateHost accepts http without trailing slash', () => {
+    assert.equal(validateHost('http://localhost:5173'), 'http://localhost:5173');
+  });
+
+  await test('validateHost rejects non-http schemes', () => {
+    assert.throws(
+      () => validateHost('ftp://files.example.com'),
+      (err) => /http:\/\/ or https:\/\//i.test(err.message),
+    );
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);
