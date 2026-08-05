@@ -157,6 +157,14 @@
 	{@html `<script type="application/ld+json">${jsonLd(structuredData)}</script>`}
 </svelte:head>
 
+<!-- Skip navigation for keyboard / screen reader users -->
+<a
+	href="#main-content"
+	class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-teal-500 focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-zinc-900"
+>
+	Skip to main content
+</a>
+
 <!-- Navigation progress bar — shows during SvelteKit page transitions -->
 {#if $navigating}
 	<div class="fixed top-0 left-0 right-0 h-0.5 bg-teal-500/20 z-[100]">
@@ -169,7 +177,9 @@
 
 <!-- Easter egg: "cloak" typing fades page to 10% opacity -->
 <div class="transition-opacity duration-500 {isCloaked ? 'opacity-10' : 'opacity-100'}">
-	{@render children()}
+	<main id="main-content" tabindex="-1">
+		{@render children()}
+	</main>
 	<Footer />
 </div>
 
