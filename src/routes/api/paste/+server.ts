@@ -20,6 +20,7 @@ import { env } from '$env/dynamic/private';
 import { db } from '$lib/db';
 import { normalizePasteLanguage } from '$lib/languages';
 import { resolveMaxPasteBytes, utf8ByteLength } from '$lib/server/maxPasteBytes';
+import { validateBurnAfterRead } from '$lib/server/burnAfterRead';
 
 /** Max UTF-8 bytes for paste content; override with MAX_PASTE_BYTES (default 10 MiB). */
 const MAX_PASTE_BYTES = resolveMaxPasteBytes(env.MAX_PASTE_BYTES);
@@ -88,6 +89,17 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Calculate expiration date
 		const expiresAt = new Date(Date.now() + EXPIRY_DURATIONS[expiry]);
 
+		// Validate burnAfterRead; only a real boolean may enable it, otherwise a
+		// stringified "false" (or any other truthy-but-wrong value) from a
+		// misbehaving client would silently burn a paste meant to be kept.
+		const burnAfterReadValidation = validateBurnAfterRead(burnAfterRead);
+		if (!burnAfterReadValidation.valid) {
+			return json(
+				{ error: 'burnAfterRead must be a boolean' },
+				{ status: 400 }
+			);
+		}
+
 		// Allowlist language ids; unknown / malicious values fall back to plaintext
 		const safeLanguage = normalizePasteLanguage(language);
 
@@ -97,7 +109,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			expiresAt,
 			hasPassword: !!salt,
 			salt: salt,
-			burnAfterRead: burnAfterRead ?? false,
+			burnAfterRead: burnAfterReadValidation.value,
 			language: safeLanguage
 		});
 
