@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { encrypt, decrypt } from '../src/crypto.js';
 import { detectLanguage } from '../src/lang-detect.js';
 import { resolveExpiry } from '../src/duration.js';
+import { validateHost as _validateHost } from '../src/host.js';
 
 const VERSION = '0.1.0';
 const DEFAULT_HOST = 'https://cloakbin.com';
@@ -33,6 +34,7 @@ function fail(msg) {
   process.stderr.write(`Error: ${msg}\n`);
   process.exit(1);
 }
+
 
 /** Hand-rolled flag parser: supports --flag value and --flag=value */
 function parseArgs(argv) {
@@ -95,7 +97,11 @@ function parseArgs(argv) {
         case 'host':
           value = value !== undefined ? value : argv[++i];
           if (value === undefined) fail('--host requires a value');
-          flags.host = value;
+          try {
+            flags.host = _validateHost(value);
+          } catch (err) {
+            fail(err.message);
+          }
           break;
         default:
           fail(`unknown flag --${name}`);
