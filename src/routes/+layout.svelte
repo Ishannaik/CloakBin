@@ -112,7 +112,6 @@
 	/>
 	<meta name="author" content="CloakBin" />
 	<meta name="robots" content="index, follow" />
-	<meta name="theme-color" content="#14b8a6" />
 	<meta name="color-scheme" content="dark" />
 
 	<!-- Canonical -->
