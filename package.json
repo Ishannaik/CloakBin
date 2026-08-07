@@ -16,9 +16,6 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"type-coverage": "svelte-kit sync && type-coverage --ignore-files \".svelte-kit/**\" --at-least 93",
-		"generate:assets": "node generate-assets.mjs && node generate-extra-assets.mjs",
-		"generate:assets:main": "node generate-assets.mjs",
-		"generate:assets:extra": "node generate-extra-assets.mjs",
 		"test": "vitest run"
 	},
 	"devDependencies": {
