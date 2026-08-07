@@ -120,3 +120,80 @@ export function isAllowedPasteLanguage(language: string): boolean {
 	const canonical = LANGUAGE_ALIASES[raw] ?? raw;
 	return PASTE_LANGUAGE_SET.has(canonical);
 }
+
+/** Filename extensions → canonical paste language id. */
+const EXTENSION_LANGUAGE: Readonly<Record<string, string>> = {
+	txt: 'plaintext',
+	md: 'markdown',
+	markdown: 'markdown',
+	json: 'json',
+	js: 'javascript',
+	mjs: 'javascript',
+	cjs: 'javascript',
+	jsx: 'javascript',
+	ts: 'typescript',
+	tsx: 'typescript',
+	svelte: 'html',
+	vue: 'html',
+	py: 'python',
+	rs: 'rust',
+	go: 'go',
+	java: 'java',
+	c: 'c',
+	h: 'c',
+	cpp: 'cpp',
+	hpp: 'cpp',
+	cs: 'csharp',
+	rb: 'ruby',
+	php: 'php',
+	swift: 'swift',
+	kt: 'kotlin',
+	html: 'html',
+	htm: 'html',
+	css: 'css',
+	scss: 'css',
+	sass: 'css',
+	less: 'css',
+	xml: 'xml',
+	yaml: 'yaml',
+	yml: 'yaml',
+	toml: 'toml',
+	ini: 'ini',
+	cfg: 'ini',
+	conf: 'ini',
+	sh: 'bash',
+	bash: 'bash',
+	zsh: 'bash',
+	sql: 'sql',
+	graphql: 'graphql',
+	env: 'plaintext',
+	log: 'plaintext',
+	csv: 'plaintext',
+	dockerfile: 'dockerfile',
+	makefile: 'makefile'
+};
+
+/**
+ * Detect the language from a filename, based on its extension.
+ * Returns null when the extension is unknown so callers can keep the
+ * current selection instead of resetting it.
+ */
+export function detectLanguageFromFilename(filename: string): string | null {
+	const normalized = filename.trim().toLowerCase();
+	if (!normalized) return null;
+
+	const base = normalized.split('/').pop()?.split('\\').pop() ?? '';
+	if (!base) return null;
+
+	if (base === 'dockerfile' || base === 'makefile') {
+		return EXTENSION_LANGUAGE[base] ?? null;
+	}
+
+	const dot = base.lastIndexOf('.');
+	if (dot === -1 || dot === base.length - 1) return null;
+	const ext = base.slice(dot + 1);
+	const mapped = EXTENSION_LANGUAGE[ext] ?? LANGUAGE_ALIASES[ext];
+
+	if (!mapped || !PASTE_LANGUAGE_SET.has(mapped)) return null;
+	return mapped;
+}

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+	detectLanguageFromFilename,
 	normalizePasteLanguage,
 	isAllowedPasteLanguage,
 	PASTE_LANGUAGE_SET,
@@ -54,5 +55,32 @@ describe('LANGUAGE_PICKER_OPTIONS', () => {
 			if (opt.value === 'auto') continue;
 			expect(PASTE_LANGUAGE_SET.has(opt.value)).toBe(true);
 		}
+	});
+});
+
+describe('detectLanguageFromFilename', () => {
+	const cases = [
+		['main.py', 'python'],
+		['script.js', 'javascript'],
+		['app.tsx', 'typescript'],
+		['style.scss', 'css'],
+		['README.md', 'markdown'],
+		['Dockerfile', 'dockerfile'],
+		['Makefile', 'makefile']
+	] as const;
+
+	it.each(cases)('maps %s to %s', (filename, expected) => {
+		expect(detectLanguageFromFilename(filename)).toBe(expected);
+	});
+
+	it('handles paths and uppercase extensions', () => {
+		expect(detectLanguageFromFilename('/tmp/src/Main.PY')).toBe('python');
+		expect(detectLanguageFromFilename('C:\\src\\App.TSX')).toBe('typescript');
+	});
+
+	it('returns null for unknown or missing extensions', () => {
+		expect(detectLanguageFromFilename('notes.txt.bak')).toBeNull();
+		expect(detectLanguageFromFilename('README')).toBeNull();
+		expect(detectLanguageFromFilename('')).toBeNull();
 	});
 });
