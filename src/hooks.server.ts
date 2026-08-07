@@ -207,11 +207,23 @@ export const handle: Handle = async ({ event, resolve }) => {
 				const originHost = new URL(origin).host;
 				if (originHost !== host) {
 					console.warn(`CSRF blocked: origin=${origin}, host=${host}`);
-					return new Response('Forbidden - CSRF protection', { status: 403 });
+					return new Response(
+						JSON.stringify({ error: 'CSRF protection failed: origin does not match host' }),
+						{
+							status: 403,
+							headers: { 'Content-Type': 'application/json' }
+						}
+					);
 				}
 			} catch {
 				// Invalid origin URL
-				return new Response('Forbidden - Invalid origin', { status: 403 });
+				return new Response(
+					JSON.stringify({ error: 'CSRF protection failed: invalid origin' }),
+					{
+						status: 403,
+						headers: { 'Content-Type': 'application/json' }
+					}
+				);
 			}
 		}
 
@@ -224,7 +236,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 					const refererHost = new URL(referer).host;
 					if (refererHost !== host) {
 						console.warn(`CSRF blocked: referer=${referer}, host=${host}`);
-						return new Response('Forbidden - CSRF protection', { status: 403 });
+						return new Response(
+							JSON.stringify({ error: 'CSRF protection failed: referer does not match host' }),
+							{
+								status: 403,
+								headers: { 'Content-Type': 'application/json' }
+							}
+						);
 					}
 				} catch {
 					// Invalid referer URL - allow (some privacy tools strip referer)
