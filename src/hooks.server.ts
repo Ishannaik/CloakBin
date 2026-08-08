@@ -159,7 +159,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (method === 'POST' && path === '/api/paste') {
 			limit = RATE_LIMITS.createPaste;
 			limitType = 'createPaste';
-		} else if (method === 'GET' && path.startsWith('/api/paste/')) {
+		} else if (
+			path.startsWith('/api/paste/') &&
+			(method === 'GET' || (method === 'POST' && path.endsWith('/burn')))
+		) {
 			limit = RATE_LIMITS.readPaste;
 			limitType = 'readPaste';
 		}
