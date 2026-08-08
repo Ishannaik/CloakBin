@@ -365,6 +365,12 @@
 
 	// Global keyboard shortcuts handler
 	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && showSettings) {
+			showSettings = false;
+			document.getElementById('settings-button')?.focus();
+			return;
+		}
+
 		// Show shortcuts modal on ? or Ctrl+/
 		if (e.key === '?' || ((e.ctrlKey || e.metaKey) && e.key === '/')) {
 			e.preventDefault();
@@ -544,6 +550,7 @@
 			<!-- Settings dropdown -->
 			<div class="relative settings-dropdown">
 				<button
+					id="settings-button"
 					onclick={() => showSettings = !showSettings}
 					class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
 					title="Settings"
