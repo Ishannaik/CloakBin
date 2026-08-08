@@ -435,7 +435,13 @@
 			});
 
 			if (!res.ok) {
-				const error = await res.text();
+				const raw = await res.text();
+				let error = raw;
+				try {
+					error = JSON.parse(raw).error ?? raw;
+				} catch {
+					// plain-text errors stay as-is
+				}
 				throw new Error(error || 'Failed to create paste');
 			}
 
