@@ -151,6 +151,8 @@
 	// Derived values for display
 	let createdTimeAgo = $derived(createdAt ? formatTimeAgo(createdAt) : '');
 	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt) : '');
+	let lineCount = $derived(content.length > 0 ? content.split(/\r?\n/).length : 0);
+	let charCount = $derived(content.length);
 
 	// Copy content to clipboard
 	async function copyToClipboard() {
@@ -739,6 +741,8 @@
 			<span class="px-2 py-0.5 bg-zinc-700 text-zinc-300 rounded text-xs font-mono">{detectedLanguage}</span>
 			<span>·</span>
 			<span>Created {createdTimeAgo}</span>
+			<span>·</span>
+			<span>{lineCount} lines · {charCount} chars</span>
 			<span>·</span>
 			<span>Expires in {expiresIn}</span>
 		</div>
