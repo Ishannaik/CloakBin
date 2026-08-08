@@ -759,6 +759,6 @@
 	onImport={(text, filename) => {
 		content = text;
 		const language = detectLanguageFromFilename(filename);
-		if (language && isPickerLanguage(language)) selectedLanguage = language;
+		selectedLanguage = language && isPickerLanguage(language) ? language : 'auto';
 	}}
 />
