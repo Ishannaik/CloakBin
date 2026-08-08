@@ -132,6 +132,9 @@ so the gate fails below 93%.
 ## Environment Variables
 
 ```env
+# DB_TYPE=memory needs no database and is the fastest way to run the project locally.
+# DB_TYPE=mongodb requires MONGODB_URI below.
+DB_TYPE=memory
 MONGODB_URI=mongodb://localhost:27017/cloakbin
 ADMIN_USER=admin
 ADMIN_PASS=your-secure-password
