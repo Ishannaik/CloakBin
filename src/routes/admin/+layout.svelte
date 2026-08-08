@@ -112,9 +112,9 @@
 	{/if}
 
 	<!-- Main content -->
-	<main class="flex-1 {isLoginPage ? '' : 'lg:ml-0'}">
+	<div class="flex-1 {isLoginPage ? '' : 'lg:ml-0'}">
 		<div class="mx-auto max-w-7xl {isLoginPage ? 'p-0' : 'p-4 pt-16 sm:p-6 sm:pt-16 lg:p-8 lg:pt-8'}">
 			{@render children()}
 		</div>
-	</main>
+	</div>
 </div>
