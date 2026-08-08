@@ -268,6 +268,41 @@ async function run() {
     assert.match(String(err.stderr), /--save requires a value/);
   });
 
+  await test('--save= fails instead of writing to stdout', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, 'get', 'x', '--save='], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /--save requires a value/);
+  });
+
+  await test('--save does not consume --force as its value', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, 'get', 'x', '--save', '--force'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /--save requires a value/);
+  });
+
+  await test('--save path --force is accepted by the parser', () => {
+    const out = execFileSync(process.execPath, [cliPath, '--save', 'out.txt', '--force', '--help'], {
+      encoding: 'utf8',
+    });
+    assert.match(out, /Usage:/);
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }

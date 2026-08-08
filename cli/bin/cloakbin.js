@@ -114,7 +114,9 @@ function parseArgs(argv) {
           break;
         case 'save':
           value = value !== undefined ? value : argv[++i];
-          if (value === undefined) fail('--save requires a value');
+          if (value === undefined || value === '' || value.startsWith('--')) {
+            fail('--save requires a value');
+          }
           flags.save = value;
           break;
         case 'force':
