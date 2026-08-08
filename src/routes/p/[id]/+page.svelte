@@ -3,6 +3,7 @@
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
+	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
@@ -29,6 +30,7 @@
 
 	// State management
 	let content = $state('');
+	let fontSize = $state(loadFontSize());
 	let showShortcuts = $state(false);
 	let viewState = $state<'loading' | 'error' | 'success' | 'needKey' | 'needPassword' | 'burnWarning'>('loading');
 	let errorMessage = $state('');
@@ -44,6 +46,11 @@
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
 	let languageExtension = $state<LanguageSupport>(javascript());
+
+	function changeFontSize(delta: number) {
+		fontSize = clampFontSize(fontSize + delta);
+		saveFontSize(fontSize);
+	}
 
 	// Theme state
 	let selectedTheme = $state('oneDark');
@@ -553,6 +560,22 @@
 					<span class="hidden sm:inline">Duplicate</span>
 				</button>
 				<button
+					type="button"
+					onclick={() => changeFontSize(-1)}
+					aria-label="Decrease viewer font size"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+				>
+					A-
+				</button>
+				<button
+					type="button"
+					onclick={() => changeFontSize(1)}
+					aria-label="Increase viewer font size"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+				>
+					A+
+				</button>
+				<button
 					onclick={copyShareUrl}
 					title="{mod}+S"
 					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
@@ -725,7 +748,7 @@
 				styles={{
 					'&': {
 						height: '100%',
-						fontSize: '14px'
+						fontSize: `${fontSize}px`
 					},
 					'.cm-scroller': {
 						overflow: 'auto'
