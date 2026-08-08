@@ -44,6 +44,14 @@
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
 	let languageExtension = $state<LanguageSupport>(javascript());
+	let wrapLines = $state(typeof localStorage !== 'undefined' ? localStorage.getItem('cloakbin_wrap') !== '0' : true);
+
+	function toggleWrap() {
+		wrapLines = !wrapLines;
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem('cloakbin_wrap', wrapLines ? '1' : '0');
+		}
+	}
 
 	// Theme state
 	let selectedTheme = $state('oneDark');
@@ -545,6 +553,15 @@
 					{/if}
 				</button>
 				<button
+					type="button"
+					onclick={toggleWrap}
+					aria-pressed={wrapLines}
+					aria-label={wrapLines ? 'Disable line wrapping' : 'Enable line wrapping'}
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+				>
+					<span class="hidden sm:inline">{wrapLines ? 'Wrap' : 'No wrap'}</span>
+				</button>
+				<button
 					onclick={duplicatePaste}
 					title="{mod}+D"
 					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
@@ -721,7 +738,7 @@
 				value={content}
 				lang={languageExtension}
 				theme={currentTheme}
-				extensions={[EditorView.lineWrapping, EditorView.editable.of(false)]}
+				extensions={[EditorView.editable.of(false), ...(wrapLines ? [EditorView.lineWrapping] : [])]}
 				styles={{
 					'&': {
 						height: '100%',
