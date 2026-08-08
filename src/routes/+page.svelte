@@ -24,7 +24,7 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload, WifiOff, Settings, FileUp } from 'lucide-svelte';
+	import { Lock, Files, Upload, WifiOff, Settings, FileUp, Eye, EyeOff } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
@@ -135,6 +135,7 @@
 	let isOffline = $state(false);
 	let usePassword = $state(false);
 	let password = $state('');
+	let showPassword = $state(false);
 	let burnAfterRead = $state(false);
 	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
 
@@ -657,13 +658,27 @@
 			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
 		</label>
 		{#if usePassword}
-			<input
-				type="password"
-				bind:value={password}
-				placeholder="Password..."
-				maxlength={128}
-				class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
-			/>
+			<div class="relative">
+				<input
+					type={showPassword ? 'text' : 'password'}
+					bind:value={password}
+					placeholder="Password..."
+					maxlength={128}
+					class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 pr-9 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
+				/>
+				<button
+					type="button"
+					onclick={() => (showPassword = !showPassword)}
+					aria-label={showPassword ? 'Hide password' : 'Show password'}
+					class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-zinc-200"
+				>
+					{#if showPassword}
+						<EyeOff size={16} />
+					{:else}
+						<Eye size={16} />
+					{/if}
+				</button>
+			</div>
 		{/if}
 		<!-- Burn toggle -->
 		<label class="relative flex items-center gap-1.5 cursor-pointer group">
