@@ -9,7 +9,11 @@
 	import { EditorView, keymap } from '@codemirror/view';
 	import type { Extension } from '@codemirror/state';
 	import type { LanguageSupport } from '@codemirror/language';
-	import { LANGUAGE_PICKER_OPTIONS, isAllowedPasteLanguage } from '$lib/languages';
+	import {
+		detectLanguageFromFilename,
+		LANGUAGE_PICKER_OPTIONS,
+		isAllowedPasteLanguage
+	} from '$lib/languages';
 	import {
 		dracula,
 		cobalt,
@@ -751,7 +755,9 @@
 
 <ImportModal
 	bind:open={showImportModal}
-	onImport={(text) => {
+	onImport={(text, filename) => {
 		content = text;
+		const language = detectLanguageFromFilename(filename);
+		if (language) selectedLanguage = language;
 	}}
 />
