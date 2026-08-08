@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { encrypt, decrypt } from '../src/crypto.js';
 import { detectLanguage } from '../src/lang-detect.js';
 import { resolveExpiry } from '../src/duration.js';
@@ -25,6 +25,8 @@ Flags:
   -p, --password <pw>              Password-protect (no key in URL)
       --lang <language>            Syntax language hint (auto-detected from file ext)
       --host <url>                 API host (default: https://cloakbin.com)
+      --save <file>                Write decrypted output to a file instead of stdout
+      --force                      Overwrite an existing file when used with --save
   -h, --help                       Show help
   -v, --version                    Show version
 `;
@@ -49,6 +51,8 @@ function parseArgs(argv) {
     password: null,
     lang: null,
     host: DEFAULT_HOST,
+    save: null,
+    force: false,
     help: false,
     version: false,
   };
@@ -107,6 +111,14 @@ function parseArgs(argv) {
           } catch (err) {
             fail(err.message);
           }
+          break;
+        case 'save':
+          value = value !== undefined ? value : argv[++i];
+          if (value === undefined) fail('--save requires a value');
+          flags.save = value;
+          break;
+        case 'force':
+          flags.force = true;
           break;
         default:
           fail(`unknown flag --${name}`);
@@ -358,8 +370,16 @@ async function getPaste(ref, flags) {
     fail(err.message);
   }
 
-  // print plaintext exactly — no extra trailing newline beyond content
-  process.stdout.write(plaintext);
+  if (flags.save) {
+    if (existsSync(flags.save) && !flags.force) {
+      fail(`refusing to overwrite ${flags.save}; use --force`);
+    }
+    writeFileSync(flags.save, plaintext);
+    process.stderr.write(`Saved to ${flags.save}\n`);
+  } else {
+    // print plaintext exactly — no extra trailing newline beyond content
+    process.stdout.write(plaintext);
+  }
 }
 
 async function main() {

@@ -248,6 +248,26 @@ async function run() {
     assert.match(out, /Usage:/);
   });
 
+  await test('--help documents --save and --force', () => {
+    const out = execFileSync(process.execPath, [cliPath, '--help'], { encoding: 'utf8' });
+    assert.match(out, /--save <file>/);
+    assert.match(out, /--force/);
+  });
+
+  await test('--save without a value fails in the parser', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, 'get', 'x', '--save'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /--save requires a value/);
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }
