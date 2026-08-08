@@ -1,6 +1,7 @@
 <script lang="ts">
 	import logo from '$lib/assets/logo.svg';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
+	import PasswordStrength from '$lib/components/PasswordStrength.svelte';
 	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
 	import EncryptionOverlay from '$lib/components/EncryptionOverlay.svelte';
 	import ImportModal from '$lib/components/ImportModal.svelte';
@@ -137,6 +138,18 @@
 	let password = $state('');
 	let burnAfterRead = $state(false);
 	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
+	let passwordScore = $derived(scorePassword(password));
+
+	function scorePassword(value: string): number {
+		if (!value) return 0;
+		let score = 0;
+		if (value.length >= 8) score++;
+		if (value.length >= 12) score++;
+		if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
+		if (/\d/.test(value)) score++;
+		if (/[^A-Za-z0-9]/.test(value)) score++;
+		return Math.min(3, score);
+	}
 
 	// Available languages for manual selection (shared allowlist)
 	const languages = LANGUAGE_PICKER_OPTIONS;
@@ -657,13 +670,18 @@
 			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
 		</label>
 		{#if usePassword}
-			<input
-				type="password"
-				bind:value={password}
-				placeholder="Password..."
-				maxlength={128}
-				class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
-			/>
+			<div class="flex flex-col items-start gap-1">
+				<input
+					type="password"
+					bind:value={password}
+					placeholder="Password..."
+					maxlength={128}
+					class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
+				/>
+				{#if password}
+					<PasswordStrength score={passwordScore} />
+				{/if}
+			</div>
 		{/if}
 		<!-- Burn toggle -->
 		<label class="relative flex items-center gap-1.5 cursor-pointer group">
