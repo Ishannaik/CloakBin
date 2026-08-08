@@ -162,6 +162,21 @@
 			selectedTheme = savedTheme;
 		}
 
+		// Safe deep-link prefill; invalid or unknown params are ignored.
+		const params = new URLSearchParams(window.location.search);
+		const lang = params.get('lang');
+		if (lang && (languages.some((option) => option.value === lang) || lang === 'auto' || lang === 'plaintext')) {
+			selectedLanguage = lang;
+		}
+		if (params.get('burn') === '1') {
+			burnAfterRead = true;
+		}
+		const expiryParam = params.get('expiry');
+		const expiryValue = expiryOptions.find((option) => option.value === expiryParam)?.value;
+		if (expiryValue) {
+			expiry = expiryValue;
+		}
+
 		// Restore draft from localStorage
 		const draft = localStorage.getItem('cloakbin_draft');
 		if (draft && !content) {
