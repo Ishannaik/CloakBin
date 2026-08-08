@@ -4,10 +4,13 @@
  */
 
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { detectLanguage, LANGUAGE_MAP } from '../src/lang-detect.js';
 import { parseDuration, resolveExpiry } from '../src/duration.js';
 import { validateHost } from '../src/host.js';
 
+const cliPath = fileURLToPath(new URL('../bin/cloakbin.js', import.meta.url));
 let passed = 0;
 let failed = 0;
 
@@ -221,6 +224,28 @@ async function run() {
       () => validateHost('ftp://files.example.com'),
       (err) => /http:\/\/ or https:\/\//i.test(err.message),
     );
+  });
+
+  await test('empty -p password is rejected', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, '-p', ''], {
+        input: 'secret content',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /password cannot be empty/);
+  });
+
+  await test('non-empty password is not rejected by the parser', () => {
+    const out = execFileSync(process.execPath, [cliPath, '-p', 'secret', '--help'], {
+      encoding: 'utf8',
+    });
+    assert.match(out, /Usage:/);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

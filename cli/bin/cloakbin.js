@@ -35,6 +35,11 @@ function fail(msg) {
   process.exit(1);
 }
 
+function requirePassword(value) {
+  if (value === '') fail('password cannot be empty');
+  return value;
+}
+
 
 /** Hand-rolled flag parser: supports --flag value and --flag=value */
 function parseArgs(argv) {
@@ -87,7 +92,7 @@ function parseArgs(argv) {
         case 'password':
           value = value !== undefined ? value : argv[++i];
           if (value === undefined) fail('--password requires a value');
-          flags.password = value;
+          flags.password = requirePassword(value);
           break;
         case 'lang':
           value = value !== undefined ? value : argv[++i];
@@ -133,7 +138,7 @@ function parseArgs(argv) {
       if (short === 'p') {
         const value = argv[++i];
         if (value === undefined) fail('-p requires a value');
-        flags.password = value;
+        flags.password = requirePassword(value);
         i++;
         continue;
       }
