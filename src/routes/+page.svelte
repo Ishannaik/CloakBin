@@ -12,7 +12,8 @@
 	import {
 		detectLanguageFromFilename,
 		LANGUAGE_PICKER_OPTIONS,
-		isAllowedPasteLanguage
+		isAllowedPasteLanguage,
+		isPickerLanguage
 	} from '$lib/languages';
 	import {
 		dracula,
@@ -758,6 +759,6 @@
 	onImport={(text, filename) => {
 		content = text;
 		const language = detectLanguageFromFilename(filename);
-		if (language) selectedLanguage = language;
+		if (language && isPickerLanguage(language)) selectedLanguage = language;
 	}}
 />
