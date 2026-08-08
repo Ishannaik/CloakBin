@@ -1,0 +1,41 @@
+name: Adapter proposal
+description: Propose a new storage adapter for self-hosters
+title: "[adapter]: "
+labels: ["enhancement", "adapter"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New adapters let self-hosters choose where paste data lives. Please
+        describe the backend, why it helps, and how it could be implemented.
+  - type: input
+    id: backend
+    attributes:
+      label: Storage backend
+      description: Database, object store, or other backend to support.
+      placeholder: e.g. Turso / libsql-client
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is this useful for self-hosters?
+      description: Deployment constraints, operational benefits, or migration needs.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Implementation notes
+      description: Adapter interface, schema, auth, deployment, or migration details.
+      render: text
+  - type: dropdown
+    id: willing
+    attributes:
+      label: Are you willing to implement it?
+      options:
+        - Yes
+        - No
+        - I can help review or test
+    validations:
+      required: true
