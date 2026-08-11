@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { encrypt, decrypt } from '../src/crypto.js';
 import { detectLanguage } from '../src/lang-detect.js';
 import { resolveExpiry } from '../src/duration.js';
@@ -376,7 +376,17 @@ async function getPaste(ref, flags) {
     if (existsSync(flags.save) && !flags.force) {
       fail(`refusing to overwrite ${flags.save}; use --force`);
     }
-    writeFileSync(flags.save, plaintext);
+    // Write to a temp file and rename into place so a mid-write failure
+    // (disk full, quota, signal) never leaves a truncated file at the
+    // destination, and so the check-then-write has no TOCTOU window.
+    const tmp = `${flags.save}.${process.pid}.tmp`;
+    try {
+      writeFileSync(tmp, plaintext);
+      renameSync(tmp, flags.save);
+    } catch (err) {
+      try { unlinkSync(tmp); } catch { /* best effort */ }
+      fail(err.message);
+    }
     process.stderr.write(`Saved to ${flags.save}\n`);
   } else {
     // print plaintext exactly — no extra trailing newline beyond content
