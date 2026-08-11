@@ -3,6 +3,7 @@
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
+	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
@@ -20,7 +21,7 @@
 	} from 'thememirror';
 	import { EditorView, lineNumbers } from '@codemirror/view';
 	import logo from '$lib/assets/logo.svg';
-	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings } from 'lucide-svelte';
+	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings, TextSelect } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// OS detection for keyboard shortcut display
@@ -29,6 +30,7 @@
 
 	// State management
 	let content = $state('');
+	let fontSize = $state(loadFontSize());
 	let showShortcuts = $state(false);
 	let viewState = $state<'loading' | 'error' | 'success' | 'needKey' | 'needPassword' | 'burnWarning'>('loading');
 	let errorMessage = $state('');
@@ -40,10 +42,24 @@
 	let encryptedContent = $state(''); // Store encrypted content for manual key entry
 	let pasteMetadata = $state<{ createdAt: string; expiresAt: string } | null>(null);
 	let passwordInput = $state('');
+	let selectAllAnnouncement = $state('');
 	let showBurnWarning = $state(false);
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
 	let languageExtension = $state<LanguageSupport>(javascript());
+	let wrapLines = $state(typeof localStorage !== 'undefined' ? localStorage.getItem('cloakbin_wrap') !== '0' : true);
+
+	function toggleWrap() {
+		wrapLines = !wrapLines;
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem('cloakbin_wrap', wrapLines ? '1' : '0');
+		}
+	}
+
+	function changeFontSize(delta: number) {
+		fontSize = clampFontSize(fontSize + delta);
+		saveFontSize(fontSize);
+	}
 
 	// Theme state
 	let selectedTheme = $state('oneDark');
@@ -121,8 +137,7 @@
 	}
 
 	// Format relative time
-	function formatRelativeTime(date: Date): string {
-		const now = new Date();
+	function formatRelativeTime(date: Date, now: Date): string {
 		const diffMs = date.getTime() - now.getTime();
 		const diffMins = Math.floor(diffMs / 60000);
 		const diffHours = Math.floor(diffMins / 60);
@@ -150,7 +165,11 @@
 
 	// Derived values for display
 	let createdTimeAgo = $derived(createdAt ? formatTimeAgo(createdAt) : '');
-	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt) : '');
+	let now = $state(new Date());
+	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt, now) : '');
+	let expiryTimer: ReturnType<typeof setInterval>;
+	let lineCount = $derived(content.length > 0 ? content.split(/\r?\n/).length : 0);
+	let charCount = $derived(content.length);
 
 	// Copy content to clipboard
 	async function copyToClipboard() {
@@ -289,6 +308,7 @@
 			const selection = window.getSelection();
 			selection?.removeAllRanges();
 			selection?.addRange(range);
+			selectAllAnnouncement = 'Content selected';
 		}
 	}
 
@@ -447,6 +467,10 @@
 	// Handle bfcache (back-forward cache) security
 	// Without this, pressing back then forward shows decrypted content from memory
 	onMount(() => {
+		expiryTimer = setInterval(() => {
+			now = new Date();
+		}, 30_000);
+
 		// Restore theme from localStorage
 		const savedTheme = localStorage.getItem('cloakbin_theme');
 		if (savedTheme && savedTheme in themes) {
@@ -487,6 +511,7 @@
 		loadAndDecrypt();
 
 		return () => {
+			clearInterval(expiryTimer);
 			window.removeEventListener('pagehide', handlePageHide);
 			window.removeEventListener('pageshow', handlePageShow);
 			window.removeEventListener('hashchange', handleHashChange);
@@ -531,6 +556,7 @@
 		</a>
 
 		{#if viewState === 'success'}
+			<span aria-live="polite" class="sr-only">{selectAllAnnouncement}</span>
 			<div class="flex items-center gap-1 sm:gap-2">
 				<button
 					onclick={copyToClipboard}
@@ -545,12 +571,46 @@
 					{/if}
 				</button>
 				<button
+					type="button"
+					onclick={toggleWrap}
+					aria-pressed={wrapLines}
+					aria-label={wrapLines ? 'Disable line wrapping' : 'Enable line wrapping'}
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+				>
+					<span class="hidden sm:inline">{wrapLines ? 'Wrap' : 'No wrap'}</span>
+				</button>
+				<button
+					onclick={selectAllContent}
+					aria-label="Select all"
+					title="Select all"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+				>
+					<TextSelect size={16} />
+					<span class="hidden sm:inline">Select all</span>
+				</button>
+				<button
 					onclick={duplicatePaste}
 					title="{mod}+D"
 					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
 				>
 					<Files size={16} />
 					<span class="hidden sm:inline">Duplicate</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => changeFontSize(-1)}
+					aria-label="Decrease viewer font size"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+				>
+					A-
+				</button>
+				<button
+					type="button"
+					onclick={() => changeFontSize(1)}
+					aria-label="Increase viewer font size"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+				>
+					A+
 				</button>
 				<button
 					onclick={copyShareUrl}
@@ -679,7 +739,8 @@
 				/>
 				<button
 					onclick={decryptWithPassword}
-					class="w-full px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium hover:bg-teal-400"
+					disabled={!passwordInput.trim()}
+					class="w-full px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-500"
 				>
 					Decrypt
 				</button>
@@ -721,11 +782,11 @@
 				value={content}
 				lang={languageExtension}
 				theme={currentTheme}
-				extensions={[EditorView.lineWrapping, EditorView.editable.of(false), lineNumbers()]}
+				extensions={[EditorView.editable.of(false), lineNumbers(), ...(wrapLines ? [EditorView.lineWrapping] : [])]}
 				styles={{
 					'&': {
 						height: '100%',
-						fontSize: '14px'
+						fontSize: `${fontSize}px`
 					},
 					'.cm-scroller': {
 						overflow: 'auto'
@@ -735,10 +796,12 @@
 		</div>
 
 		<!-- Info Bar -->
-		<div class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500">
+		<div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-4 border-t border-zinc-800 text-sm text-zinc-500">
 			<span class="px-2 py-0.5 bg-zinc-700 text-zinc-300 rounded text-xs font-mono">{detectedLanguage}</span>
 			<span>·</span>
 			<span>Created {createdTimeAgo}</span>
+			<span>·</span>
+			<span>{lineCount} lines · {charCount} chars</span>
 			<span>·</span>
 			<span>Expires in {expiresIn}</span>
 		</div>

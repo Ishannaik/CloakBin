@@ -102,6 +102,11 @@ export const LANGUAGE_PICKER_OPTIONS: ReadonlyArray<{ value: string; label: stri
 	{ value: 'plaintext', label: 'Plain Text' }
 ];
 
+/** True when a language id is offered by the create-page picker (or auto). */
+export function isPickerLanguage(language: string): boolean {
+	return LANGUAGE_PICKER_OPTIONS.some((option) => option.value === language);
+}
+
 /**
  * Normalize a client-supplied language string for storage.
  * Unknown / non-string values become `plaintext` (never stored raw).

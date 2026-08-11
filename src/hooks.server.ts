@@ -6,6 +6,7 @@
 import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { verifyAdminSession } from '$lib/server/admin-auth';
+import { RATE_LIMITS, resolveRateLimitType } from '$lib/server/rateLimit';
 
 // ============================================
 // RATE LIMITING (In-Memory)
@@ -46,13 +47,6 @@ interface RateLimitEntry {
 
 // Store: IP -> { count, resetTime }
 const rateLimitStore = new Map<string, RateLimitEntry>();
-
-// Rate limit configurations
-const RATE_LIMITS = {
-	createPaste: { requests: 10, windowMs: 60 * 1000 }, // 10 pastes per minute
-	readPaste: { requests: 60, windowMs: 60 * 1000 }, // 60 reads per minute
-	default: { requests: 100, windowMs: 60 * 1000 } // 100 requests per minute
-} as const;
 
 // Cleanup old entries every 5 minutes to prevent memory bloat
 const CLEANUP_INTERVAL = 5 * 60 * 1000;
@@ -153,16 +147,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const method = event.request.method;
 
 		// Determine which rate limit to apply
-		let limit: (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS] = RATE_LIMITS.default;
-		let limitType = 'default';
-
-		if (method === 'POST' && path === '/api/paste') {
-			limit = RATE_LIMITS.createPaste;
-			limitType = 'createPaste';
-		} else if (method === 'GET' && path.startsWith('/api/paste/')) {
-			limit = RATE_LIMITS.readPaste;
-			limitType = 'readPaste';
-		}
+		const limitType = resolveRateLimitType(method, path);
+		const limit = RATE_LIMITS[limitType];
 
 		// Check rate limit
 		const { limited, resetIn } = isRateLimited(`${ip}:${limitType}`, limit);
@@ -207,11 +193,23 @@ export const handle: Handle = async ({ event, resolve }) => {
 				const originHost = new URL(origin).host;
 				if (originHost !== host) {
 					console.warn(`CSRF blocked: origin=${origin}, host=${host}`);
-					return new Response('Forbidden - CSRF protection', { status: 403 });
+					return new Response(
+						JSON.stringify({ error: 'CSRF protection failed: origin does not match host' }),
+						{
+							status: 403,
+							headers: { 'Content-Type': 'application/json' }
+						}
+					);
 				}
 			} catch {
 				// Invalid origin URL
-				return new Response('Forbidden - Invalid origin', { status: 403 });
+				return new Response(
+					JSON.stringify({ error: 'CSRF protection failed: invalid origin' }),
+					{
+						status: 403,
+						headers: { 'Content-Type': 'application/json' }
+					}
+				);
 			}
 		}
 
@@ -224,7 +222,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 					const refererHost = new URL(referer).host;
 					if (refererHost !== host) {
 						console.warn(`CSRF blocked: referer=${referer}, host=${host}`);
-						return new Response('Forbidden - CSRF protection', { status: 403 });
+						return new Response(
+							JSON.stringify({ error: 'CSRF protection failed: referer does not match host' }),
+							{
+								status: 403,
+								headers: { 'Content-Type': 'application/json' }
+							}
+						);
 					}
 				} catch {
 					// Invalid referer URL - allow (some privacy tools strip referer)

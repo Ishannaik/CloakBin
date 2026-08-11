@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
 	detectLanguageFromFilename,
+	isPickerLanguage,
 	normalizePasteLanguage,
 	isAllowedPasteLanguage,
 	PASTE_LANGUAGE_SET,
@@ -55,6 +56,20 @@ describe('LANGUAGE_PICKER_OPTIONS', () => {
 			if (opt.value === 'auto') continue;
 			expect(PASTE_LANGUAGE_SET.has(opt.value)).toBe(true);
 		}
+	});
+});
+
+describe('isPickerLanguage', () => {
+	it('returns true for options in the create-page picker', () => {
+		expect(isPickerLanguage('javascript')).toBe(true);
+		expect(isPickerLanguage('auto')).toBe(true);
+		expect(isPickerLanguage('plaintext')).toBe(true);
+	});
+
+	it('returns false for valid paste languages without a picker option', () => {
+		expect(isPickerLanguage('dockerfile')).toBe(false);
+		expect(isPickerLanguage('graphql')).toBe(false);
+		expect(isPickerLanguage('makefile')).toBe(false);
 	});
 });
 

@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { decrypt, base64ToKey } from '$lib/crypto';
+	import { Copy, Check } from 'lucide-svelte';
 
 	let content = $state('');
 	let viewState = $state<'loading' | 'error' | 'success' | 'needKey'>('loading');
 	let errorMessage = $state('');
 	let fullViewHref = $state('');
+	let copied = $state(false);
+	let copyTimer: ReturnType<typeof setTimeout>;
+
+	onDestroy(() => clearTimeout(copyTimer));
 
 	onMount(async () => {
 		try {
@@ -49,6 +54,17 @@
 		sessionStorage.setItem('cloakbin_duplicate', content);
 		goto('/');
 	}
+
+	async function copyContent() {
+		try {
+			await navigator.clipboard.writeText(content);
+			copied = true;
+			clearTimeout(copyTimer);
+			copyTimer = setTimeout(() => (copied = false), 2000);
+		} catch {
+			// Clipboard can be unavailable in some embedded contexts; leave the button idle.
+		}
+	}
 </script>
 
 <svelte:head>
@@ -64,6 +80,15 @@
 		<a href={fullViewHref}>Full view</a>
 		<button type="button" onclick={editAsNew}>Edit as new</button>
 	</div>
+	<button type="button" onclick={copyContent} class="copy-button" aria-label="Copy raw content">
+		{#if copied}
+			<Check size={16} />
+			<span>Copied</span>
+		{:else}
+			<Copy size={16} />
+			<span>Copy</span>
+		{/if}
+	</button>
 	<pre class="raw-content">{content}</pre>
 {/if}
 
@@ -86,6 +111,23 @@
 		word-wrap: break-word;
 		min-height: 100vh;
 		box-sizing: border-box;
+	}
+
+	.copy-button {
+		position: fixed;
+		top: 16px;
+		right: 16px;
+		z-index: 10;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 12px;
+		color: #111318;
+		background: #5eead4;
+		border: 0;
+		border-radius: 6px;
+		font: 600 13px system-ui, sans-serif;
+		cursor: pointer;
 	}
 
 	.raw-actions {
