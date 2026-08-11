@@ -138,6 +138,22 @@
 	let showPassword = $state(false);
 	let burnAfterRead = $state(false);
 	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
+	const MAX_CONTENT_BYTES = 10 * 1024 * 1024;
+	let contentBytes = $derived(new Blob([content]).size);
+	let contentLabel = $derived(formatBytes(contentBytes));
+	let sizeTone = $derived(
+		contentBytes >= MAX_CONTENT_BYTES * 0.8
+			? 'text-red-400'
+			: contentBytes >= MAX_CONTENT_BYTES * 0.6
+				? 'text-amber-400'
+				: 'text-zinc-400'
+	);
+
+	function formatBytes(bytes: number): string {
+		if (bytes < 1024) return `${bytes} chars`;
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+	}
 
 	// Available languages for manual selection (shared allowlist)
 	const languages = LANGUAGE_PICKER_OPTIONS;
@@ -659,6 +675,7 @@
 
 	<!-- Bottom bar -->
 	<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800">
+		<span class="text-xs font-mono {sizeTone}" aria-label="Content size">{contentLabel}</span>
 		<ExpirySelect bind:value={expiry} options={expiryOptions} />
 		<!-- Password toggle -->
 		<label class="flex items-center gap-1.5 cursor-pointer">
