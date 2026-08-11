@@ -20,7 +20,7 @@
 	} from 'thememirror';
 	import { EditorView } from '@codemirror/view';
 	import logo from '$lib/assets/logo.svg';
-	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings } from 'lucide-svelte';
+	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings, TextSelect } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// OS detection for keyboard shortcut display
@@ -40,6 +40,7 @@
 	let encryptedContent = $state(''); // Store encrypted content for manual key entry
 	let pasteMetadata = $state<{ createdAt: string; expiresAt: string } | null>(null);
 	let passwordInput = $state('');
+	let selectAllAnnouncement = $state('');
 	let showBurnWarning = $state(false);
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
@@ -289,6 +290,7 @@
 			const selection = window.getSelection();
 			selection?.removeAllRanges();
 			selection?.addRange(range);
+			selectAllAnnouncement = 'Content selected';
 		}
 	}
 
@@ -531,6 +533,7 @@
 		</a>
 
 		{#if viewState === 'success'}
+			<span aria-live="polite" class="sr-only">{selectAllAnnouncement}</span>
 			<div class="flex items-center gap-1 sm:gap-2">
 				<button
 					onclick={copyToClipboard}
@@ -543,6 +546,15 @@
 						<Copy size={16} />
 						<span class="hidden sm:inline">Copy</span>
 					{/if}
+				</button>
+				<button
+					onclick={selectAllContent}
+					aria-label="Select all"
+					title="Select all"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+				>
+					<TextSelect size={16} />
+					<span class="hidden sm:inline">Select all</span>
 				</button>
 				<button
 					onclick={duplicatePaste}
