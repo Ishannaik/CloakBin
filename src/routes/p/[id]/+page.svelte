@@ -137,8 +137,7 @@
 	}
 
 	// Format relative time
-	function formatRelativeTime(date: Date): string {
-		const now = new Date();
+	function formatRelativeTime(date: Date, now: Date): string {
 		const diffMs = date.getTime() - now.getTime();
 		const diffMins = Math.floor(diffMs / 60000);
 		const diffHours = Math.floor(diffMins / 60);
@@ -166,7 +165,9 @@
 
 	// Derived values for display
 	let createdTimeAgo = $derived(createdAt ? formatTimeAgo(createdAt) : '');
-	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt) : '');
+	let now = $state(new Date());
+	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt, now) : '');
+	let expiryTimer: ReturnType<typeof setInterval>;
 
 	// Copy content to clipboard
 	async function copyToClipboard() {
@@ -464,6 +465,10 @@
 	// Handle bfcache (back-forward cache) security
 	// Without this, pressing back then forward shows decrypted content from memory
 	onMount(() => {
+		expiryTimer = setInterval(() => {
+			now = new Date();
+		}, 30_000);
+
 		// Restore theme from localStorage
 		const savedTheme = localStorage.getItem('cloakbin_theme');
 		if (savedTheme && savedTheme in themes) {
@@ -504,6 +509,7 @@
 		loadAndDecrypt();
 
 		return () => {
+			clearInterval(expiryTimer);
 			window.removeEventListener('pagehide', handlePageHide);
 			window.removeEventListener('pageshow', handlePageShow);
 			window.removeEventListener('hashchange', handleHashChange);
