@@ -19,7 +19,7 @@
 		espresso,
 		noctisLilac
 	} from 'thememirror';
-	import { EditorView } from '@codemirror/view';
+	import { EditorView, lineNumbers } from '@codemirror/view';
 	import logo from '$lib/assets/logo.svg';
 	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings, TextSelect } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
@@ -782,7 +782,7 @@
 				value={content}
 				lang={languageExtension}
 				theme={currentTheme}
-				extensions={[EditorView.editable.of(false), ...(wrapLines ? [EditorView.lineWrapping] : [])]}
+				extensions={[EditorView.editable.of(false), lineNumbers(), ...(wrapLines ? [EditorView.lineWrapping] : [])]}
 				styles={{
 					'&': {
 						height: '100%',
