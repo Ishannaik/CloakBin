@@ -1,6 +1,7 @@
 <script lang="ts">
 	import logo from '$lib/assets/logo.svg';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
+	import PasswordStrength from '$lib/components/PasswordStrength.svelte';
 	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
 	import EncryptionOverlay from '$lib/components/EncryptionOverlay.svelte';
 	import ImportModal from '$lib/components/ImportModal.svelte';
@@ -140,6 +141,23 @@
 	let showPassword = $state(false);
 	let burnAfterRead = $state(false);
 	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
+	let passwordScore = $derived(scorePassword(password));
+
+	function scorePassword(value: string): number {
+		if (!value) return 0;
+		let score = 0;
+		if (value.length >= 8) score++;
+		if (value.length >= 12) score++;
+		// Class diversity only counts once the password has a length floor;
+		// otherwise a 4-char "aA1!" would score Strong and mislead the user.
+		if (value.length >= 8) {
+			if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
+			if (/\d/.test(value)) score++;
+			if (/[^A-Za-z0-9]/.test(value)) score++;
+		}
+		return Math.min(3, score);
+	}
+
 	const MAX_CONTENT_BYTES = 10 * 1024 * 1024;
 	let contentBytes = $derived(new Blob([content]).size);
 	let contentLabel = $derived(formatBytes(contentBytes));
@@ -726,26 +744,31 @@
 			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
 		</label>
 		{#if usePassword}
-			<div class="relative">
-				<input
-					type={showPassword ? 'text' : 'password'}
-					bind:value={password}
-					placeholder="Password..."
-					maxlength={128}
-					class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 pr-9 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
-				/>
-				<button
-					type="button"
-					onclick={() => (showPassword = !showPassword)}
-					aria-label={showPassword ? 'Hide password' : 'Show password'}
-					class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-zinc-200"
-				>
-					{#if showPassword}
-						<EyeOff size={16} />
-					{:else}
-						<Eye size={16} />
-					{/if}
-				</button>
+			<div class="flex flex-col items-start gap-1">
+				<div class="relative">
+					<input
+						type={showPassword ? 'text' : 'password'}
+						bind:value={password}
+						placeholder="Password..."
+						maxlength={128}
+						class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 pr-9 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
+					/>
+					<button
+						type="button"
+						onclick={() => (showPassword = !showPassword)}
+						aria-label={showPassword ? 'Hide password' : 'Show password'}
+						class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-zinc-200"
+					>
+						{#if showPassword}
+							<EyeOff size={16} />
+						{:else}
+							<Eye size={16} />
+						{/if}
+					</button>
+				</div>
+				{#if password}
+					<PasswordStrength score={passwordScore} />
+				{/if}
 			</div>
 		{/if}
 		<!-- Burn toggle -->
