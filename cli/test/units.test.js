@@ -3,6 +3,9 @@
  * Run: node test/units.test.js
  */
 
+import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -246,6 +249,71 @@ async function run() {
       encoding: 'utf8',
     });
     assert.match(out, /Usage:/);
+  });
+
+  await test('--help documents --save and --force', () => {
+    const out = execFileSync(process.execPath, [cliPath, '--help'], { encoding: 'utf8' });
+    assert.match(out, /--save <file>/);
+    assert.match(out, /--force/);
+  });
+
+  await test('--save without a value fails in the parser', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, 'get', 'x', '--save'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /--save requires a value/);
+  });
+
+  await test('--save= fails instead of writing to stdout', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, 'get', 'x', '--save='], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /--save requires a value/);
+  });
+
+  await test('--save does not consume --force as its value', () => {
+    let err;
+    try {
+      execFileSync(process.execPath, [cliPath, 'get', 'x', '--save', '--force'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (caught) {
+      err = caught;
+    }
+    assert.ok(err, 'expected the CLI to exit non-zero');
+    assert.equal(err.status, 1);
+    assert.match(String(err.stderr), /--save requires a value/);
+  });
+
+  await test('--save path --force is accepted by the parser', () => {
+    const out = execFileSync(process.execPath, [cliPath, '--save', 'out.txt', '--force', '--help'], {
+      encoding: 'utf8',
+    });
+    assert.match(out, /Usage:/);
+  });
+
+  await test('--save writes via temp file, leaving no temp behind', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cloakbin-save-'));
+    const out = execFileSync(process.execPath, [cliPath, '--save', join(dir, 'out.txt'), '--help'], {
+      encoding: 'utf8',
+    });
+    assert.match(out, /Usage:/);
+    assert.equal(readdirSync(dir).length, 0, 'no temp file should be left for a failed save');
+    rmSync(dir, { recursive: true, force: true });
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

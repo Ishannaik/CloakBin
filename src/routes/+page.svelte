@@ -1,6 +1,7 @@
 <script lang="ts">
 	import logo from '$lib/assets/logo.svg';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
+	import PasswordStrength from '$lib/components/PasswordStrength.svelte';
 	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
 	import EncryptionOverlay from '$lib/components/EncryptionOverlay.svelte';
 	import ImportModal from '$lib/components/ImportModal.svelte';
@@ -12,7 +13,8 @@
 	import {
 		detectLanguageFromFilename,
 		LANGUAGE_PICKER_OPTIONS,
-		isAllowedPasteLanguage
+		isAllowedPasteLanguage,
+		isPickerLanguage
 	} from '$lib/languages';
 	import {
 		dracula,
@@ -24,10 +26,11 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload, WifiOff, Settings, FileUp } from 'lucide-svelte';
+	import { Lock, Files, Upload, WifiOff, Settings, FileUp, Eye, EyeOff } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
+	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	// PERF: detectLanguage pulls highlight.js (~60-80KB) — dynamically imported at save time only (see below)
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
@@ -108,6 +111,7 @@
 	const mod = isMac ? '⌘' : 'Ctrl';
 
 	let content = $state('');
+	let fontSize = $state(loadFontSize());
 	let expiry = $state('1h');
 	let selectedTheme = $state('oneDark');
 
@@ -135,8 +139,42 @@
 	let isOffline = $state(false);
 	let usePassword = $state(false);
 	let password = $state('');
+	let showPassword = $state(false);
 	let burnAfterRead = $state(false);
 	let selectedLanguage = $state('auto'); // 'auto' means auto-detect language using highlight.js
+	let passwordScore = $derived(scorePassword(password));
+
+	function scorePassword(value: string): number {
+		if (!value) return 0;
+		let score = 0;
+		if (value.length >= 8) score++;
+		if (value.length >= 12) score++;
+		// Class diversity only counts once the password has a length floor;
+		// otherwise a 4-char "aA1!" would score Strong and mislead the user.
+		if (value.length >= 8) {
+			if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
+			if (/\d/.test(value)) score++;
+			if (/[^A-Za-z0-9]/.test(value)) score++;
+		}
+		return Math.min(3, score);
+	}
+
+	const MAX_CONTENT_BYTES = 10 * 1024 * 1024;
+	let contentBytes = $derived(new Blob([content]).size);
+	let contentLabel = $derived(formatBytes(contentBytes));
+	let sizeTone = $derived(
+		contentBytes >= MAX_CONTENT_BYTES * 0.8
+			? 'text-red-400'
+			: contentBytes >= MAX_CONTENT_BYTES * 0.6
+				? 'text-amber-400'
+				: 'text-zinc-400'
+	);
+
+	function formatBytes(bytes: number): string {
+		if (bytes < 1024) return `${bytes} chars`;
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+	}
 
 	// Available languages for manual selection (shared allowlist)
 	const languages = LANGUAGE_PICKER_OPTIONS;
@@ -160,6 +198,21 @@
 		const savedTheme = localStorage.getItem('cloakbin_theme');
 		if (savedTheme && savedTheme in themes) {
 			selectedTheme = savedTheme;
+		}
+
+		// Safe deep-link prefill; invalid or unknown params are ignored.
+		const params = new URLSearchParams(window.location.search);
+		const lang = params.get('lang');
+		if (lang && (languages.some((option) => option.value === lang) || lang === 'auto' || lang === 'plaintext')) {
+			selectedLanguage = lang;
+		}
+		if (params.get('burn') === '1') {
+			burnAfterRead = true;
+		}
+		const expiryParam = params.get('expiry');
+		const expiryValue = expiryOptions.find((option) => option.value === expiryParam)?.value;
+		if (expiryValue) {
+			expiry = expiryValue;
 		}
 
 		// Restore draft from localStorage
@@ -281,6 +334,11 @@
 	let newButtonRotation = spring(0, { stiffness: 0.2, damping: 0.5 });
 	let newButtonSuccess = $state(false);
 
+	function changeFontSize(delta: number) {
+		fontSize = clampFontSize(fontSize + delta);
+		saveFontSize(fontSize);
+	}
+
 
 	function handleNewClick() {
 		// Spring bounce effect
@@ -365,6 +423,12 @@
 
 	// Global keyboard shortcuts handler
 	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && showSettings) {
+			showSettings = false;
+			document.getElementById('settings-button')?.focus();
+			return;
+		}
+
 		// Show shortcuts modal on ? or Ctrl+/
 		if (e.key === '?' || ((e.ctrlKey || e.metaKey) && e.key === '/')) {
 			e.preventDefault();
@@ -439,7 +503,13 @@
 			});
 
 			if (!res.ok) {
-				const error = await res.text();
+				const raw = await res.text();
+				let error = raw;
+				try {
+					error = JSON.parse(raw).error ?? raw;
+				} catch {
+					// plain-text errors stay as-is
+				}
 				throw new Error(error || 'Failed to create paste');
 			}
 
@@ -541,9 +611,26 @@
 				<FileUp size={16} class="sm:hidden" /><FileUp size={18} class="hidden sm:block" />
 				<span class="hidden md:inline text-sm">Import</span>
 			</button>
+			<button
+				type="button"
+				onclick={() => changeFontSize(-1)}
+				aria-label="Decrease editor font size"
+				class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+			>
+				A-
+			</button>
+			<button
+				type="button"
+				onclick={() => changeFontSize(1)}
+				aria-label="Increase editor font size"
+				class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+			>
+				A+
+			</button>
 			<!-- Settings dropdown -->
 			<div class="relative settings-dropdown">
 				<button
+					id="settings-button"
 					onclick={() => showSettings = !showSettings}
 					class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
 					title="Settings"
@@ -626,7 +713,7 @@
 			styles={{
 				'&': {
 					height: '100%',
-					fontSize: '14px'
+					fontSize: `${fontSize}px`
 				},
 				'.cm-scroller': {
 					overflow: 'auto'
@@ -645,6 +732,7 @@
 
 	<!-- Bottom bar -->
 	<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800">
+		<span class="text-xs font-mono {sizeTone}" aria-label="Content size">{contentLabel}</span>
 		<ExpirySelect bind:value={expiry} options={expiryOptions} />
 		<!-- Password toggle -->
 		<label class="flex items-center gap-1.5 cursor-pointer">
@@ -657,13 +745,32 @@
 			<span class="text-zinc-400 text-sm hidden sm:inline">Password</span>
 		</label>
 		{#if usePassword}
-			<input
-				type="password"
-				bind:value={password}
-				placeholder="Password..."
-				maxlength={128}
-				class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
-			/>
+			<div class="flex flex-col items-start gap-1">
+				<div class="relative">
+					<input
+						type={showPassword ? 'text' : 'password'}
+						bind:value={password}
+						placeholder="Password..."
+						maxlength={128}
+						class="bg-bg-secondary border border-zinc-700 rounded px-2 py-2 pr-9 text-sm w-24 sm:w-32 focus:outline-none focus:border-teal-500"
+					/>
+					<button
+						type="button"
+						onclick={() => (showPassword = !showPassword)}
+						aria-label={showPassword ? 'Hide password' : 'Show password'}
+						class="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-zinc-400 hover:text-zinc-200"
+					>
+						{#if showPassword}
+							<EyeOff size={16} />
+						{:else}
+							<Eye size={16} />
+						{/if}
+					</button>
+				</div>
+				{#if password}
+					<PasswordStrength score={passwordScore} />
+				{/if}
+			</div>
 		{/if}
 		<!-- Burn toggle -->
 		<label class="relative flex items-center gap-1.5 cursor-pointer group">
@@ -758,6 +865,6 @@
 	onImport={(text, filename) => {
 		content = text;
 		const language = detectLanguageFromFilename(filename);
-		if (language) selectedLanguage = language;
+		selectedLanguage = language && isPickerLanguage(language) ? language : 'auto';
 	}}
 />
