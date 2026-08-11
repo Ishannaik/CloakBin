@@ -168,6 +168,8 @@
 	let now = $state(new Date());
 	let expiresIn = $derived(expiresAt ? formatRelativeTime(expiresAt, now) : '');
 	let expiryTimer: ReturnType<typeof setInterval>;
+	let lineCount = $derived(content.length > 0 ? content.split(/\r?\n/).length : 0);
+	let charCount = $derived(content.length);
 
 	// Copy content to clipboard
 	async function copyToClipboard() {
@@ -794,10 +796,12 @@
 		</div>
 
 		<!-- Info Bar -->
-		<div class="flex items-center justify-center gap-4 py-4 border-t border-zinc-800 text-sm text-zinc-500">
+		<div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-4 border-t border-zinc-800 text-sm text-zinc-500">
 			<span class="px-2 py-0.5 bg-zinc-700 text-zinc-300 rounded text-xs font-mono">{detectedLanguage}</span>
 			<span>·</span>
 			<span>Created {createdTimeAgo}</span>
+			<span>·</span>
+			<span>{lineCount} lines · {charCount} chars</span>
 			<span>·</span>
 			<span>Expires in {expiresIn}</span>
 		</div>
