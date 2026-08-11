@@ -37,16 +37,19 @@ Creates a new encrypted paste.
 
 ### Error codes
 
-| Code | Error message |
+Errors are returned as JSON objects with an `error` field:
+
+| Code | Error body |
 | ---- | ---------------------------------------------------------- |
-| 400  | `Invalid JSON in request body` |
-| 400  | `Content must be a string` |
-| 400  | `Content cannot be empty` |
-| 400  | `Expiry must be one of: "1h", "24h", "7d"` |
-| 413  | `Content exceeds maximum size of <max bytes> bytes` |
-| 429  | `Too many requests` |
-| 500  | `<error message from result.error>` |
-| 500  | `Internal server error` |
+| 400  | `{"error": "Invalid JSON in request body"}` |
+| 400  | `{"error": "Content must be a string"}` |
+| 400  | `{"error": "Content cannot be empty"}` |
+| 400  | `{"error": "Expiry must be one of: \"1h\", \"24h\", \"7d\""}` |
+| 400  | `{"error": "burnAfterRead must be a boolean"}` |
+| 413  | `{"error": "Content exceeds maximum size of <max bytes> bytes"}` |
+| 429  | `{"error": "Too many requests", "retryAfter": <seconds>}` |
+| 500  | `{"error": "<error message from result.error>"}` |
+| 500  | `{"error": "Internal server error"}` |
 
 ### Rate limits
 
@@ -84,7 +87,7 @@ There is no request body.
   "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "hasPassword": "boolean",
-  "salt": "string",
+  "salt": "string (omitted for passwordless pastes)",
   "burnAfterRead": "boolean",
   "language": "string"
 }
@@ -92,14 +95,16 @@ There is no request body.
 
 ### Error codes
 
-| Code | Error message |
+Errors are returned as JSON objects with an `error` field:
+
+| Code | Error body |
 | ---- | ---------------------------------------------------------- |
-| 400  | `Invalid paste ID` |
-| 404  | `Paste not found` |
-| 404  | `Paste has expired` |
-| 429  | `Too many requests` |
-| 500  | `<error message from result.error>` |
-| 500  | `Internal server error` |
+| 400  | `{"error": "Invalid paste ID"}` |
+| 404  | `{"error": "Paste not found"}` |
+| 404  | `{"error": "Paste has expired"}` |
+| 429  | `{"error": "Too many requests", "retryAfter": <seconds>}` |
+| 500  | `{"error": "<error message from result.error>"}` |
+| 500  | `{"error": "Internal server error"}` |
 
 ### Rate limits
 
@@ -131,7 +136,7 @@ There is no request body.
   "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "hasPassword": "boolean",
-  "salt": "string",
+  "salt": "string (omitted for passwordless pastes)",
   "burnAfterRead": "boolean",
   "language": "string"
 }
@@ -139,17 +144,19 @@ There is no request body.
 
 ### Error codes
 
-| Code | Error message |
+Errors are returned as JSON objects with an `error` field:
+
+| Code | Error body |
 | ---- | ---------------------------------------------------------- |
-| 400  | `Invalid paste ID` |
-| 404  | `Paste not found` |
-| 429  | `Too many requests` |
-| 500  | `<error message from result.error>` |
-| 500  | `Internal server error` |
+| 400  | `{"error": "Invalid paste ID"}` |
+| 404  | `{"error": "Paste not found"}` |
+| 429  | `{"error": "Too many requests", "retryAfter": <seconds>}` |
+| 500  | `{"error": "<error message from result.error>"}` |
+| 500  | `{"error": "Internal server error"}` |
 
 ### Rate limits
 
-- 100 requests per minute (default rate limit).
+- 60 requests per minute (same bucket as paste reads).
 
 ### curl example
 
