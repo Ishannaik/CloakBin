@@ -37,16 +37,16 @@ Creates a new encrypted paste.
 
 ### Error codes
 
-| Code | Error body                                                 |
+| Code | Error message |
 | ---- | ---------------------------------------------------------- |
-| 400  | `Invalid JSON in request body`                             |
-| 400  | `Content must be a string`                                 |
-| 400  | `Content cannot be empty`                                  |
-| 400  | `Expiry must be one of: "1h", "24h", "7d"`                 |
-| 413  | `Content exceeds maximum size of ${MAX_PASTE_BYTES} bytes` |
-| 429  | `Too many requests`                                        |
-| 500  | `result.error`                                             |
-| 500  | `Internal server error`                                    |
+| 400  | `Invalid JSON in request body` |
+| 400  | `Content must be a string` |
+| 400  | `Content cannot be empty` |
+| 400  | `Expiry must be one of: "1h", "24h", "7d"` |
+| 413  | `Content exceeds maximum size of <max bytes> bytes` |
+| 429  | `Too many requests` |
+| 500  | `<error message from result.error>` |
+| 500  | `Internal server error` |
 
 ### Rate limits
 
@@ -92,14 +92,14 @@ There is no request body.
 
 ### Error codes
 
-| Code | Error body                                                 |
+| Code | Error message |
 | ---- | ---------------------------------------------------------- |
-| 400  | `Invalid paste ID`                                         |
-| 404  | `Paste not found`                                          |
-| 404  | `Paste has expired`                                        |
-| 429  | `Too many requests`                                        |
-| 500  | `result.error`                                             |
-| 500  | `Internal server error`                                    |
+| 400  | `Invalid paste ID` |
+| 404  | `Paste not found` |
+| 404  | `Paste has expired` |
+| 429  | `Too many requests` |
+| 500  | `<error message from result.error>` |
+| 500  | `Internal server error` |
 
 ### Rate limits
 
@@ -139,13 +139,13 @@ There is no request body.
 
 ### Error codes
 
-| Code | Error body                                                 |
+| Code | Error message |
 | ---- | ---------------------------------------------------------- |
-| 400  | `Invalid paste ID`                                         |
-| 404  | `Paste not found`                                          |
-| 429  | `Too many requests`                                        |
-| 500  | `result.error`                                             |
-| 500  | `Internal server error`                                    |
+| 400  | `Invalid paste ID` |
+| 404  | `Paste not found` |
+| 429  | `Too many requests` |
+| 500  | `<error message from result.error>` |
+| 500  | `Internal server error` |
 
 ### Rate limits
 
