@@ -28,6 +28,7 @@
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
+	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	// PERF: detectLanguage pulls highlight.js (~60-80KB) — dynamically imported at save time only (see below)
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
@@ -108,6 +109,7 @@
 	const mod = isMac ? '⌘' : 'Ctrl';
 
 	let content = $state('');
+	let fontSize = $state(loadFontSize());
 	let expiry = $state('1h');
 	let selectedTheme = $state('oneDark');
 
@@ -312,6 +314,11 @@
 	let newButtonScale = spring(1, { stiffness: 0.3, damping: 0.6 });
 	let newButtonRotation = spring(0, { stiffness: 0.2, damping: 0.5 });
 	let newButtonSuccess = $state(false);
+
+	function changeFontSize(delta: number) {
+		fontSize = clampFontSize(fontSize + delta);
+		saveFontSize(fontSize);
+	}
 
 
 	function handleNewClick() {
@@ -585,6 +592,22 @@
 				<FileUp size={16} class="sm:hidden" /><FileUp size={18} class="hidden sm:block" />
 				<span class="hidden md:inline text-sm">Import</span>
 			</button>
+			<button
+				type="button"
+				onclick={() => changeFontSize(-1)}
+				aria-label="Decrease editor font size"
+				class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+			>
+				A-
+			</button>
+			<button
+				type="button"
+				onclick={() => changeFontSize(1)}
+				aria-label="Increase editor font size"
+				class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+			>
+				A+
+			</button>
 			<!-- Settings dropdown -->
 			<div class="relative settings-dropdown">
 				<button
@@ -671,7 +694,7 @@
 			styles={{
 				'&': {
 					height: '100%',
-					fontSize: '14px'
+					fontSize: `${fontSize}px`
 				},
 				'.cm-scroller': {
 					overflow: 'auto'
