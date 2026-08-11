@@ -145,9 +145,13 @@
 		let score = 0;
 		if (value.length >= 8) score++;
 		if (value.length >= 12) score++;
-		if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
-		if (/\d/.test(value)) score++;
-		if (/[^A-Za-z0-9]/.test(value)) score++;
+		// Class diversity only counts once the password has a length floor;
+		// otherwise a 4-char "aA1!" would score Strong and mislead the user.
+		if (value.length >= 8) {
+			if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
+			if (/\d/.test(value)) score++;
+			if (/[^A-Za-z0-9]/.test(value)) score++;
+		}
 		return Math.min(3, score);
 	}
 
