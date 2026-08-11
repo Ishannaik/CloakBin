@@ -9,6 +9,13 @@ The server stores and returns ciphertext for pastes without receiving the
 decryption key or password. Content is encrypted on the client before being
 sent to the server.
 
+## Salt and `hasPassword`
+
+The client generates a random 16-byte salt (standard base64) for
+password-protected pastes and includes it in the create request. The server
+sets `hasPassword` to `true` whenever `salt` is non-empty. Passwordless pastes
+omit `salt` from responses and return `hasPassword: false`.
+
 ## POST `/api/paste`
 
 Creates a new encrypted paste.
@@ -71,7 +78,10 @@ string and does not check the ciphertext format.
 
 ## GET `/api/paste/[id]`
 
-Retrieves an encrypted paste by ID.
+Retrieves an encrypted paste by ID. This endpoint never deletes the paste,
+including for burn-after-read pastes. To consume a burn-after-read paste,
+use `POST /api/paste/[id]/burn` instead, which returns the content and deletes
+the paste in the same operation.
 
 ### Request body
 
