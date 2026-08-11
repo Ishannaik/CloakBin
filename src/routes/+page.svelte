@@ -359,6 +359,15 @@
 		}, 600);
 	}
 
+	function tidyContent() {
+		// Preserve the dominant line ending; splitting on both forms and
+		// joining with a single one would silently convert CRLF docs to LF.
+		const hasCrlf = content.includes('\r\n');
+		const lines = content.split(/\r?\n/).map((line) => line.replace(/[ 	]+$/g, ''));
+		while (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
+		content = lines.join(hasCrlf ? '\r\n' : '\n');
+	}
+
 
 	const themes = {
 		oneDark: { name: 'One Dark', theme: oneDark },
@@ -601,6 +610,14 @@
 					style="transform: rotate({$newButtonRotation}deg)"
 				>+</span>
 				<span class="hidden sm:inline">{newButtonSuccess ? 'Cleared!' : 'New'}</span>
+			</button>
+			<button
+				type="button"
+				onclick={tidyContent}
+				title="Trim trailing whitespace"
+				class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+			>
+				Tidy
 			</button>
 			<!-- Import -->
 			<button
