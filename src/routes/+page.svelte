@@ -302,9 +302,12 @@
 	}
 
 	function tidyContent() {
-		const lines = content.split(/\r?\n/).map((line) => line.replace(/[ \t]+$/g, ''));
+		// Preserve the dominant line ending; splitting on both forms and
+		// joining with a single one would silently convert CRLF docs to LF.
+		const hasCrlf = content.includes('\r\n');
+		const lines = content.split(/\r?\n/).map((line) => line.replace(/[ 	]+$/g, ''));
 		while (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
-		content = lines.join('\n');
+		content = lines.join(hasCrlf ? '\r\n' : '\n');
 	}
 
 
