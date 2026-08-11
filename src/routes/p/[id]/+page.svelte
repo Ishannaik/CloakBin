@@ -3,6 +3,7 @@
 	import { goto, beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
+	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
 	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
@@ -20,7 +21,7 @@
 	} from 'thememirror';
 	import { EditorView } from '@codemirror/view';
 	import logo from '$lib/assets/logo.svg';
-	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings } from 'lucide-svelte';
+	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings, TextSelect } from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// OS detection for keyboard shortcut display
@@ -29,6 +30,7 @@
 
 	// State management
 	let content = $state('');
+	let fontSize = $state(loadFontSize());
 	let showShortcuts = $state(false);
 	let viewState = $state<'loading' | 'error' | 'success' | 'needKey' | 'needPassword' | 'burnWarning'>('loading');
 	let errorMessage = $state('');
@@ -40,6 +42,7 @@
 	let encryptedContent = $state(''); // Store encrypted content for manual key entry
 	let pasteMetadata = $state<{ createdAt: string; expiresAt: string } | null>(null);
 	let passwordInput = $state('');
+	let selectAllAnnouncement = $state('');
 	let showBurnWarning = $state(false);
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
@@ -51,6 +54,11 @@
 		if (typeof localStorage !== 'undefined') {
 			localStorage.setItem('cloakbin_wrap', wrapLines ? '1' : '0');
 		}
+	}
+
+	function changeFontSize(delta: number) {
+		fontSize = clampFontSize(fontSize + delta);
+		saveFontSize(fontSize);
 	}
 
 	// Theme state
@@ -297,6 +305,7 @@
 			const selection = window.getSelection();
 			selection?.removeAllRanges();
 			selection?.addRange(range);
+			selectAllAnnouncement = 'Content selected';
 		}
 	}
 
@@ -539,6 +548,7 @@
 		</a>
 
 		{#if viewState === 'success'}
+			<span aria-live="polite" class="sr-only">{selectAllAnnouncement}</span>
 			<div class="flex items-center gap-1 sm:gap-2">
 				<button
 					onclick={copyToClipboard}
@@ -562,12 +572,37 @@
 					<span class="hidden sm:inline">{wrapLines ? 'Wrap' : 'No wrap'}</span>
 				</button>
 				<button
+					onclick={selectAllContent}
+					aria-label="Select all"
+					title="Select all"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
+				>
+					<TextSelect size={16} />
+					<span class="hidden sm:inline">Select all</span>
+				</button>
+				<button
 					onclick={duplicatePaste}
 					title="{mod}+D"
 					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95 flex items-center gap-2"
 				>
 					<Files size={16} />
 					<span class="hidden sm:inline">Duplicate</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => changeFontSize(-1)}
+					aria-label="Decrease viewer font size"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+				>
+					A-
+				</button>
+				<button
+					type="button"
+					onclick={() => changeFontSize(1)}
+					aria-label="Increase viewer font size"
+					class="h-9 sm:h-10 p-2 sm:px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
+				>
+					A+
 				</button>
 				<button
 					onclick={copyShareUrl}
@@ -696,7 +731,8 @@
 				/>
 				<button
 					onclick={decryptWithPassword}
-					class="w-full px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium hover:bg-teal-400"
+					disabled={!passwordInput.trim()}
+					class="w-full px-4 py-2 bg-teal-500 text-zinc-900 rounded font-medium hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-500"
 				>
 					Decrypt
 				</button>
@@ -742,7 +778,7 @@
 				styles={{
 					'&': {
 						height: '100%',
-						fontSize: '14px'
+						fontSize: `${fontSize}px`
 					},
 					'.cm-scroller': {
 						overflow: 'auto'
