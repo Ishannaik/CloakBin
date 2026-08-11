@@ -81,8 +81,8 @@ There is no request body.
 ```json
 {
   "content": "string",
-  "createdAt": "string",
-  "expiresAt": "string",
+  "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "hasPassword": "boolean",
   "salt": "string",
   "burnAfterRead": "boolean",
@@ -128,8 +128,8 @@ There is no request body.
 ```json
 {
   "content": "string",
-  "createdAt": "string",
-  "expiresAt": "string",
+  "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "hasPassword": "boolean",
   "salt": "string",
   "burnAfterRead": "boolean",
