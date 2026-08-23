@@ -29,6 +29,7 @@ CloakBin is a privacy-first pastebin that uses client-side encryption. Your data
 - Password protection: PBKDF2 key derivation
 - Framework: SvelteKit
 - Database: MongoDB with TTL indexes
+- Health check: GET /api/health
 
 ## Privacy Commitment
 
