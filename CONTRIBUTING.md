@@ -16,6 +16,7 @@ pnpm dev                # http://localhost:5173
 
 - Browse [open issues](https://github.com/Ishannaik/CloakBin/issues), especially ones labeled `good first issue`.
 - Comment on an issue before starting so it's clear you're picking it up.
+- Join the Discord (https://discord.gg/KKvtRhQvRv) before picking an issue, and claim it there or comment on the issue.
 - Found a bug or have a feature idea with no issue yet? Open one first — for anything beyond a trivial fix, it saves you from building something that won't be merged.
 - Questions before or during a PR are welcome on [Discord](https://discord.gg/KKvtRhQvRv).
 
