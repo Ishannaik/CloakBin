@@ -194,7 +194,7 @@ CloakBin is then on `http://localhost:3000`. Pastes are kept in the `mongo-data`
 To try it without a database (pastes are lost when the container stops):
 
 ```bash
-docker run -p 3000:3000 \
+docker run -p 127.0.0.1:3000:3000 \
   -e DB_TYPE=memory \
   -e ADMIN_USER=admin -e ADMIN_PASS=change-me \
   -e ORIGIN=http://localhost:3000 \
@@ -209,8 +209,10 @@ docker run -p 3000:3000 \
 | `ORIGIN` | yes | Public URL, e.g. `https://paste.example.com`. Admin login is rejected if it does not match the browser's address. |
 | `MAX_PASTE_BYTES` | no | Default 10 MiB |
 | `PORT` | no | Host port for Compose, default `3000` |
+| `BIND_ADDRESS` | no | Host interface for Compose, default `127.0.0.1`. Set `0.0.0.0` only if nothing else should sit in front. |
+| `BODY_SIZE_LIMIT` | no | Largest request accepted, default `12M`. Raise it if you raise `MAX_PASTE_BYTES`. |
 
-Put CloakBin behind a reverse proxy with HTTPS (Caddy, Nginx, Traefik) before exposing it publicly. The decryption key lives in the URL fragment, which browsers never send to the server, so HTTPS protects the ciphertext and the admin login.
+Compose publishes CloakBin on `127.0.0.1` only, so put a reverse proxy with HTTPS (Caddy, Nginx, Traefik) in front of it to make it public. The decryption key lives in the URL fragment, which browsers never send to the server, so HTTPS protects the ciphertext and the admin login.
 
 To upgrade: `docker compose pull && docker compose up -d` (or `docker compose up -d --build` from a newer checkout).
 
