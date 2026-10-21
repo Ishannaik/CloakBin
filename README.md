@@ -173,9 +173,48 @@ src/
 CloakBin is open source. Deploy your own instance:
 
 1. Fork this repository
-2. Deploy to Vercel/Netlify/your server
+2. Deploy to Vercel/Netlify/your server, or use [Docker](#docker)
 3. Set up MongoDB (Atlas free tier works)
 4. Configure environment variables
+
+### Docker
+
+The quickest way to run your own instance is Docker Compose, which starts CloakBin and MongoDB together:
+
+```bash
+git clone https://github.com/Ishannaik/CloakBin.git
+cd CloakBin
+cp .env.example .env
+# Edit .env: set ADMIN_USER, ADMIN_PASS, and ORIGIN (the URL people use to reach it)
+docker compose up -d
+```
+
+CloakBin is then on `http://localhost:3000`. Pastes are kept in the `mongo-data` volume, so they survive restarts and upgrades.
+
+To try it without a database (pastes are lost when the container stops):
+
+```bash
+docker run -p 127.0.0.1:3000:3000 \
+  -e DB_TYPE=memory \
+  -e ADMIN_USER=admin -e ADMIN_PASS=change-me \
+  -e ORIGIN=http://localhost:3000 \
+  ghcr.io/ishannaik/cloakbin:latest
+```
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DB_TYPE` | yes | `mongodb` or `memory` |
+| `MONGODB_URI` | with `mongodb` | Set for you by `docker-compose.yml` |
+| `ADMIN_USER`, `ADMIN_PASS` | yes | Admin panel login at `/admin` |
+| `ORIGIN` | yes | Public URL, e.g. `https://paste.example.com`. Admin login is rejected if it does not match the browser's address. |
+| `MAX_PASTE_BYTES` | no | Default 10 MiB |
+| `PORT` | no | Host port for Compose, default `3000` |
+| `BIND_ADDRESS` | no | Host interface for Compose, default `127.0.0.1`. Set `0.0.0.0` only if nothing else should sit in front. |
+| `BODY_SIZE_LIMIT` | no | Largest request accepted, default `12M`. Raise it if you raise `MAX_PASTE_BYTES`. |
+
+Compose publishes CloakBin on `127.0.0.1` only, so put a reverse proxy with HTTPS (Caddy, Nginx, Traefik) in front of it to make it public. The decryption key lives in the URL fragment, which browsers never send to the server, so HTTPS protects the ciphertext and the admin login.
+
+To upgrade: `docker compose pull && docker compose up -d` (or `docker compose up -d --build` from a newer checkout).
 
 ### Health Check
 

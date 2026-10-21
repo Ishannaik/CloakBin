@@ -1,0 +1,42 @@
+# Run CloakBin with MongoDB:
+#   cp .env.example .env   # then set ADMIN_USER, ADMIN_PASS and ORIGIN
+#   docker compose up -d
+# CloakBin is then on http://localhost:3000
+
+services:
+  cloakbin:
+    build: .
+    image: ghcr.io/ishannaik/cloakbin:latest
+    restart: unless-stopped
+    ports:
+      # Bound to localhost so the only way in is your HTTPS reverse proxy. Set
+      # BIND_ADDRESS=0.0.0.0 to expose the port directly (e.g. a private network).
+      - '${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:3000'
+    environment:
+      DB_TYPE: mongodb
+      MONGODB_URI: mongodb://mongo:27017/cloakbin
+      # The public URL people use to reach CloakBin. Form posts (admin login) are
+      # rejected if this does not match the address in the browser.
+      ORIGIN: ${ORIGIN:-http://localhost:${PORT:-3000}}
+      ADMIN_USER: ${ADMIN_USER:?Set ADMIN_USER in .env}
+      ADMIN_PASS: ${ADMIN_PASS:?Set ADMIN_PASS in .env}
+      MAX_PASTE_BYTES: ${MAX_PASTE_BYTES:-10485760}
+      # Largest request the server accepts. Keep it above MAX_PASTE_BYTES plus JSON overhead.
+      BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-12M}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping").ok']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:
