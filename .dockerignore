@@ -1,0 +1,15 @@
+node_modules
+.svelte-kit
+build
+.vercel
+.netlify
+.git
+.github
+.env
+.env.*
+!.env.example
+cli
+mockups
+docs
+coverage
+*.log
