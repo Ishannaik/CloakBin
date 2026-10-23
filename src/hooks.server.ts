@@ -124,8 +124,13 @@ function getClientIP(event: Parameters<Handle>[0]['event']): string {
 	const vercelIP = event.request.headers.get('x-real-ip');
 	if (vercelIP) return vercelIP;
 
-	// Fallback (won't work behind proxy but good for local dev)
-	return '127.0.0.1';
+	// Direct connection: the socket address. WHY not a constant: every client
+	// would then share one bucket, and ten bad sign-ins would lock everyone out.
+	try {
+		return event.getClientAddress();
+	} catch {
+		return '127.0.0.1';
+	}
 }
 
 export const handle: Handle = async ({ event, resolve }) => {

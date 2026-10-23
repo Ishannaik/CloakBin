@@ -94,6 +94,10 @@ export async function login(
 ): Promise<LoginResult> {
 	const username = normalizeUsername(rawUsername);
 	if (isLockedOut(username, now.getTime())) return { ok: false, reason: 'locked' };
+	// SECURITY: count the attempt before the first await. Parallel requests would
+	// otherwise all pass the lockout check before any failure is recorded.
+	// A successful sign-in clears it below.
+	recordFailure(username, now.getTime());
 
 	const found = await store.getUserByUsername(username);
 	if (!found.success) return { ok: false, reason: 'error' };
@@ -101,10 +105,7 @@ export async function login(
 
 	dummyHash ??= hashPassword(randomBytes(16).toString('hex'));
 	const valid = await verifyPassword(password, user ? user.passwordHash : await dummyHash);
-	if (!user || !valid) {
-		recordFailure(username, now.getTime());
-		return { ok: false, reason: 'invalid' };
-	}
+	if (!user || !valid) return { ok: false, reason: 'invalid' };
 
 	failures.delete(username);
 	const token = await startSession(store, user.id, now);

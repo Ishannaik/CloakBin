@@ -12,6 +12,13 @@ export const load: PageServerLoad = ({ locals, setHeaders }) => {
 		return { username: locals.user?.username ?? null };
 	}
 
+	// Signed-in members can exist with the flag off (invites still work), and they need a
+	// sign-out button. Their response is per-user, so keep it out of shared caches.
+	if (locals.user) {
+		setHeaders({ 'cache-control': 'private, no-store' });
+		return { username: locals.user.username };
+	}
+
 	// PERF: the home/create shell is identical for every visitor (auth + editor state are
 	// entirely client-side), so let the CDN cache the SSR HTML. Not prerendered — that would
 	// bypass the hooks and drop the CSP/HSTS security headers.

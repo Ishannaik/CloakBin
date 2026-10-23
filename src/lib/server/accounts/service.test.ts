@@ -104,6 +104,14 @@ describe('login and sessions', () => {
 		expect(await login(store, 'alice', PASSWORD)).toEqual({ ok: false, reason: 'locked' });
 	});
 
+	it('counts parallel attempts toward the lockout', async () => {
+		await memberWithSession(store);
+		// The 11th parallel attempt has the right password; it must still be refused.
+		const guesses = [...Array.from({ length: 10 }, (_, i) => 'wrong password ' + i), PASSWORD];
+		const results = await Promise.all(guesses.map((p) => login(store, 'alice', p)));
+		expect(results[10]).toEqual({ ok: false, reason: 'locked' });
+	});
+
 	it('ends the session on logout', async () => {
 		const joined = await memberWithSession(store);
 		await logout(store, joined.token);
