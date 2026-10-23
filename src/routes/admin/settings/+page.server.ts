@@ -1,6 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/db';
+import { createRequiresLogin } from '$lib/server/accounts/env';
+import { resolveMaxPasteBytes } from '$lib/server/maxPasteBytes';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.isAdmin) throw redirect(302, '/admin/login');
@@ -13,31 +16,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 		dbConnected = false;
 	}
 
-	// Settings are stored in environment variables for now
-	// In a full implementation, these would be stored in the database
+	// WHY read-only: every setting here comes from environment variables, which are
+	// the single source of truth. A form that saved to the database could disagree with them.
 	return {
 		settings: {
-			maxPasteSize: 500,
-			maxPastesPerHour: 10,
-			defaultExpiry: '24h',
-			allowAnonymous: true,
-			enableBurnAfterRead: true,
-			enablePasswordProtection: true,
-			inactiveDeleteDays: 90,
+			createRequiresLogin: createRequiresLogin(),
+			maxPasteBytes: resolveMaxPasteBytes(env.MAX_PASTE_BYTES)
 		},
 		dbConnected,
-		storageInfo: 'MongoDB'
+		storageInfo: env.DB_TYPE === 'mongodb' ? 'MongoDB' : 'Memory (data is lost on restart)'
 	};
 };
 
 export const actions: Actions = {
-	save: async ({ locals, request }) => {
-		if (!locals.isAdmin) throw redirect(302, '/admin/login');
-		// Settings would be saved to database in full implementation
-		// For now, just return success (settings are read-only placeholder)
-		return { success: true };
-	},
-
 	clearExpired: async ({ locals }) => {
 		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		try {

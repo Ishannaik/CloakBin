@@ -7,6 +7,12 @@ import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { verifyAdminSession } from '$lib/server/admin-auth';
 import { RATE_LIMITS, resolveRateLimitType } from '$lib/server/rateLimit';
+import { accounts } from '$lib/db/accounts';
+import { resolveSession, SESSION_COOKIE } from '$lib/server/accounts/service';
+import { createRequiresLogin } from '$lib/server/accounts/env';
+
+// Fail at startup, not on the first paste, when CREATE_REQUIRES_LOGIN has a typo.
+createRequiresLogin();
 
 // ============================================
 // RATE LIMITING (In-Memory)
@@ -118,14 +124,20 @@ function getClientIP(event: Parameters<Handle>[0]['event']): string {
 	const vercelIP = event.request.headers.get('x-real-ip');
 	if (vercelIP) return vercelIP;
 
-	// Fallback (won't work behind proxy but good for local dev)
-	return '127.0.0.1';
+	// Direct connection: the socket address. WHY not a constant: every client
+	// would then share one bucket, and ten bad sign-ins would lock everyone out.
+	try {
+		return event.getClientAddress();
+	} catch {
+		return '127.0.0.1';
+	}
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// ============================================
 	// ADMIN SESSION CHECK
 	// ============================================
+	event.locals.isAdmin = false;
 	const adminSession = event.cookies.get('admin_session');
 	if (adminSession && env.ADMIN_USER && env.ADMIN_PASS) {
 		if (verifyAdminSession(adminSession, env.ADMIN_USER, env.ADMIN_PASS)) {
@@ -237,6 +249,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// If neither Origin nor Referer present, allow the request
 			// This handles direct API calls, curl, etc.
 		}
+	}
+
+	// ============================================
+	// MEMBER SESSION
+	// ============================================
+	// Only requests that carry the cookie touch the database.
+	event.locals.user = null;
+	const sessionToken = event.cookies.get(SESSION_COOKIE);
+	if (sessionToken && !isHealthCheck) {
+		event.locals.user = await resolveSession(accounts, sessionToken);
 	}
 
 	// Run the actual route handler

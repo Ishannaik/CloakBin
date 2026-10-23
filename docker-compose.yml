@@ -21,6 +21,8 @@ services:
       ADMIN_USER: ${ADMIN_USER:?Set ADMIN_USER in .env}
       ADMIN_PASS: ${ADMIN_PASS:?Set ADMIN_PASS in .env}
       MAX_PASTE_BYTES: ${MAX_PASTE_BYTES:-10485760}
+      # true: only signed-in members (invited from /admin/users) can create pastes.
+      CREATE_REQUIRES_LOGIN: ${CREATE_REQUIRES_LOGIN:-false}
       # Largest request the server accepts. Keep it above MAX_PASTE_BYTES plus JSON overhead.
       BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-12M}
     depends_on:

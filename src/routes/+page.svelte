@@ -26,13 +26,15 @@
 		noctisLilac
 	} from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload, WifiOff, Settings, FileUp, Eye, EyeOff } from 'lucide-svelte';
+	import { Lock, Files, Upload, WifiOff, Settings, FileUp, Eye, EyeOff, LogOut } from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
 	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
 	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	// PERF: detectLanguage pulls highlight.js (~60-80KB) — dynamically imported at save time only (see below)
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
+
+	let { data } = $props();
 
 	// Dynamic language extension for CodeMirror (null = plaintext/no highlighting)
 	let languageExtension = $state<LanguageSupport | null>(null);
@@ -598,6 +600,19 @@
 			<span class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
 		</a>
 		<div class="flex items-center gap-2">
+			{#if data.username}
+				<form method="POST" action="/logout">
+					<button
+						type="submit"
+						title="Signed in as {data.username}"
+						aria-label="Sign out"
+						class="p-2 sm:p-2.5 flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-100 rounded transition-colors"
+					>
+						<LogOut size={16} />
+						<span class="hidden md:inline">Sign out</span>
+					</button>
+				</form>
+			{/if}
 			<!-- Primary: New -->
 			<button
 				onclick={handleNewClick}

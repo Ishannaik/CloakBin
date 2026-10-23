@@ -4,6 +4,22 @@ All notable changes to CloakBin are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `CREATE_REQUIRES_LOGIN=true` limits paste creation to signed-in members. Anonymous
+  `POST /api/paste` returns 401 and the home page sends visitors to `/login`. Reading a
+  paste by link stays open, and encryption is unchanged. Off by default.
+- Invite-only member accounts: the admin creates single-use invite links (7 days) in
+  Admin > Users. Passwords are hashed with scrypt; sessions are 30-day httpOnly cookies
+  stored as token hashes; sign-in is rate-limited per IP and locked per username after
+  10 failures.
+- Docker image, Compose file with MongoDB, and a GHCR publish workflow (#242).
+
+### Changed
+- Admin Settings is now read-only and shows the real values from the environment. The
+  old form saved nothing. The admin Users page shows real members instead of sample data.
+
 ## [1.1.0] - 2026-07-11
 
 ### Security

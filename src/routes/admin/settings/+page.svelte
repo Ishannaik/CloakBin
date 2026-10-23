@@ -1,133 +1,56 @@
 <script lang="ts">
-	import { Save, RefreshCw, AlertTriangle, Check, Database, Shield, Clock, HardDrive, Trash2 } from 'lucide-svelte';
+	import { RefreshCw, AlertTriangle, Database, Shield, Trash2 } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
-	import { untrack } from 'svelte';
 
 	let { data } = $props();
 
-	let settings = $state(untrack(() => ({
-		maxPasteSize: data.settings.maxPasteSize,
-		maxPastesPerHour: data.settings.maxPastesPerHour,
-		defaultExpiry: data.settings.defaultExpiry,
-		allowAnonymous: data.settings.allowAnonymous,
-		enableBurnAfterRead: data.settings.enableBurnAfterRead,
-		enablePasswordProtection: data.settings.enablePasswordProtection,
-		inactiveDeleteDays: data.settings.inactiveDeleteDays,
-	})));
-
-	let saving = $state(false);
-	let saved = $state(false);
 	let clearing = $state(false);
 	let clearResult = $state<{ success: boolean; deleted?: number; error?: string } | null>(null);
 
-	const expiryOptions = ['1h', '24h', '7d', '30d', '1y', 'never'];
+	function formatBytes(bytes: number): string {
+		if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1).replace(/\.0$/, '')} MiB`;
+		if (bytes >= 1024) return `${(bytes / 1024).toFixed(1).replace(/\.0$/, '')} KiB`;
+		return `${bytes} bytes`;
+	}
 </script>
 
 <svelte:head><title>Settings | CloakBin Admin</title></svelte:head>
 
 <div class="space-y-6">
-	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-		<div>
-			<h1 class="text-xl font-semibold text-zinc-100 sm:text-2xl">Settings</h1>
-			<p class="mt-1 text-sm text-zinc-400">Configure your CloakBin instance</p>
-		</div>
-		<form method="POST" action="?/save" use:enhance={() => {
-			saving = true;
-			return async ({ result }) => {
-				saving = false;
-				if (result.type === 'success') {
-					saved = true;
-					setTimeout(() => saved = false, 3000);
-				}
-			};
-		}}>
-			<input type="hidden" name="settings" value={JSON.stringify(settings)} />
-			<button type="submit" disabled={saving}
-				class="flex w-full items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500 disabled:opacity-50 sm:w-auto">
-				{#if saving}
-					<RefreshCw class="h-4 w-4 animate-spin" /> Saving...
-				{:else if saved}
-					<Check class="h-4 w-4" /> Saved!
-				{:else}
-					<Save class="h-4 w-4" /> Save Changes
-				{/if}
-			</button>
-		</form>
+	<div>
+		<h1 class="text-xl font-semibold text-zinc-100 sm:text-2xl">Settings</h1>
+		<p class="mt-1 text-sm text-zinc-400">
+			These come from environment variables. Change them in your <code class="rounded bg-zinc-800 px-1">.env</code>
+			or Compose file, then restart CloakBin.
+		</p>
 	</div>
 
-	<!-- Paste Limits -->
-	<div class="rounded-lg border border-zinc-800 bg-bg-secondary p-5">
-		<div class="mb-4 flex items-center gap-2">
-			<HardDrive class="h-5 w-5 text-teal-400" />
-			<h2 class="text-lg font-medium text-zinc-200">Paste Limits</h2>
-		</div>
-		<div class="grid gap-4 sm:grid-cols-3">
-			<label class="block">
-				<span class="mb-1.5 block text-sm text-zinc-400">Max Paste Size (KB)</span>
-				<input type="number" bind:value={settings.maxPasteSize}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-			</label>
-			<label class="block">
-				<span class="mb-1.5 block text-sm text-zinc-400">Rate Limit (pastes/hour)</span>
-				<input type="number" bind:value={settings.maxPastesPerHour}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-			</label>
-			<label class="block">
-				<span class="mb-1.5 block text-sm text-zinc-400">Inactive Delete (days)</span>
-				<input type="number" bind:value={settings.inactiveDeleteDays}
-					class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-			</label>
-		</div>
-	</div>
-
-	<!-- Expiry Settings -->
-	<div class="rounded-lg border border-zinc-800 bg-bg-secondary p-5">
-		<div class="mb-4 flex items-center gap-2">
-			<Clock class="h-5 w-5 text-teal-400" />
-			<h2 class="text-lg font-medium text-zinc-200">Expiry Settings</h2>
-		</div>
-		<label class="block">
-			<span class="mb-1.5 block text-sm text-zinc-400">Default Expiry</span>
-			<select bind:value={settings.defaultExpiry}
-				class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 focus:border-teal-500 focus:outline-none sm:w-48">
-				{#each expiryOptions as option}
-					<option value={option}>{option}</option>
-				{/each}
-			</select>
-		</label>
-	</div>
-
-	<!-- Feature Toggles -->
+	<!-- Instance settings (read-only) -->
 	<div class="rounded-lg border border-zinc-800 bg-bg-secondary p-5">
 		<div class="mb-4 flex items-center gap-2">
 			<Shield class="h-5 w-5 text-teal-400" />
-			<h2 class="text-lg font-medium text-zinc-200">Features</h2>
+			<h2 class="text-lg font-medium text-zinc-200">Instance</h2>
 		</div>
-		<div class="space-y-4">
-			<label class="flex cursor-pointer items-center justify-between rounded-lg bg-zinc-800/50 p-4">
+		<div class="space-y-3">
+			<div class="flex flex-col gap-1 rounded-lg bg-zinc-800/50 p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<p class="text-sm font-medium text-zinc-200">Allow Anonymous Pastes</p>
-					<p class="text-xs text-zinc-500">Users can create pastes without logging in</p>
+					<p class="text-sm font-medium text-zinc-200">Who can create pastes</p>
+					<p class="text-xs text-zinc-500">
+						<code>CREATE_REQUIRES_LOGIN</code>. Reading a paste by link is always open.
+						{#if data.settings.createRequiresLogin}Manage members on the <a href="/admin/users" class="text-teal-400 hover:text-teal-300">Users</a> page.{/if}
+					</p>
 				</div>
-				<input type="checkbox" bind:checked={settings.allowAnonymous}
-					class="h-5 w-5 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-teal-500 checked:border-teal-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-xs checked:after:text-zinc-900 checked:after:font-bold" />
-			</label>
-			<label class="flex cursor-pointer items-center justify-between rounded-lg bg-zinc-800/50 p-4">
+				<p class="text-sm font-medium {data.settings.createRequiresLogin ? 'text-teal-400' : 'text-zinc-300'}">
+					{data.settings.createRequiresLogin ? 'Signed-in members only' : 'Anyone'}
+				</p>
+			</div>
+			<div class="flex flex-col gap-1 rounded-lg bg-zinc-800/50 p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<p class="text-sm font-medium text-zinc-200">Enable Burn After Read</p>
-					<p class="text-xs text-zinc-500">Allow pastes to be deleted after first view</p>
+					<p class="text-sm font-medium text-zinc-200">Max paste size</p>
+					<p class="text-xs text-zinc-500"><code>MAX_PASTE_BYTES</code>, measured on the encrypted text</p>
 				</div>
-				<input type="checkbox" bind:checked={settings.enableBurnAfterRead}
-					class="h-5 w-5 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-teal-500 checked:border-teal-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-xs checked:after:text-zinc-900 checked:after:font-bold" />
-			</label>
-			<label class="flex cursor-pointer items-center justify-between rounded-lg bg-zinc-800/50 p-4">
-				<div>
-					<p class="text-sm font-medium text-zinc-200">Enable Password Protection</p>
-					<p class="text-xs text-zinc-500">Allow users to password protect pastes</p>
-				</div>
-				<input type="checkbox" bind:checked={settings.enablePasswordProtection}
-					class="h-5 w-5 cursor-pointer appearance-none rounded border border-zinc-600 bg-zinc-800 checked:bg-teal-500 checked:border-teal-500 relative checked:after:content-['✓'] checked:after:absolute checked:after:inset-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:text-xs checked:after:text-zinc-900 checked:after:font-bold" />
-			</label>
+				<p class="text-sm font-medium text-zinc-300">{formatBytes(data.settings.maxPasteBytes)}</p>
+			</div>
 		</div>
 	</div>
 
