@@ -208,6 +208,7 @@ docker run -p 127.0.0.1:3000:3000 \
 | `ADMIN_USER`, `ADMIN_PASS` | yes | Admin panel login at `/admin` |
 | `ORIGIN` | yes | Public URL, e.g. `https://paste.example.com`. Admin login is rejected if it does not match the browser's address. |
 | `MAX_PASTE_BYTES` | no | Default 10 MiB |
+| `CREATE_REQUIRES_LOGIN` | no | `true` lets only signed-in members create pastes. Default `false`. See [Members-only paste creation](#members-only-paste-creation). |
 | `PORT` | no | Host port for Compose, default `3000` |
 | `BIND_ADDRESS` | no | Host interface for Compose, default `127.0.0.1`. Set `0.0.0.0` only if nothing else should sit in front. |
 | `BODY_SIZE_LIMIT` | no | Largest request accepted, default `12M`. Raise it if you raise `MAX_PASTE_BYTES`. |
@@ -215,6 +216,23 @@ docker run -p 127.0.0.1:3000:3000 \
 Compose publishes CloakBin on `127.0.0.1` only, so put a reverse proxy with HTTPS (Caddy, Nginx, Traefik) in front of it to make it public. The decryption key lives in the URL fragment, which browsers never send to the server, so HTTPS protects the ciphertext and the admin login.
 
 To upgrade: `docker compose pull && docker compose up -d` (or `docker compose up -d --build` from a newer checkout).
+
+### Members-only paste creation
+
+By default anyone who can reach your instance can create pastes. To stop strangers and spammers from using it, set:
+
+```bash
+CREATE_REQUIRES_LOGIN=true
+```
+
+and restart. Then:
+
+- Creating a paste needs a member account (or the admin login). Visitors who are not signed in see the sign-in page, and `POST /api/paste` returns `401`.
+- Reading a paste by its link still works for anyone. Encryption does not change: the key stays in the URL fragment and the server only stores ciphertext.
+- There is no public sign-up. In **Admin > Users**, select **Create invite link** and send the link to one person. A link works once and expires after 7 days. The person picks a username and password, and is signed in.
+- Deleting a member in **Admin > Users** signs them out at once. Their pastes stay until they expire.
+
+Members sign in at `/login`. Passwords are hashed with scrypt, sessions last 30 days, and sign-in is rate-limited per IP and per username. The command-line uploader does not support member sign-in yet, so it cannot create pastes on a members-only instance.
 
 ### Health Check
 

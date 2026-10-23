@@ -66,7 +66,7 @@ function getModel(): Model<PasteDocument> {
 // In-flight connection promise guards against concurrent connect() calls on cold starts
 let connectionPromise: Promise<void> | null = null;
 
-async function connectDB(): Promise<void> {
+export async function connectDB(): Promise<void> {
 	if (mongoose.connection.readyState === 1) return;
 	if (connectionPromise) return connectionPromise;
 

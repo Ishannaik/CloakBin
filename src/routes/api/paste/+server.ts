@@ -12,6 +12,8 @@
  * Response:
  * Success: { id: string }
  * Error: { error: string }
+ *
+ * With CREATE_REQUIRES_LOGIN=true, callers without a member or admin session get 401.
  */
 
 import { json } from '@sveltejs/kit';
@@ -21,6 +23,8 @@ import { db } from '$lib/db';
 import { normalizePasteLanguage } from '$lib/languages';
 import { resolveMaxPasteBytes, utf8ByteLength } from '$lib/server/maxPasteBytes';
 import { validateBurnAfterRead } from '$lib/server/burnAfterRead';
+import { canCreatePaste } from '$lib/server/accounts/config';
+import { createRequiresLogin } from '$lib/server/accounts/env';
 
 /** Max UTF-8 bytes for paste content; override with MAX_PASTE_BYTES (default 10 MiB). */
 const MAX_PASTE_BYTES = resolveMaxPasteBytes(env.MAX_PASTE_BYTES);
@@ -41,8 +45,16 @@ interface CreatePasteRequest {
 	language?: string;
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
+		// Checked before the body is read, so anonymous callers cannot make the server parse uploads.
+		if (!canCreatePaste(createRequiresLogin(), locals)) {
+			return json(
+				{ error: 'Sign in to create pastes on this instance' },
+				{ status: 401 }
+			);
+		}
+
 		// Parse request body
 		let body: CreatePasteRequest;
 		try {
