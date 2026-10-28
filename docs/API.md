@@ -173,3 +173,41 @@ Errors are returned as JSON objects with an `error` field:
 ```bash
 curl -X POST https://oss.cloakbin.com/api/paste/<id>/burn
 ```
+
+## GET `/api/health`
+
+Health check for load balancers and container orchestrators. Verifies that the
+configured database is reachable.
+
+### Request body
+
+There is no request body.
+
+### Response body
+
+**200 OK**
+
+```json
+{
+  "ok": true,
+  "db": "memory | mongodb"
+}
+```
+
+`db` is the value of the `DB_TYPE` environment variable.
+
+### Error codes
+
+| Code | Error body |
+| ---- | ---------------------------------------------------------- |
+| 503  | `{"ok": false, "error": "database unavailable"}` |
+
+### Rate limits
+
+- Not rate-limited.
+
+### curl example
+
+```bash
+curl https://oss.cloakbin.com/api/health
+```
