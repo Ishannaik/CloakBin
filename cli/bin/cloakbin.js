@@ -21,7 +21,8 @@ Usage:
 
 Flags:
   -e, --expiry <bucket|duration>   Expiry: 1h|24h|7d|30d|1y or e.g. 2h30m, 3d (default: 7d)
-      --burn                       Burn after first browser read
+      --burn                       Create: burn after the first read. Get: confirm reading
+                                   a burn-after-read paste, which deletes it
   -p, --password <pw>              Password-protect (no key in URL)
       --lang <language>            Syntax language hint (auto-detected from file ext)
       --host <url>                 API host (default: https://cloakbin.com)
@@ -310,6 +311,27 @@ function parsePasteRef(ref, defaultHost) {
   return { id, keyBase64url, host };
 }
 
+async function burnPaste(host, id) {
+  let res;
+  try {
+    res = await fetch(`${host}/api/paste/${encodeURIComponent(id)}/burn`, {
+      method: 'POST',
+      headers: { 'User-Agent': UA },
+    });
+  } catch (err) {
+    fail(`network error: ${err.message}`);
+  }
+  if (res.status === 404 || res.status === 410) {
+    fail('paste was already read and deleted');
+  }
+  if (res.status !== 200) fail(`HTTP ${res.status}`);
+  try {
+    return await res.json();
+  } catch {
+    fail('invalid JSON in burn response');
+  }
+}
+
 async function getPaste(ref, flags) {
   const { id, keyBase64url, host } = parsePasteRef(ref, flags.host);
 
@@ -344,10 +366,13 @@ async function getPaste(ref, flags) {
     fail('invalid JSON in get response');
   }
 
+  // A burn-after-read paste can be read once. Its content comes only from the burn
+  // endpoint, which deletes the paste in the same step, so ask for explicit consent.
   if (data.burnAfterRead) {
-    process.stderr.write(
-      'Warning: this paste is burn-after-read; viewing it in a browser would destroy it. API GET does not auto-burn.\n'
-    );
+    if (!flags.burn) {
+      fail('this paste is burn-after-read; reading it deletes it. Re-run with --burn to read it.');
+    }
+    data = await burnPaste(host, id);
   }
 
   const hasPassword = !!data.hasPassword;
