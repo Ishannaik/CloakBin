@@ -12,6 +12,7 @@ export default defineConfig({
 		}
 	},
 	test: {
+		env: { DB_TYPE: 'memory' },
 		environment: 'node',
 		include: ['src/**/*.{test,spec}.ts']
 	}
