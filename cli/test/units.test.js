@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { detectLanguage, LANGUAGE_MAP } from '../src/lang-detect.js';
 import { parseDuration, resolveExpiry } from '../src/duration.js';
 import { validateHost } from '../src/host.js';
+import { parsePasteRef } from '../src/paste-ref.js';
 
 const cliPath = fileURLToPath(new URL('../bin/cloakbin.js', import.meta.url));
 let passed = 0;
@@ -314,6 +315,52 @@ async function run() {
     assert.match(out, /Usage:/);
     assert.equal(readdirSync(dir).length, 0, 'no temp file should be left for a failed save');
     rmSync(dir, { recursive: true, force: true });
+  });
+
+  // --- parsePasteRef ---
+  const KEY = 'AAECAwQFBgcICQoLDA0ODw';
+  const base = 'https://paste.example';
+
+  await test('parsePasteRef bare id', () => {
+    assert.deepEqual(parsePasteRef('abc123', base), {
+      id: 'abc123',
+      keyBase64url: null,
+      host: base,
+    });
+  });
+
+  await test('parsePasteRef /<id>#key', () => {
+    assert.deepEqual(parsePasteRef(`${base}/abc123#${KEY}`, base), {
+      id: 'abc123',
+      keyBase64url: KEY,
+      host: base,
+    });
+  });
+
+  await test('parsePasteRef /p/<id>#key skips the web route prefix', () => {
+    assert.deepEqual(parsePasteRef(`${base}/p/abc123#${KEY}`, base), {
+      id: 'abc123',
+      keyBase64url: KEY,
+      host: base,
+    });
+  });
+
+  await test('parsePasteRef /r/<id>#key skips the read-only route prefix', () => {
+    assert.deepEqual(parsePasteRef(`${base}/r/abc123#${KEY}`, base), {
+      id: 'abc123',
+      keyBase64url: KEY,
+      host: base,
+    });
+  });
+
+  await test('parsePasteRef trailing slash forms', () => {
+    assert.equal(parsePasteRef(`${base}/abc123/`, base).id, 'abc123');
+    assert.equal(parsePasteRef(`${base}/p/abc123/`, base).id, 'abc123');
+    assert.equal(parsePasteRef(`${base}/r/abc123/`, base).id, 'abc123');
+  });
+
+  await test('parsePasteRef rejects an empty id', () => {
+    assert.throws(() => parsePasteRef(`${base}/`, base), /missing paste id/);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);
