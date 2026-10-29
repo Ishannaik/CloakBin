@@ -24,11 +24,11 @@ Creates a new encrypted paste.
 
 ```json
 {
-  "content": "string",
-  "expiry": "1h | 24h | 7d",
-  "salt": "string (optional)",
-  "burnAfterRead": "boolean (optional)",
-  "language": "string (optional)"
+	"content": "string",
+	"expiry": "1h | 24h | 7d",
+	"salt": "string (optional)",
+	"burnAfterRead": "boolean (optional)",
+	"language": "string (optional)"
 }
 ```
 
@@ -38,7 +38,7 @@ Creates a new encrypted paste.
 
 ```json
 {
-  "id": "string"
+	"id": "string"
 }
 ```
 
@@ -46,17 +46,17 @@ Creates a new encrypted paste.
 
 Errors are returned as JSON objects with an `error` field:
 
-| Code | Error body |
-| ---- | ---------------------------------------------------------- |
-| 400  | `{"error": "Invalid JSON in request body"}` |
-| 400  | `{"error": "Content must be a string"}` |
-| 400  | `{"error": "Content cannot be empty"}` |
-| 400  | `{"error": "Expiry must be one of: \"1h\", \"24h\", \"7d\""}` |
-| 400  | `{"error": "burnAfterRead must be a boolean"}` |
+| Code | Error body                                                       |
+| ---- | ---------------------------------------------------------------- |
+| 400  | `{"error": "Invalid JSON in request body"}`                      |
+| 400  | `{"error": "Content must be a string"}`                          |
+| 400  | `{"error": "Content cannot be empty"}`                           |
+| 400  | `{"error": "Expiry must be one of: \"1h\", \"24h\", \"7d\""}`    |
+| 400  | `{"error": "burnAfterRead must be a boolean"}`                   |
 | 413  | `{"error": "Content exceeds maximum size of <max bytes> bytes"}` |
-| 429  | `{"error": "Too many requests", "retryAfter": <seconds>}` |
-| 500  | `{"error": "<error message from result.error>"}` |
-| 500  | `{"error": "Internal server error"}` |
+| 429  | `{"error": "Too many requests", "retryAfter": <seconds>}`        |
+| 500  | `{"error": "<error message from result.error>"}`                 |
+| 500  | `{"error": "Internal server error"}`                             |
 
 ### Rate limits
 
@@ -93,13 +93,13 @@ There is no request body.
 
 ```json
 {
-  "content": "string",
-  "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "hasPassword": "boolean",
-  "salt": "string (omitted for passwordless pastes)",
-  "burnAfterRead": "boolean",
-  "language": "string"
+	"content": "string",
+	"createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+	"expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+	"hasPassword": "boolean",
+	"salt": "string (omitted for passwordless pastes)",
+	"burnAfterRead": "boolean",
+	"language": "string"
 }
 ```
 
@@ -107,14 +107,14 @@ There is no request body.
 
 Errors are returned as JSON objects with an `error` field:
 
-| Code | Error body |
-| ---- | ---------------------------------------------------------- |
-| 400  | `{"error": "Invalid paste ID"}` |
-| 404  | `{"error": "Paste not found"}` |
-| 404  | `{"error": "Paste has expired"}` |
+| Code | Error body                                                |
+| ---- | --------------------------------------------------------- |
+| 400  | `{"error": "Invalid paste ID"}`                           |
+| 404  | `{"error": "Paste not found"}`                            |
+| 404  | `{"error": "Paste has expired"}`                          |
 | 429  | `{"error": "Too many requests", "retryAfter": <seconds>}` |
-| 500  | `{"error": "<error message from result.error>"}` |
-| 500  | `{"error": "Internal server error"}` |
+| 500  | `{"error": "<error message from result.error>"}`          |
+| 500  | `{"error": "Internal server error"}`                      |
 
 ### Rate limits
 
@@ -142,13 +142,13 @@ There is no request body.
 
 ```json
 {
-  "content": "string",
-  "createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "hasPassword": "boolean",
-  "salt": "string (omitted for passwordless pastes)",
-  "burnAfterRead": "boolean",
-  "language": "string"
+	"content": "string",
+	"createdAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+	"expiresAt": "YYYY-MM-DDTHH:mm:ss.sssZ",
+	"hasPassword": "boolean",
+	"salt": "string (omitted for passwordless pastes)",
+	"burnAfterRead": "boolean",
+	"language": "string"
 }
 ```
 
@@ -156,13 +156,13 @@ There is no request body.
 
 Errors are returned as JSON objects with an `error` field:
 
-| Code | Error body |
-| ---- | ---------------------------------------------------------- |
-| 400  | `{"error": "Invalid paste ID"}` |
-| 404  | `{"error": "Paste not found"}` |
+| Code | Error body                                                |
+| ---- | --------------------------------------------------------- |
+| 400  | `{"error": "Invalid paste ID"}`                           |
+| 404  | `{"error": "Paste not found"}`                            |
 | 429  | `{"error": "Too many requests", "retryAfter": <seconds>}` |
-| 500  | `{"error": "<error message from result.error>"}` |
-| 500  | `{"error": "Internal server error"}` |
+| 500  | `{"error": "<error message from result.error>"}`          |
+| 500  | `{"error": "Internal server error"}`                      |
 
 ### Rate limits
 

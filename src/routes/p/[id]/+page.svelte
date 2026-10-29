@@ -10,18 +10,21 @@
 	import type { Extension } from '@codemirror/state';
 	import type { LanguageSupport } from '@codemirror/language';
 	import { isAllowedPasteLanguage } from '$lib/languages';
-	import {
-		dracula,
-		cobalt,
-		coolGlow,
-		amy,
-		bespin,
-		espresso,
-		noctisLilac
-	} from 'thememirror';
+	import { dracula, cobalt, coolGlow, amy, bespin, espresso, noctisLilac } from 'thememirror';
 	import { EditorView, lineNumbers } from '@codemirror/view';
 	import logo from '$lib/assets/logo.svg';
-	import { Lock, Copy, Plus, Check, Files, Share2, Key, Flame, Settings, TextSelect } from 'lucide-svelte';
+	import {
+		Lock,
+		Copy,
+		Plus,
+		Check,
+		Files,
+		Share2,
+		Key,
+		Flame,
+		Settings,
+		TextSelect
+	} from 'lucide-svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 
 	// OS detection for keyboard shortcut display
@@ -32,7 +35,9 @@
 	let content = $state('');
 	let fontSize = $state(loadFontSize());
 	let showShortcuts = $state(false);
-	let viewState = $state<'loading' | 'error' | 'success' | 'needKey' | 'needPassword' | 'burnWarning'>('loading');
+	let viewState = $state<
+		'loading' | 'error' | 'success' | 'needKey' | 'needPassword' | 'burnWarning'
+	>('loading');
 	let errorMessage = $state('');
 	let createdAt = $state<Date | null>(null);
 	let expiresAt = $state<Date | null>(null);
@@ -44,10 +49,20 @@
 	let passwordInput = $state('');
 	let selectAllAnnouncement = $state('');
 	let showBurnWarning = $state(false);
-	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
+	let pasteData = $state<{
+		content: string;
+		hasPassword: boolean;
+		salt?: string;
+		burnAfterRead: boolean;
+		createdAt: string;
+		expiresAt: string;
+		language?: string;
+	} | null>(null);
 	let detectedLanguage = $state('javascript');
 	let languageExtension = $state<LanguageSupport>(javascript());
-	let wrapLines = $state(typeof localStorage !== 'undefined' ? localStorage.getItem('cloakbin_wrap') !== '0' : true);
+	let wrapLines = $state(
+		typeof localStorage !== 'undefined' ? localStorage.getItem('cloakbin_wrap') !== '0' : true
+	);
 
 	function toggleWrap() {
 		wrapLines = !wrapLines;
@@ -265,9 +280,10 @@
 
 			if (!burnResponse.ok) {
 				viewState = 'error';
-				errorMessage = burnResponse.status === 404
-					? 'Paste not found or already burned'
-					: 'Failed to retrieve paste';
+				errorMessage =
+					burnResponse.status === 404
+						? 'Paste not found or already burned'
+						: 'Failed to retrieve paste';
 				return;
 			}
 
@@ -522,19 +538,28 @@
 
 <svelte:head>
 	<title>Encrypted Paste | CloakBin</title>
-	<meta name="description" content="View this encrypted paste on CloakBin. End-to-end encrypted, zero-knowledge pastebin." />
+	<meta
+		name="description"
+		content="View this encrypted paste on CloakBin. End-to-end encrypted, zero-knowledge pastebin."
+	/>
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Encrypted Paste | CloakBin" />
-	<meta property="og:description" content="View this encrypted paste on CloakBin. Your content is secure with end-to-end encryption." />
+	<meta
+		property="og:description"
+		content="View this encrypted paste on CloakBin. Your content is secure with end-to-end encryption."
+	/>
 	<meta property="og:image" content="/og-image-logo.png" />
 	<meta property="og:site_name" content="CloakBin" />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Encrypted Paste | CloakBin" />
-	<meta name="twitter:description" content="View this encrypted paste on CloakBin. Your content is secure with end-to-end encryption." />
+	<meta
+		name="twitter:description"
+		content="View this encrypted paste on CloakBin. Your content is secure with end-to-end encryption."
+	/>
 	<meta name="twitter:image" content="/og-image-logo.png" />
 
 	<!-- Security: prevent robots from indexing paste pages -->
@@ -545,14 +570,19 @@
 
 <div class="h-screen flex flex-col relative overflow-hidden">
 	<!-- Header -->
-	<header class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800">
+	<header
+		class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800"
+	>
 		<a href="/" class="flex items-center gap-3 group cursor-pointer">
 			<img
 				src={logo}
 				alt="CloakBin"
 				class="w-12 h-12 sm:w-11 sm:h-11 md:w-12 md:h-12 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3"
 			/>
-			<span class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
+			<span
+				class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300"
+				>CloakBin</span
+			>
 		</a>
 
 		{#if viewState === 'success'}
@@ -560,7 +590,9 @@
 			<div class="flex items-center gap-1 sm:gap-2">
 				<button
 					onclick={copyToClipboard}
-					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {copied
+						? 'bg-green-500 hover:bg-green-400'
+						: 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if copied}
 						<Check size={16} />
@@ -615,7 +647,9 @@
 				<button
 					onclick={copyShareUrl}
 					title="{mod}+S"
-					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied ? 'bg-green-500 hover:bg-green-400' : 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
+					class="h-9 sm:h-10 p-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center gap-2 {shareCopied
+						? 'bg-green-500 hover:bg-green-400'
+						: 'bg-zinc-700 hover:bg-zinc-600'} text-zinc-100 active:scale-95"
 				>
 					{#if shareCopied}
 						<Check size={16} />
@@ -635,22 +669,30 @@
 				<!-- Settings dropdown -->
 				<div class="relative settings-dropdown">
 					<button
-						onclick={() => showSettings = !showSettings}
+						onclick={() => (showSettings = !showSettings)}
 						class="p-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
 						title="Settings"
 					>
 						<Settings size={16} />
 					</button>
 					{#if showSettings}
-						<div class="absolute right-0 top-full mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in">
+						<div
+							class="absolute right-0 top-full mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in"
+						>
 							<div class="p-3 border-b border-zinc-700">
 								<span class="text-xs text-zinc-500 uppercase tracking-wide">Theme</span>
 							</div>
 							<div class="p-2 max-h-64 overflow-y-auto">
 								{#each Object.entries(themes) as [key, { name }]}
 									<button
-										onclick={() => { selectedTheme = key; showSettings = false; }}
-										class="w-full text-left px-3 py-2 rounded text-sm transition-colors duration-150 {selectedTheme === key ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+										onclick={() => {
+											selectedTheme = key;
+											showSettings = false;
+										}}
+										class="w-full text-left px-3 py-2 rounded text-sm transition-colors duration-150 {selectedTheme ===
+										key
+											? 'bg-teal-500/20 text-teal-400'
+											: 'hover:bg-zinc-700 text-zinc-300'}"
 									>
 										{name}
 									</button>
@@ -667,7 +709,9 @@
 	{#if viewState === 'loading'}
 		<div class="flex-1 flex items-center justify-center">
 			<div class="flex flex-col items-center gap-4 animate-fade-in">
-				<div class="w-12 h-12 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
+				<div
+					class="w-12 h-12 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"
+				></div>
 				<p class="text-zinc-400 text-sm">Loading paste...</p>
 			</div>
 		</div>
@@ -757,10 +801,17 @@
 			<div class="bg-zinc-800 rounded-lg p-8 max-w-md text-center">
 				<Flame size={48} class="mx-auto mb-4 text-orange-500" />
 				<h2 class="text-xl font-semibold mb-2">Burn After Read</h2>
-				<p class="text-zinc-400 mb-4">This paste will be <strong>permanently deleted</strong> after you view it.</p>
-				<p class="text-zinc-500 text-sm mb-6">You cannot view it again. Make sure to copy the content if needed.</p>
+				<p class="text-zinc-400 mb-4">
+					This paste will be <strong>permanently deleted</strong> after you view it.
+				</p>
+				<p class="text-zinc-500 text-sm mb-6">
+					You cannot view it again. Make sure to copy the content if needed.
+				</p>
 				<div class="flex gap-3">
-					<a href="/" class="flex-1 px-4 py-2 bg-zinc-700 text-zinc-100 rounded font-medium hover:bg-zinc-600">
+					<a
+						href="/"
+						class="flex-1 px-4 py-2 bg-zinc-700 text-zinc-100 rounded font-medium hover:bg-zinc-600"
+					>
 						Cancel
 					</a>
 					<button
@@ -782,7 +833,11 @@
 				value={content}
 				lang={languageExtension}
 				theme={currentTheme}
-				extensions={[EditorView.editable.of(false), lineNumbers(), ...(wrapLines ? [EditorView.lineWrapping] : [])]}
+				extensions={[
+					EditorView.editable.of(false),
+					lineNumbers(),
+					...(wrapLines ? [EditorView.lineWrapping] : [])
+				]}
 				styles={{
 					'&': {
 						height: '100%',
@@ -796,8 +851,12 @@
 		</div>
 
 		<!-- Info Bar -->
-		<div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-4 border-t border-zinc-800 text-sm text-zinc-500">
-			<span class="px-2 py-0.5 bg-zinc-700 text-zinc-300 rounded text-xs font-mono">{detectedLanguage}</span>
+		<div
+			class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-4 border-t border-zinc-800 text-sm text-zinc-500"
+		>
+			<span class="px-2 py-0.5 bg-zinc-700 text-zinc-300 rounded text-xs font-mono"
+				>{detectedLanguage}</span
+			>
 			<span>·</span>
 			<span>Created {createdTimeAgo}</span>
 			<span>·</span>
@@ -808,7 +867,9 @@
 	{/if}
 
 	<!-- Footer badge - hidden on mobile -->
-	<div class="hidden sm:flex absolute bottom-4 right-4 items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
+	<div
+		class="hidden sm:flex absolute bottom-4 right-4 items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400"
+	>
 		<Lock size={14} class="text-teal-500" />
 		<span>End-to-end encrypted</span>
 	</div>

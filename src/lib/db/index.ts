@@ -18,9 +18,9 @@ function getAdapter(): DatabaseAdapter {
 	if (!dbType) {
 		throw new Error(
 			'DB_TYPE environment variable is required.\n' +
-			'Options:\n' +
-			'  DB_TYPE=memory    - In-memory (dev only, data lost on restart)\n' +
-			'  DB_TYPE=mongodb   - MongoDB (requires MONGODB_URI)\n'
+				'Options:\n' +
+				'  DB_TYPE=memory    - In-memory (dev only, data lost on restart)\n' +
+				'  DB_TYPE=mongodb   - MongoDB (requires MONGODB_URI)\n'
 		);
 	}
 

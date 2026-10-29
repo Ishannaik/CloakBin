@@ -16,20 +16,28 @@
 		isAllowedPasteLanguage,
 		isPickerLanguage
 	} from '$lib/languages';
-	import {
-		dracula,
-		cobalt,
-		coolGlow,
-		amy,
-		bespin,
-		espresso,
-		noctisLilac
-	} from 'thememirror';
+	import { dracula, cobalt, coolGlow, amy, bespin, espresso, noctisLilac } from 'thememirror';
 	import { spring } from 'svelte/motion';
-	import { Lock, Files, Upload, WifiOff, Settings, FileUp, Eye, EyeOff, LogOut } from 'lucide-svelte';
+	import {
+		Lock,
+		Files,
+		Upload,
+		WifiOff,
+		Settings,
+		FileUp,
+		Eye,
+		EyeOff,
+		LogOut
+	} from 'lucide-svelte';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { onMount, onDestroy, tick } from 'svelte';
-	import { generateKey, encrypt, keyToBase64, generateSalt, deriveKeyFromPassword } from '$lib/crypto';
+	import {
+		generateKey,
+		encrypt,
+		keyToBase64,
+		generateSalt,
+		deriveKeyFromPassword
+	} from '$lib/crypto';
 	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	// PERF: detectLanguage pulls highlight.js (~60-80KB) — dynamically imported at save time only (see below)
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
@@ -96,7 +104,7 @@
 	// Update language extension when selectedLanguage changes
 	$effect(() => {
 		if (selectedLanguage && selectedLanguage !== 'auto' && selectedLanguage !== 'plaintext') {
-			loadLanguageExtension(selectedLanguage).then(ext => {
+			loadLanguageExtension(selectedLanguage).then((ext) => {
 				languageExtension = ext;
 			});
 		} else {
@@ -205,7 +213,10 @@
 		// Safe deep-link prefill; invalid or unknown params are ignored.
 		const params = new URLSearchParams(window.location.search);
 		const lang = params.get('lang');
-		if (lang && (languages.some((option) => option.value === lang) || lang === 'auto' || lang === 'plaintext')) {
+		if (
+			lang &&
+			(languages.some((option) => option.value === lang) || lang === 'auto' || lang === 'plaintext')
+		) {
 			selectedLanguage = lang;
 		}
 		if (params.get('burn') === '1') {
@@ -316,7 +327,12 @@
 		if (!file) return;
 
 		// Check if it's a text file
-		if (!file.type.startsWith('text/') && !file.name.match(/\.(txt|js|ts|json|md|css|html|xml|yaml|yml|py|rb|go|rs|java|c|cpp|h|sh|bash|sql|env|conf|cfg|ini|log|csv)$/i)) {
+		if (
+			!file.type.startsWith('text/') &&
+			!file.name.match(
+				/\.(txt|js|ts|json|md|css|html|xml|yaml|yml|py|rb|go|rs|java|c|cpp|h|sh|bash|sql|env|conf|cfg|ini|log|csv)$/i
+			)
+		) {
 			alert('Please drop a text file');
 			return;
 		}
@@ -340,7 +356,6 @@
 		fontSize = clampFontSize(fontSize + delta);
 		saveFontSize(fontSize);
 	}
-
 
 	function handleNewClick() {
 		// Spring bounce effect
@@ -369,7 +384,6 @@
 		while (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
 		content = lines.join(hasCrlf ? '\r\n' : '\n');
 	}
-
 
 	const themes = {
 		oneDark: { name: 'One Dark', theme: oneDark },
@@ -556,20 +570,35 @@
 
 <svelte:head>
 	<title>CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption</title>
-	<meta name="description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser - we can never see it." />
+	<meta
+		name="description"
+		content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser - we can never see it."
+	/>
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption" />
-	<meta property="og:description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser." />
+	<meta
+		property="og:title"
+		content="CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption"
+	/>
+	<meta
+		property="og:description"
+		content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser."
+	/>
 	<meta property="og:image" content="/og-image-logo.png" />
 	<meta property="og:url" content="https://cloakbin.com" />
 	<meta property="og:site_name" content="CloakBin" />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption" />
-	<meta name="twitter:description" content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser." />
+	<meta
+		name="twitter:title"
+		content="CloakBin - Free Encrypted Pastebin with Zero-Knowledge Encryption"
+	/>
+	<meta
+		name="twitter:description"
+		content="Share code and text securely with end-to-end encryption. Your content is encrypted before it leaves your browser."
+	/>
 	<meta name="twitter:image" content="/og-image-logo.png" />
 </svelte:head>
 
@@ -585,19 +614,33 @@
 	ondragover={handleDragOver}
 	ondrop={handleDrop}
 >
-	<h1 class="sr-only">CloakBin — Free Encrypted Pastebin with Zero-Knowledge Client-Side Encryption</h1>
+	<h1 class="sr-only">
+		CloakBin — Free Encrypted Pastebin with Zero-Knowledge Client-Side Encryption
+	</h1>
 	<!-- Header -->
-	<header class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800">
+	<header
+		class="flex items-center justify-between px-3 sm:px-4 py-0 sm:py-1 border-b border-zinc-800"
+	>
 		<a href="/" class="flex items-center gap-2.5 group cursor-pointer">
 			<img
 				src={logo}
 				alt="CloakBin"
 				class="w-12 h-12 sm:w-11 sm:h-11 md:w-12 md:h-12 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3 cursor-pointer"
-				onclick={() => { logoClicks++; if (logoClicks >= 3) { console.log('%c🔒 CloakBin', 'font-size:24px;color:#14b8a6;font-weight:bold;'); console.log('Zero-knowledge encryption. The server never sees your data.'); logoClicks = 0; } }}
+				onclick={() => {
+					logoClicks++;
+					if (logoClicks >= 3) {
+						console.log('%c🔒 CloakBin', 'font-size:24px;color:#14b8a6;font-weight:bold;');
+						console.log('Zero-knowledge encryption. The server never sees your data.');
+						logoClicks = 0;
+					}
+				}}
 				role="button"
 				tabindex="0"
 			/>
-			<span class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300">CloakBin</span>
+			<span
+				class="hidden sm:inline text-lg sm:text-xl md:text-2xl font-semibold text-teal-400 transition-colors duration-200 group-hover:text-teal-300"
+				>CloakBin</span
+			>
 		</a>
 		<div class="flex items-center gap-2">
 			{#if data.username}
@@ -617,13 +660,12 @@
 			<button
 				onclick={handleNewClick}
 				title="{mod}+Shift+N"
-				class="h-9 sm:h-10 min-w-9 sm:min-w-0 px-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 {newButtonSuccess ? 'bg-green-500 hover:bg-green-400' : 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
+				class="h-9 sm:h-10 min-w-9 sm:min-w-0 px-2 sm:px-3 rounded font-medium transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 {newButtonSuccess
+					? 'bg-green-500 hover:bg-green-400'
+					: 'bg-teal-500 hover:bg-teal-400'} text-zinc-900 active:scale-95"
 				style="transform: scale({$newButtonScale})"
 			>
-				<span
-					class="inline-block"
-					style="transform: rotate({$newButtonRotation}deg)"
-				>+</span>
+				<span class="inline-block" style="transform: rotate({$newButtonRotation}deg)">+</span>
 				<span class="hidden sm:inline">{newButtonSuccess ? 'Cleared!' : 'New'}</span>
 			</button>
 			<button
@@ -663,33 +705,49 @@
 			<div class="relative settings-dropdown">
 				<button
 					id="settings-button"
-					onclick={() => showSettings = !showSettings}
+					onclick={() => (showSettings = !showSettings)}
 					class="p-2 sm:p-2.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded font-medium transition-all duration-150 active:scale-95"
 					title="Settings"
 				>
 					<Settings size={16} class="sm:hidden" /><Settings size={18} class="hidden sm:block" />
 				</button>
 				{#if showSettings}
-					{@const filteredLanguages = languages.filter(l =>
-						l.label.toLowerCase().includes(settingsSearch.toLowerCase()) ||
-						l.value.toLowerCase().includes(settingsSearch.toLowerCase())
+					{@const filteredLanguages = languages.filter(
+						(l) =>
+							l.label.toLowerCase().includes(settingsSearch.toLowerCase()) ||
+							l.value.toLowerCase().includes(settingsSearch.toLowerCase())
 					)}
-					{@const filteredThemes = Object.entries(themes).filter(([key, { name }]) =>
-						name.toLowerCase().includes(settingsSearch.toLowerCase()) ||
-						key.toLowerCase().includes(settingsSearch.toLowerCase())
+					{@const filteredThemes = Object.entries(themes).filter(
+						([key, { name }]) =>
+							name.toLowerCase().includes(settingsSearch.toLowerCase()) ||
+							key.toLowerCase().includes(settingsSearch.toLowerCase())
 					)}
-					<div class="absolute right-0 top-full mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in">
+					<div
+						class="absolute right-0 top-full mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 animate-fade-in"
+					>
 						<!-- Tab buttons side by side -->
 						<div class="flex border-b border-zinc-700">
 							<button
-								onclick={() => { settingsTab = 'language'; settingsSearch = ''; }}
-								class="flex-1 px-3 py-2 text-sm font-medium transition-colors duration-150 {settingsTab === 'language' ? 'text-teal-400 border-b-2 border-teal-400 -mb-px' : 'text-zinc-400 hover:text-zinc-300'}"
+								onclick={() => {
+									settingsTab = 'language';
+									settingsSearch = '';
+								}}
+								class="flex-1 px-3 py-2 text-sm font-medium transition-colors duration-150 {settingsTab ===
+								'language'
+									? 'text-teal-400 border-b-2 border-teal-400 -mb-px'
+									: 'text-zinc-400 hover:text-zinc-300'}"
 							>
 								Language
 							</button>
 							<button
-								onclick={() => { settingsTab = 'theme'; settingsSearch = ''; }}
-								class="flex-1 px-3 py-2 text-sm font-medium transition-colors duration-150 {settingsTab === 'theme' ? 'text-teal-400 border-b-2 border-teal-400 -mb-px' : 'text-zinc-400 hover:text-zinc-300'}"
+								onclick={() => {
+									settingsTab = 'theme';
+									settingsSearch = '';
+								}}
+								class="flex-1 px-3 py-2 text-sm font-medium transition-colors duration-150 {settingsTab ===
+								'theme'
+									? 'text-teal-400 border-b-2 border-teal-400 -mb-px'
+									: 'text-zinc-400 hover:text-zinc-300'}"
 							>
 								Theme
 							</button>
@@ -708,8 +766,13 @@
 							{#if settingsTab === 'language'}
 								{#each filteredLanguages as { value, label }}
 									<button
-										onclick={() => { selectedLanguage = value; }}
-										class="w-full text-left px-3 py-1.5 rounded text-sm transition-colors duration-150 {selectedLanguage === value ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+										onclick={() => {
+											selectedLanguage = value;
+										}}
+										class="w-full text-left px-3 py-1.5 rounded text-sm transition-colors duration-150 {selectedLanguage ===
+										value
+											? 'bg-teal-500/20 text-teal-400'
+											: 'hover:bg-zinc-700 text-zinc-300'}"
 									>
 										{label}
 									</button>
@@ -719,8 +782,13 @@
 							{:else}
 								{#each filteredThemes as [key, { name }]}
 									<button
-										onclick={() => { selectedTheme = key; }}
-										class="w-full text-left px-3 py-1.5 rounded text-sm transition-colors duration-150 {selectedTheme === key ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-zinc-700 text-zinc-300'}"
+										onclick={() => {
+											selectedTheme = key;
+										}}
+										class="w-full text-left px-3 py-1.5 rounded text-sm transition-colors duration-150 {selectedTheme ===
+										key
+											? 'bg-teal-500/20 text-teal-400'
+											: 'hover:bg-zinc-700 text-zinc-300'}"
 									>
 										{name}
 									</button>
@@ -758,12 +826,16 @@
 			active={isCreating}
 			sourceText={content}
 			encryptedText={encryptedPreview}
-			onFrame={(text) => { content = text; }}
+			onFrame={(text) => {
+				content = text;
+			}}
 		/>
 	</div>
 
 	<!-- Bottom bar -->
-	<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800">
+	<div
+		class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-3 sm:py-4 border-t border-zinc-800"
+	>
 		<span class="text-xs font-mono {sizeTone}" aria-label="Content size">{contentLabel}</span>
 		<ExpirySelect bind:value={expiry} options={expiryOptions} />
 		<!-- Password toggle -->
@@ -814,7 +886,11 @@
 			/>
 			<span class="text-orange-500">🔥</span>
 			<span class="text-zinc-400 text-sm hidden sm:inline">Burn</span>
-			<span id="burn-tooltip" role="tooltip" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-zinc-900 text-xs text-zinc-100 whitespace-nowrap opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 z-10">
+			<span
+				id="burn-tooltip"
+				role="tooltip"
+				class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-zinc-900 text-xs text-zinc-100 whitespace-nowrap opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 z-10"
+			>
 				Paste is permanently deleted after the first view.
 			</span>
 		</label>
@@ -829,9 +905,18 @@
 				<span class="flex items-center gap-1">
 					Creating
 					<span class="flex gap-0.5">
-						<span class="w-1 h-1 bg-zinc-900 rounded-full animate-bounce-dot" style="animation-delay: 0ms"></span>
-						<span class="w-1 h-1 bg-zinc-900 rounded-full animate-bounce-dot" style="animation-delay: 150ms"></span>
-						<span class="w-1 h-1 bg-zinc-900 rounded-full animate-bounce-dot" style="animation-delay: 300ms"></span>
+						<span
+							class="w-1 h-1 bg-zinc-900 rounded-full animate-bounce-dot"
+							style="animation-delay: 0ms"
+						></span>
+						<span
+							class="w-1 h-1 bg-zinc-900 rounded-full animate-bounce-dot"
+							style="animation-delay: 150ms"
+						></span>
+						<span
+							class="w-1 h-1 bg-zinc-900 rounded-full animate-bounce-dot"
+							style="animation-delay: 300ms"
+						></span>
 					</span>
 				</span>
 			{:else}
@@ -841,16 +926,24 @@
 	</div>
 
 	<!-- Footer badge - hidden on mobile -->
-	<div class="hidden sm:flex absolute bottom-4 right-4 items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400">
+	<div
+		class="hidden sm:flex absolute bottom-4 right-4 items-center gap-1.5 text-xs text-zinc-500 group cursor-default select-none transition-colors duration-200 hover:text-zinc-400"
+	>
 		<Lock size={14} class="text-teal-500" />
 		<span>End-to-end encrypted</span>
 	</div>
 
 	<!-- Large paste loading overlay -->
 	{#if isLoadingPaste}
-		<div class="absolute inset-0 bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-			<div class="bg-zinc-800 rounded-lg p-6 shadow-2xl flex flex-col items-center gap-3 animate-scale-in">
-				<div class="w-8 h-8 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
+		<div
+			class="absolute inset-0 bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+		>
+			<div
+				class="bg-zinc-800 rounded-lg p-6 shadow-2xl flex flex-col items-center gap-3 animate-scale-in"
+			>
+				<div
+					class="w-8 h-8 border-3 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"
+				></div>
 				<p class="text-zinc-300 text-sm">Loading paste...</p>
 			</div>
 		</div>
@@ -859,7 +952,9 @@
 	<!-- Duplicate toast notification -->
 	{#if showDuplicateToast}
 		<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-slide-down">
-			<div class="bg-teal-500 text-zinc-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 font-medium">
+			<div
+				class="bg-teal-500 text-zinc-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 font-medium"
+			>
 				<Files size={16} />
 				<span>Content duplicated!</span>
 			</div>
@@ -868,7 +963,9 @@
 
 	<!-- Offline banner -->
 	{#if isOffline}
-		<div class="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-zinc-900 px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
+		<div
+			class="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-zinc-900 px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2"
+		>
 			<WifiOff size={16} />
 			<span>You're offline. Your draft is saved locally.</span>
 		</div>
@@ -876,8 +973,12 @@
 
 	<!-- Drag and drop overlay -->
 	{#if isDragging}
-		<div class="absolute inset-0 bg-zinc-900/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in pointer-events-none">
-			<div class="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-teal-500 rounded-2xl bg-zinc-800/50">
+		<div
+			class="absolute inset-0 bg-zinc-900/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in pointer-events-none"
+		>
+			<div
+				class="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-teal-500 rounded-2xl bg-zinc-800/50"
+			>
 				<div class="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center">
 					<Upload size={32} class="text-teal-500" />
 				</div>

@@ -67,8 +67,5 @@
 	});
 </script>
 
-<canvas
-	bind:this={canvas}
-	class="fixed inset-0 z-[9999] pointer-events-none"
-	aria-hidden="true"
+<canvas bind:this={canvas} class="fixed inset-0 z-[9999] pointer-events-none" aria-hidden="true"
 ></canvas>

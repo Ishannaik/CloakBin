@@ -21,29 +21,20 @@ export const POST: RequestHandler = async ({ params }) => {
 
 		// Validate ID
 		if (!id || typeof id !== 'string' || id.trim().length === 0) {
-			return json(
-				{ error: 'Invalid paste ID' },
-				{ status: 400 }
-			);
+			return json({ error: 'Invalid paste ID' }, { status: 400 });
 		}
 
 		// Atomically find, verify burnAfterRead, delete, and return content
 		const result = await db.burnPaste(id);
 
 		if (!result.success) {
-			return json(
-				{ error: result.error },
-				{ status: 500 }
-			);
+			return json({ error: result.error }, { status: 500 });
 		}
 
 		const paste = result.data;
 
 		if (!paste) {
-			return json(
-				{ error: 'Paste not found' },
-				{ status: 404 }
-			);
+			return json({ error: 'Paste not found' }, { status: 404 });
 		}
 
 		// Return paste data (paste is already deleted from the database)
@@ -56,12 +47,8 @@ export const POST: RequestHandler = async ({ params }) => {
 			burnAfterRead: paste.burnAfterRead,
 			language: paste.language || 'plaintext'
 		});
-
 	} catch (error) {
 		console.error('Error burning paste:', error);
-		return json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
+		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };

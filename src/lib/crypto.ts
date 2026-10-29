@@ -77,9 +77,7 @@ export async function encrypt(plaintext: string, key: CryptoKey): Promise<string
 	);
 
 	// Concatenate: magic header + version + IV + ciphertext
-	const combined = new Uint8Array(
-		MAGIC_HEADER.length + 1 + iv.length + ciphertext.byteLength
-	);
+	const combined = new Uint8Array(MAGIC_HEADER.length + 1 + iv.length + ciphertext.byteLength);
 	let offset = 0;
 	combined.set(MAGIC_HEADER, offset);
 	offset += MAGIC_HEADER.length;
@@ -98,9 +96,7 @@ export async function encrypt(plaintext: string, key: CryptoKey): Promise<string
  */
 function hasNewFormatHeader(data: Uint8Array): boolean {
 	return (
-		data.length >= MAGIC_HEADER.length &&
-		data[0] === MAGIC_HEADER[0] &&
-		data[1] === MAGIC_HEADER[1]
+		data.length >= MAGIC_HEADER.length && data[0] === MAGIC_HEADER[0] && data[1] === MAGIC_HEADER[1]
 	);
 }
 

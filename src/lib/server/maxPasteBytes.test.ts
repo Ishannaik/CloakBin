@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	resolveMaxPasteBytes,
-	utf8ByteLength,
-	DEFAULT_MAX_PASTE_BYTES
-} from './maxPasteBytes';
+import { resolveMaxPasteBytes, utf8ByteLength, DEFAULT_MAX_PASTE_BYTES } from './maxPasteBytes';
 
 describe('resolveMaxPasteBytes', () => {
 	it('defaults to 10 MiB when unset or empty', () => {

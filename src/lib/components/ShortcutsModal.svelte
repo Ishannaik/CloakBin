@@ -2,7 +2,8 @@
 	import { fade } from 'svelte/transition';
 	import { X } from 'lucide-svelte';
 
-	let { open = $bindable(false), page = 'view' }: { open: boolean; page: 'home' | 'view' } = $props();
+	let { open = $bindable(false), page = 'view' }: { open: boolean; page: 'home' | 'view' } =
+		$props();
 
 	// OS detection for modifier key display
 	const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
@@ -11,19 +12,19 @@
 	const homeShortcuts = [
 		{ keys: `${mod}+S`, description: 'Create paste' },
 		{ keys: `${mod}+Shift+N`, description: 'Clear editor' },
-		{ keys: `${mod}+A`, description: 'Select all code' },
+		{ keys: `${mod}+A`, description: 'Select all code' }
 	];
 
 	const viewShortcuts = [
 		{ keys: `${mod}+A`, description: 'Select all code' },
 		{ keys: `${mod}+D`, description: 'Duplicate paste' },
 		{ keys: `${mod}+S`, description: 'Copy share link' },
-		{ keys: `${mod}+Shift+R`, description: 'Open raw view' },
+		{ keys: `${mod}+Shift+R`, description: 'Open raw view' }
 	];
 
 	const globalShortcuts = [
 		{ keys: '?', description: 'Show shortcuts' },
-		{ keys: `${mod}+/`, description: 'Show shortcuts' },
+		{ keys: `${mod}+/`, description: 'Show shortcuts' }
 	];
 
 	const shortcuts = $derived(page === 'home' ? homeShortcuts : viewShortcuts);
@@ -84,7 +85,9 @@
 						{#each shortcuts as shortcut}
 							<div class="flex items-center justify-between">
 								<span class="text-sm text-zinc-300">{shortcut.description}</span>
-								<kbd class="px-2 py-1 bg-zinc-800 border border-zinc-600 rounded text-xs font-mono text-zinc-300">
+								<kbd
+									class="px-2 py-1 bg-zinc-800 border border-zinc-600 rounded text-xs font-mono text-zinc-300"
+								>
 									{shortcut.keys}
 								</kbd>
 							</div>
@@ -99,7 +102,9 @@
 						{#each globalShortcuts as shortcut}
 							<div class="flex items-center justify-between">
 								<span class="text-sm text-zinc-300">{shortcut.description}</span>
-								<kbd class="px-2 py-1 bg-zinc-800 border border-zinc-600 rounded text-xs font-mono text-zinc-300">
+								<kbd
+									class="px-2 py-1 bg-zinc-800 border border-zinc-600 rounded text-xs font-mono text-zinc-300"
+								>
 									{shortcut.keys}
 								</kbd>
 							</div>
@@ -110,7 +115,11 @@
 
 			<!-- Footer hint -->
 			<div class="px-5 py-3 border-t border-zinc-700 text-center">
-				<span class="text-xs text-zinc-500">Press <kbd class="px-1.5 py-0.5 bg-zinc-800 border border-zinc-600 rounded text-xs">Esc</kbd> to close</span>
+				<span class="text-xs text-zinc-500"
+					>Press <kbd class="px-1.5 py-0.5 bg-zinc-800 border border-zinc-600 rounded text-xs"
+						>Esc</kbd
+					> to close</span
+				>
 			</div>
 		</div>
 	</div>
