@@ -17,11 +17,13 @@ Please include: a description of the issue, steps to reproduce (or a proof of co
 ## Scope
 
 In scope:
+
 - The CloakBin application (this repository) and its API endpoints.
 - The client-side cryptography and the zero-knowledge guarantee (any path where plaintext, the encryption key, or the URL fragment could reach the server or a third party).
 - Authentication/authorization, injection, and data-exposure issues.
 
 Out of scope:
+
 - Vulnerabilities in third-party dependencies without a demonstrated impact on CloakBin (report those upstream, but feel free to flag them).
 - Findings that require a compromised end-user device or browser.
 

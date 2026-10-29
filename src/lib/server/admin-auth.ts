@@ -25,7 +25,11 @@ export function safeEqual(a: string, b: string): boolean {
 }
 
 /** Build a signed admin session token. `now` is injectable for testing. */
-export function signAdminSession(username: string, secret: string, now: number = Date.now()): string {
+export function signAdminSession(
+	username: string,
+	secret: string,
+	now: number = Date.now()
+): string {
 	const payload = now + ':' + username;
 	const signature = createHmac('sha256', secret).update(payload).digest('hex');
 	return Buffer.from(payload + ':' + signature).toString('base64');

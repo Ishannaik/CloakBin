@@ -3,9 +3,22 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import {
-		FileText, Lock, Flame, Trash2, Eye, MoreVertical,
-		Search, CheckSquare, Square, ChevronLeft, ChevronRight, RefreshCw,
-		ArrowUp, ArrowUpDown, X, Calendar
+		FileText,
+		Lock,
+		Flame,
+		Trash2,
+		Eye,
+		MoreVertical,
+		Search,
+		CheckSquare,
+		Square,
+		ChevronLeft,
+		ChevronRight,
+		RefreshCw,
+		ArrowUp,
+		ArrowUpDown,
+		X,
+		Calendar
 	} from 'lucide-svelte';
 
 	let { data } = $props();
@@ -86,7 +99,7 @@
 		if (selectedIds.size === data.pastes.length) {
 			selectedIds = new Set();
 		} else {
-			selectedIds = new Set(data.pastes.map(p => p.id));
+			selectedIds = new Set(data.pastes.map((p) => p.id));
 		}
 	}
 
@@ -219,7 +232,7 @@
 	async function handleRefresh() {
 		refreshing = true;
 		await invalidateAll();
-		setTimeout(() => refreshing = false, 500);
+		setTimeout(() => (refreshing = false), 500);
 	}
 
 	function handleSearch(e: Event) {
@@ -238,7 +251,12 @@
 	}
 
 	const activeFiltersCount = $derived(
-		(hasPasswordFilter ? 1 : 0) + (burnFilter ? 1 : 0) + (sizeMin || sizeMax ? 1 : 0) + (statusFilter ? 1 : 0) + (searchQuery ? 1 : 0) + (createdAfter || createdBefore ? 1 : 0)
+		(hasPasswordFilter ? 1 : 0) +
+			(burnFilter ? 1 : 0) +
+			(sizeMin || sizeMax ? 1 : 0) +
+			(statusFilter ? 1 : 0) +
+			(searchQuery ? 1 : 0) +
+			(createdAfter || createdBefore ? 1 : 0)
 	);
 
 	const allSelected = $derived(data.pastes.length > 0 && selectedIds.size === data.pastes.length);
@@ -254,7 +272,11 @@
 			<h1 class="text-2xl font-semibold text-zinc-100">Pastes</h1>
 			<p class="mt-1 text-sm text-zinc-400">{data.pagination.total} total pastes</p>
 		</div>
-		<button onclick={handleRefresh} disabled={refreshing} class="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 disabled:opacity-70 transition-colors">
+		<button
+			onclick={handleRefresh}
+			disabled={refreshing}
+			class="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 disabled:opacity-70 transition-colors"
+		>
 			<RefreshCw class="h-4 w-4 {refreshing ? 'animate-spin' : ''}" />
 			{refreshing ? 'Refreshing...' : 'Refresh'}
 		</button>
@@ -278,28 +300,63 @@
 			<!-- Status Filter -->
 			<div class="relative">
 				<button
-					onclick={() => openFilter = openFilter === 'status' ? null : 'status'}
+					onclick={() => (openFilter = openFilter === 'status' ? null : 'status')}
 					class="filter-trigger flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all
-						{statusFilter ? 'border-teal-500/50 bg-teal-500/10 text-teal-400' : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
+						{statusFilter
+						? 'border-teal-500/50 bg-teal-500/10 text-teal-400'
+						: 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
 				>
 					Status{#if statusFilter}: <span class="font-medium">{statusFilter}</span>{/if}
 				</button>
 				{#if openFilter === 'status'}
-					<div class="filter-popover absolute left-0 top-full z-20 mt-1 w-40 rounded-lg border border-zinc-700 bg-zinc-800 p-1 shadow-xl">
-						<button onclick={() => { setFilter('status', ''); openFilter = null; }}
-							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {!statusFilter ? 'bg-zinc-700/50' : ''}">
+					<div
+						class="filter-popover absolute left-0 top-full z-20 mt-1 w-40 rounded-lg border border-zinc-700 bg-zinc-800 p-1 shadow-xl"
+					>
+						<button
+							onclick={() => {
+								setFilter('status', '');
+								openFilter = null;
+							}}
+							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {!statusFilter
+								? 'bg-zinc-700/50'
+								: ''}"
+						>
 							All
 						</button>
-						<button onclick={() => { setFilter('status', 'active'); openFilter = null; }}
-							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {statusFilter === 'active' ? 'bg-zinc-700/50' : ''}">
+						<button
+							onclick={() => {
+								setFilter('status', 'active');
+								openFilter = null;
+							}}
+							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {statusFilter ===
+							'active'
+								? 'bg-zinc-700/50'
+								: ''}"
+						>
 							Active
 						</button>
-						<button onclick={() => { setFilter('status', 'expiring'); openFilter = null; }}
-							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {statusFilter === 'expiring' ? 'bg-zinc-700/50' : ''}">
+						<button
+							onclick={() => {
+								setFilter('status', 'expiring');
+								openFilter = null;
+							}}
+							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {statusFilter ===
+							'expiring'
+								? 'bg-zinc-700/50'
+								: ''}"
+						>
 							Expiring soon
 						</button>
-						<button onclick={() => { setFilter('status', 'expired'); openFilter = null; }}
-							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {statusFilter === 'expired' ? 'bg-zinc-700/50' : ''}">
+						<button
+							onclick={() => {
+								setFilter('status', 'expired');
+								openFilter = null;
+							}}
+							class="w-full rounded px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-700 {statusFilter ===
+							'expired'
+								? 'bg-zinc-700/50'
+								: ''}"
+						>
 							Expired
 						</button>
 					</div>
@@ -309,21 +366,31 @@
 			<!-- Size Filter -->
 			<div class="relative">
 				<button
-					onclick={() => openFilter = openFilter === 'size' ? null : 'size'}
+					onclick={() => (openFilter = openFilter === 'size' ? null : 'size')}
 					class="filter-trigger flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all
-						{sizeMin || sizeMax ? 'border-teal-500/50 bg-teal-500/10 text-teal-400' : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
+						{sizeMin || sizeMax
+						? 'border-teal-500/50 bg-teal-500/10 text-teal-400'
+						: 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
 				>
-					Size{#if sizeMin || sizeMax}: <span class="font-medium">{formatBytes(parseInt(sizeMin) || 0)}-{sizeMax ? formatBytes(parseInt(sizeMax)) : '∞'}</span>{/if}
+					Size{#if sizeMin || sizeMax}: <span class="font-medium"
+							>{formatBytes(parseInt(sizeMin) || 0)}-{sizeMax
+								? formatBytes(parseInt(sizeMax))
+								: '∞'}</span
+						>{/if}
 				</button>
 				{#if openFilter === 'size'}
-					<div class="filter-popover absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-700 bg-zinc-800 p-3 shadow-xl">
+					<div
+						class="filter-popover absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-700 bg-zinc-800 p-3 shadow-xl"
+					>
 						<div class="mb-3 flex items-center justify-between">
 							<span class="text-xs font-medium text-zinc-400">Size range</span>
 							<div class="flex rounded-md border border-zinc-600 text-xs">
 								{#each ['B', 'KB', 'MB'] as unit}
 									<button
-										onclick={() => sizeUnit = unit as 'B' | 'KB' | 'MB'}
-										class="px-2 py-0.5 transition-colors {sizeUnit === unit ? 'bg-teal-600 text-white' : 'text-zinc-400 hover:text-zinc-200'}"
+										onclick={() => (sizeUnit = unit as 'B' | 'KB' | 'MB')}
+										class="px-2 py-0.5 transition-colors {sizeUnit === unit
+											? 'bg-teal-600 text-white'
+											: 'text-zinc-400 hover:text-zinc-200'}"
 									>
 										{unit}
 									</button>
@@ -347,10 +414,16 @@
 							<span class="text-xs text-zinc-500 min-w-[24px]">{sizeUnit}</span>
 						</div>
 						<div class="mt-3 flex gap-2">
-							<button onclick={clearSizeFilter} class="flex-1 rounded bg-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-600 transition-colors">
+							<button
+								onclick={clearSizeFilter}
+								class="flex-1 rounded bg-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-600 transition-colors"
+							>
 								Clear
 							</button>
-							<button onclick={applySizeFilter} class="flex-1 rounded bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-500 transition-colors">
+							<button
+								onclick={applySizeFilter}
+								class="flex-1 rounded bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-500 transition-colors"
+							>
 								Apply
 							</button>
 						</div>
@@ -361,15 +434,23 @@
 			<!-- Date Filter -->
 			<div class="relative">
 				<button
-					onclick={() => openFilter = openFilter === 'date' ? null : 'date'}
+					onclick={() => (openFilter = openFilter === 'date' ? null : 'date')}
 					class="filter-trigger flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all
-						{createdAfter || createdBefore ? 'border-teal-500/50 bg-teal-500/10 text-teal-400' : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
+						{createdAfter || createdBefore
+						? 'border-teal-500/50 bg-teal-500/10 text-teal-400'
+						: 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
 				>
 					<Calendar class="h-3.5 w-3.5" />
-					Date{#if createdAfter || createdBefore}: <span class="font-medium">{createdAfter ? 'from ' + createdAfter : ''}{createdBefore ? ' to ' + createdBefore : ''}</span>{/if}
+					Date{#if createdAfter || createdBefore}: <span class="font-medium"
+							>{createdAfter ? 'from ' + createdAfter : ''}{createdBefore
+								? ' to ' + createdBefore
+								: ''}</span
+						>{/if}
 				</button>
 				{#if openFilter === 'date'}
-					<div class="filter-popover absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-700 bg-zinc-800 p-3 shadow-xl">
+					<div
+						class="filter-popover absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-700 bg-zinc-800 p-3 shadow-xl"
+					>
 						<div class="mb-3 text-xs font-medium text-zinc-400">Created date range</div>
 						<div class="space-y-2">
 							<div>
@@ -390,10 +471,16 @@
 							</div>
 						</div>
 						<div class="mt-3 flex gap-2">
-							<button onclick={clearDateFilter} class="flex-1 rounded bg-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-600 transition-colors">
+							<button
+								onclick={clearDateFilter}
+								class="flex-1 rounded bg-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-600 transition-colors"
+							>
 								Clear
 							</button>
-							<button onclick={applyDateFilter} class="flex-1 rounded bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-500 transition-colors">
+							<button
+								onclick={applyDateFilter}
+								class="flex-1 rounded bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-500 transition-colors"
+							>
 								Apply
 							</button>
 						</div>
@@ -405,7 +492,9 @@
 			<button
 				onclick={() => toggleFilter('password')}
 				class="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all
-					{hasPasswordFilter ? 'border-amber-500/50 bg-amber-500/10 text-amber-400' : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
+					{hasPasswordFilter
+					? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+					: 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
 			>
 				<Lock class="h-3.5 w-3.5" />
 				Password
@@ -414,7 +503,9 @@
 			<button
 				onclick={() => toggleFilter('burn')}
 				class="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all
-					{burnFilter ? 'border-red-500/50 bg-red-500/10 text-red-400' : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
+					{burnFilter
+					? 'border-red-500/50 bg-red-500/10 text-red-400'
+					: 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}"
 			>
 				<Flame class="h-3.5 w-3.5" />
 				Burn
@@ -435,18 +526,28 @@
 
 	<!-- Bulk Actions -->
 	{#if selectedIds.size > 0}
-		<div class="flex items-center gap-3 rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-2.5">
+		<div
+			class="flex items-center gap-3 rounded-lg border border-teal-500/30 bg-teal-500/10 px-4 py-2.5"
+		>
 			<span class="text-sm font-medium text-teal-400">{selectedIds.size} selected</span>
-			<form method="POST" action="?/bulkDelete" use:enhance={() => {
-				deleting = true;
-				return async ({ update }) => {
-					await update();
-					deleting = false;
-					selectedIds = new Set();
-				};
-			}}>
+			<form
+				method="POST"
+				action="?/bulkDelete"
+				use:enhance={() => {
+					deleting = true;
+					return async ({ update }) => {
+						await update();
+						deleting = false;
+						selectedIds = new Set();
+					};
+				}}
+			>
 				<input type="hidden" name="ids" value={Array.from(selectedIds).join(',')} />
-				<button type="submit" disabled={deleting} class="flex items-center gap-1.5 rounded-md bg-red-500/20 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/30 disabled:opacity-50 transition-colors">
+				<button
+					type="submit"
+					disabled={deleting}
+					class="flex items-center gap-1.5 rounded-md bg-red-500/20 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/30 disabled:opacity-50 transition-colors"
+				>
 					<Trash2 class="h-3.5 w-3.5" />
 					Delete selected
 				</button>
@@ -458,9 +559,14 @@
 	<div class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/50">
 		<table class="w-full min-w-[640px] text-sm">
 			<thead>
-				<tr class="border-b border-zinc-800 text-left text-xs uppercase tracking-wide text-zinc-500">
+				<tr
+					class="border-b border-zinc-800 text-left text-xs uppercase tracking-wide text-zinc-500"
+				>
 					<th class="w-12 px-4 py-3">
-						<button onclick={toggleSelectAll} class="rounded p-1 hover:bg-zinc-700 transition-colors">
+						<button
+							onclick={toggleSelectAll}
+							class="rounded p-1 hover:bg-zinc-700 transition-colors"
+						>
 							{#if allSelected}
 								<CheckSquare class="h-4 w-4 text-teal-400" />
 							{:else}
@@ -470,43 +576,67 @@
 					</th>
 					<th class="px-4 py-3">Paste ID</th>
 					<th class="px-4 py-3">
-						<button onclick={() => toggleSort('size')} class="group flex items-center gap-1.5 hover:text-zinc-300 transition-colors">
+						<button
+							onclick={() => toggleSort('size')}
+							class="group flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
+						>
 							Size
 							<span class="relative flex h-4 w-4 items-center justify-center">
 								{#if sortBy === 'size'}
-									<span class="sort-icon" style="transform: rotate({sortOrder === 'asc' ? '0deg' : '180deg'})">
+									<span
+										class="sort-icon"
+										style="transform: rotate({sortOrder === 'asc' ? '0deg' : '180deg'})"
+									>
 										<ArrowUp class="h-3.5 w-3.5 text-teal-400" />
 									</span>
 								{:else}
-									<ArrowUpDown class="h-3 w-3 opacity-30 group-hover:opacity-60 transition-opacity" />
+									<ArrowUpDown
+										class="h-3 w-3 opacity-30 group-hover:opacity-60 transition-opacity"
+									/>
 								{/if}
 							</span>
 						</button>
 					</th>
 					<th class="px-4 py-3">
-						<button onclick={() => toggleSort('created')} class="group flex items-center gap-1.5 hover:text-zinc-300 transition-colors">
+						<button
+							onclick={() => toggleSort('created')}
+							class="group flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
+						>
 							Created
 							<span class="relative flex h-4 w-4 items-center justify-center">
 								{#if sortBy === 'created'}
-									<span class="sort-icon" style="transform: rotate({sortOrder === 'asc' ? '0deg' : '180deg'})">
+									<span
+										class="sort-icon"
+										style="transform: rotate({sortOrder === 'asc' ? '0deg' : '180deg'})"
+									>
 										<ArrowUp class="h-3.5 w-3.5 text-teal-400" />
 									</span>
 								{:else}
-									<ArrowUpDown class="h-3 w-3 opacity-30 group-hover:opacity-60 transition-opacity" />
+									<ArrowUpDown
+										class="h-3 w-3 opacity-30 group-hover:opacity-60 transition-opacity"
+									/>
 								{/if}
 							</span>
 						</button>
 					</th>
 					<th class="px-4 py-3">
-						<button onclick={() => toggleSort('expires')} class="group flex items-center gap-1.5 hover:text-zinc-300 transition-colors">
+						<button
+							onclick={() => toggleSort('expires')}
+							class="group flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
+						>
 							Expires
 							<span class="relative flex h-4 w-4 items-center justify-center">
 								{#if sortBy === 'expires'}
-									<span class="sort-icon" style="transform: rotate({sortOrder === 'asc' ? '0deg' : '180deg'})">
+									<span
+										class="sort-icon"
+										style="transform: rotate({sortOrder === 'asc' ? '0deg' : '180deg'})"
+									>
 										<ArrowUp class="h-3.5 w-3.5 text-teal-400" />
 									</span>
 								{:else}
-									<ArrowUpDown class="h-3 w-3 opacity-30 group-hover:opacity-60 transition-opacity" />
+									<ArrowUpDown
+										class="h-3 w-3 opacity-30 group-hover:opacity-60 transition-opacity"
+									/>
 								{/if}
 							</span>
 						</button>
@@ -519,7 +649,10 @@
 				{#each data.pastes as paste, i}
 					<tr class="group hover:bg-zinc-800/30 transition-colors">
 						<td class="px-4 py-3">
-							<button onclick={() => toggleSelect(paste.id)} class="rounded p-1 hover:bg-zinc-700 transition-colors">
+							<button
+								onclick={() => toggleSelect(paste.id)}
+								class="rounded p-1 hover:bg-zinc-700 transition-colors"
+							>
 								{#if selectedIds.has(paste.id)}
 									<CheckSquare class="h-4 w-4 text-teal-400" />
 								{:else}
@@ -528,14 +661,24 @@
 							</button>
 						</td>
 						<td class="px-4 py-3">
-							<a href="/admin/pastes/{paste.id}" class="inline-flex items-center gap-1.5 rounded-md bg-zinc-800 px-2.5 py-1 font-mono text-sm text-teal-400 hover:bg-zinc-700 hover:text-teal-300 transition-colors">
+							<a
+								href="/admin/pastes/{paste.id}"
+								class="inline-flex items-center gap-1.5 rounded-md bg-zinc-800 px-2.5 py-1 font-mono text-sm text-teal-400 hover:bg-zinc-700 hover:text-teal-300 transition-colors"
+							>
 								{paste.id}
 							</a>
 						</td>
 						<td class="px-4 py-3 text-zinc-400">{formatBytes(paste.sizeBytes)}</td>
 						<td class="px-4 py-3 text-zinc-400">{timeAgo(paste.createdAt)}</td>
 						<td class="px-4 py-3">
-							<span class="{formatExpiry(paste.expiresAt) === 'Expired' ? 'text-red-400' : formatExpiry(paste.expiresAt).endsWith('m') || formatExpiry(paste.expiresAt).endsWith('h') ? 'text-amber-400' : 'text-zinc-400'}">
+							<span
+								class={formatExpiry(paste.expiresAt) === 'Expired'
+									? 'text-red-400'
+									: formatExpiry(paste.expiresAt).endsWith('m') ||
+										  formatExpiry(paste.expiresAt).endsWith('h')
+										? 'text-amber-400'
+										: 'text-zinc-400'}
+							>
 								{formatExpiry(paste.expiresAt)}
 							</span>
 						</td>
@@ -558,24 +701,41 @@
 						</td>
 						<td class="px-4 py-3">
 							<div class="action-dropdown relative">
-								<button onclick={() => activeDropdown = activeDropdown === paste.id ? null : paste.id}
-									class="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-300 transition-colors">
+								<button
+									onclick={() => (activeDropdown = activeDropdown === paste.id ? null : paste.id)}
+									class="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-300 transition-colors"
+								>
 									<MoreVertical class="h-4 w-4" />
 								</button>
 								{#if activeDropdown === paste.id}
-									<div class="absolute right-0 z-20 w-36 rounded-lg border border-zinc-700 bg-zinc-800 py-1 shadow-xl
-										{i >= Math.max(2, data.pastes.length - 3) ? 'bottom-full mb-1' : 'top-full mt-1'}">
-										<a href="/p/{paste.id}" target="_blank" class="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-700 transition-colors">
+									<div
+										class="absolute right-0 z-20 w-36 rounded-lg border border-zinc-700 bg-zinc-800 py-1 shadow-xl
+										{i >= Math.max(2, data.pastes.length - 3) ? 'bottom-full mb-1' : 'top-full mt-1'}"
+									>
+										<a
+											href="/p/{paste.id}"
+											target="_blank"
+											class="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
+										>
 											<Eye class="h-4 w-4" />
 											View paste
 										</a>
 										<hr class="my-1 border-zinc-700" />
-										<form method="POST" action="?/delete" use:enhance={() => {
-											activeDropdown = null;
-											return async ({ update }) => { await update(); };
-										}}>
+										<form
+											method="POST"
+											action="?/delete"
+											use:enhance={() => {
+												activeDropdown = null;
+												return async ({ update }) => {
+													await update();
+												};
+											}}
+										>
 											<input type="hidden" name="id" value={paste.id} />
-											<button type="submit" class="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-700 transition-colors">
+											<button
+												type="submit"
+												class="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-700 transition-colors"
+											>
 												<Trash2 class="h-4 w-4" />
 												Delete
 											</button>
@@ -596,7 +756,10 @@
 				</div>
 				<p class="mt-4 text-sm text-zinc-400">No pastes found</p>
 				{#if activeFiltersCount > 0}
-					<button onclick={clearAllFilters} class="mt-2 text-sm text-teal-400 hover:text-teal-300 transition-colors">
+					<button
+						onclick={clearAllFilters}
+						class="mt-2 text-sm text-teal-400 hover:text-teal-300 transition-colors"
+					>
 						Clear filters
 					</button>
 				{/if}
@@ -630,35 +793,53 @@
 
 		{#if data.pagination.totalPages > 1}
 			<div class="flex items-center gap-1">
-				<button onclick={() => goToPage(1)} disabled={data.pagination.page === 1}
-					class="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+				<button
+					onclick={() => goToPage(1)}
+					disabled={data.pagination.page === 1}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+				>
 					First
 				</button>
-				<button onclick={() => goToPage(data.pagination.page - 1)} disabled={data.pagination.page === 1}
-					class="rounded-lg border border-zinc-700 bg-zinc-800 p-1.5 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+				<button
+					onclick={() => goToPage(data.pagination.page - 1)}
+					disabled={data.pagination.page === 1}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 p-1.5 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+				>
 					<ChevronLeft class="h-4 w-4" />
 				</button>
 				{#each Array(Math.min(5, data.pagination.totalPages)) as _, i}
-					{@const pageNum = data.pagination.totalPages <= 5 ? i + 1 :
-						data.pagination.page <= 3 ? i + 1 :
-						data.pagination.page >= data.pagination.totalPages - 2 ? data.pagination.totalPages - 4 + i :
-						data.pagination.page - 2 + i}
+					{@const pageNum =
+						data.pagination.totalPages <= 5
+							? i + 1
+							: data.pagination.page <= 3
+								? i + 1
+								: data.pagination.page >= data.pagination.totalPages - 2
+									? data.pagination.totalPages - 4 + i
+									: data.pagination.page - 2 + i}
 					{#if pageNum >= 1 && pageNum <= data.pagination.totalPages}
-						<button onclick={() => goToPage(pageNum)}
+						<button
+							onclick={() => goToPage(pageNum)}
 							class="rounded-lg border px-3 py-1.5 text-sm transition-colors
 								{data.pagination.page === pageNum
-									? 'border-teal-500 bg-teal-500/20 text-teal-400'
-									: 'border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}">
+								? 'border-teal-500 bg-teal-500/20 text-teal-400'
+								: 'border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}"
+						>
 							{pageNum}
 						</button>
 					{/if}
 				{/each}
-				<button onclick={() => goToPage(data.pagination.page + 1)} disabled={data.pagination.page === data.pagination.totalPages}
-					class="rounded-lg border border-zinc-700 bg-zinc-800 p-1.5 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+				<button
+					onclick={() => goToPage(data.pagination.page + 1)}
+					disabled={data.pagination.page === data.pagination.totalPages}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 p-1.5 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+				>
 					<ChevronRight class="h-4 w-4" />
 				</button>
-				<button onclick={() => goToPage(data.pagination.totalPages)} disabled={data.pagination.page === data.pagination.totalPages}
-					class="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+				<button
+					onclick={() => goToPage(data.pagination.totalPages)}
+					disabled={data.pagination.page === data.pagination.totalPages}
+					class="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+				>
 					Last
 				</button>
 			</div>

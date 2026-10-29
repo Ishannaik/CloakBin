@@ -7,6 +7,7 @@ All notable changes to CloakBin are documented here. Format based on
 ## [Unreleased]
 
 ### Added
+
 - `CREATE_REQUIRES_LOGIN=true` limits paste creation to signed-in members. Anonymous
   `POST /api/paste` returns 401 and the home page sends visitors to `/login`. Reading a
   paste by link stays open, and encryption is unchanged. Off by default.
@@ -17,12 +18,14 @@ All notable changes to CloakBin are documented here. Format based on
 - Docker image, Compose file with MongoDB, and a GHCR publish workflow (#242).
 
 ### Changed
+
 - Admin Settings is now read-only and shows the real values from the environment. The
   old form saved nothing. The admin Users page shows real members instead of sample data.
 
 ## [1.1.0] - 2026-07-11
 
 ### Security
+
 - Constant-time admin credential comparison, replacing a plaintext `!==` check that
   leaked a login timing side-channel (#11).
 - Extracted the admin session sign/verify logic into a dedicated, unit-tested module
@@ -30,6 +33,7 @@ All notable changes to CloakBin are documented here. Format based on
   wrong-user session tokens are all rejected (#18).
 
 ### Performance
+
 - Lazy-load the CodeMirror editor (skeleton-first render) on the paste view and home
   routes, and dynamic-import highlight.js so it no longer ships in the home (LCP)
   bundle (#15).
@@ -40,6 +44,7 @@ All notable changes to CloakBin are documented here. Format based on
   detection instead of the full paste.
 
 ### Maintenance
+
 - Greened the repository: fixed all `svelte-check` type errors and added the missing
   dev dependencies (`@types/node`, ESLint flat-config packages) so `pnpm check` and
   `pnpm lint` run clean (#13).
@@ -47,6 +52,7 @@ All notable changes to CloakBin are documented here. Format based on
   an unnecessary database query on every admin page load) (#16).
 
 ### Docs
+
 - Added `SECURITY.md` (responsible-disclosure policy), `/.well-known/security.txt`
   (RFC 9116), and a "Verify the Zero-Knowledge Claim Yourself" guide to the README (#17).
 - Corrected the license notice — the project is AGPL-3.0 (the README previously claimed MIT).
@@ -54,6 +60,7 @@ All notable changes to CloakBin are documented here. Format based on
   (`MONGODB_URI`, `ADMIN_USER`, `ADMIN_PASS`).
 
 ### Fixes
+
 - Burn-after-read handling with password-protected pastes, expiry display, and URL
   hash-key changes.
 - Added `Cache-Control` headers to paste API responses.

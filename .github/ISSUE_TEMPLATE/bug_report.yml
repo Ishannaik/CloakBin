@@ -1,7 +1,7 @@
 name: Bug report
 description: Something in the editor, paste view, or CLI behaved wrong
-title: "[bug]: "
-labels: ["bug"]
+title: '[bug]: '
+labels: ['bug']
 body:
   - type: markdown
     attributes:

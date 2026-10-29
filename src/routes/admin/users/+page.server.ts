@@ -13,7 +13,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 		loadError: !users.success || !invites.success,
 		// Never send password hashes or token hashes to the browser.
 		users: users.success
-			? users.data.map((u) => ({ id: u.id, username: u.username, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt }))
+			? users.data.map((u) => ({
+					id: u.id,
+					username: u.username,
+					createdAt: u.createdAt,
+					lastLoginAt: u.lastLoginAt
+				}))
 			: [],
 		invites: invites.success
 			? invites.data.map((i) => ({ id: i.id, createdAt: i.createdAt, expiresAt: i.expiresAt }))
@@ -25,7 +30,8 @@ export const actions: Actions = {
 	invite: async ({ locals, url }) => {
 		if (!locals.isAdmin) throw redirect(302, '/admin/login');
 		const created = await createInvite(accounts);
-		if (!created) return fail(500, { error: 'Could not create the invite. Check the database connection.' });
+		if (!created)
+			return fail(500, { error: 'Could not create the invite. Check the database connection.' });
 		// The raw token exists only in this response; the store keeps its hash.
 		return { inviteUrl: `${url.origin}/join/${created.token}` };
 	},

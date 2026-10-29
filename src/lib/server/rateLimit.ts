@@ -8,10 +8,16 @@ export const RATE_LIMITS = {
 
 export function resolveRateLimitType(method: string, path: string): keyof typeof RATE_LIMITS {
 	if (method === 'POST' && path === '/api/paste') return 'createPaste';
-	if (method === 'POST' && (path === '/login' || path === '/admin/login' || path.startsWith('/join/'))) {
+	if (
+		method === 'POST' &&
+		(path === '/login' || path === '/admin/login' || path.startsWith('/join/'))
+	) {
 		return 'login';
 	}
-	if (path.startsWith('/api/paste/') && (method === 'GET' || (method === 'POST' && path.endsWith('/burn')))) {
+	if (
+		path.startsWith('/api/paste/') &&
+		(method === 'GET' || (method === 'POST' && path.endsWith('/burn')))
+	) {
 		return 'readPaste';
 	}
 	return 'default';

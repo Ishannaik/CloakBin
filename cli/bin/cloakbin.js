@@ -13,7 +13,7 @@ const LANG_RE = /^[a-zA-Z0-9_-]{1,30}$/;
 const UA = `cloakbin-cli/${VERSION}`;
 
 function usage() {
-  return `cloakbin — zero-knowledge encrypted pastebin CLI
+	return `cloakbin — zero-knowledge encrypted pastebin CLI
 
 Usage:
   cloakbin [file] [flags]          Encrypt and upload (file, -, or stdin)
@@ -35,149 +35,148 @@ Flags:
 }
 
 function fail(msg) {
-  process.stderr.write(`Error: ${msg}\n`);
-  process.exit(1);
+	process.stderr.write(`Error: ${msg}\n`);
+	process.exit(1);
 }
 
 function requirePassword(value) {
-  if (value === '') fail('password cannot be empty');
-  return value;
+	if (value === '') fail('password cannot be empty');
+	return value;
 }
-
 
 /** Hand-rolled flag parser: supports --flag value and --flag=value */
 function parseArgs(argv) {
-  const flags = {
-    expiry: '7d',
-    burn: false,
-    password: null,
-    lang: null,
-    host: DEFAULT_HOST,
-    save: null,
-    force: false,
-    help: false,
-    version: false,
-  };
-  const positionals = [];
-  let i = 0;
+	const flags = {
+		expiry: '7d',
+		burn: false,
+		password: null,
+		lang: null,
+		host: DEFAULT_HOST,
+		save: null,
+		force: false,
+		help: false,
+		version: false
+	};
+	const positionals = [];
+	let i = 0;
 
-  while (i < argv.length) {
-    const arg = argv[i];
+	while (i < argv.length) {
+		const arg = argv[i];
 
-    if (arg === '--') {
-      positionals.push(...argv.slice(i + 1));
-      break;
-    }
+		if (arg === '--') {
+			positionals.push(...argv.slice(i + 1));
+			break;
+		}
 
-    if (arg.startsWith('--')) {
-      const eq = arg.indexOf('=');
-      let name, value;
-      if (eq !== -1) {
-        name = arg.slice(2, eq);
-        value = arg.slice(eq + 1);
-      } else {
-        name = arg.slice(2);
-        value = undefined;
-      }
+		if (arg.startsWith('--')) {
+			const eq = arg.indexOf('=');
+			let name, value;
+			if (eq !== -1) {
+				name = arg.slice(2, eq);
+				value = arg.slice(eq + 1);
+			} else {
+				name = arg.slice(2);
+				value = undefined;
+			}
 
-      switch (name) {
-        case 'help':
-          flags.help = true;
-          break;
-        case 'version':
-          flags.version = true;
-          break;
-        case 'burn':
-          flags.burn = true;
-          break;
-        case 'expiry':
-          value = value !== undefined ? value : argv[++i];
-          if (value === undefined) fail('--expiry requires a value');
-          flags.expiry = value;
-          break;
-        case 'password':
-          value = value !== undefined ? value : argv[++i];
-          if (value === undefined) fail('--password requires a value');
-          flags.password = requirePassword(value);
-          break;
-        case 'lang':
-          value = value !== undefined ? value : argv[++i];
-          if (value === undefined) fail('--lang requires a value');
-          flags.lang = value;
-          break;
-        case 'host':
-          value = value !== undefined ? value : argv[++i];
-          if (value === undefined) fail('--host requires a value');
-          try {
-            flags.host = _validateHost(value);
-          } catch (err) {
-            fail(err.message);
-          }
-          break;
-        case 'save':
-          value = value !== undefined ? value : argv[++i];
-          if (value === undefined || value === '' || value.startsWith('--')) {
-            fail('--save requires a value');
-          }
-          flags.save = value;
-          break;
-        case 'force':
-          flags.force = true;
-          break;
-        default:
-          fail(`unknown flag --${name}`);
-      }
-      i++;
-      continue;
-    }
+			switch (name) {
+				case 'help':
+					flags.help = true;
+					break;
+				case 'version':
+					flags.version = true;
+					break;
+				case 'burn':
+					flags.burn = true;
+					break;
+				case 'expiry':
+					value = value !== undefined ? value : argv[++i];
+					if (value === undefined) fail('--expiry requires a value');
+					flags.expiry = value;
+					break;
+				case 'password':
+					value = value !== undefined ? value : argv[++i];
+					if (value === undefined) fail('--password requires a value');
+					flags.password = requirePassword(value);
+					break;
+				case 'lang':
+					value = value !== undefined ? value : argv[++i];
+					if (value === undefined) fail('--lang requires a value');
+					flags.lang = value;
+					break;
+				case 'host':
+					value = value !== undefined ? value : argv[++i];
+					if (value === undefined) fail('--host requires a value');
+					try {
+						flags.host = _validateHost(value);
+					} catch (err) {
+						fail(err.message);
+					}
+					break;
+				case 'save':
+					value = value !== undefined ? value : argv[++i];
+					if (value === undefined || value === '' || value.startsWith('--')) {
+						fail('--save requires a value');
+					}
+					flags.save = value;
+					break;
+				case 'force':
+					flags.force = true;
+					break;
+				default:
+					fail(`unknown flag --${name}`);
+			}
+			i++;
+			continue;
+		}
 
-    if (arg.startsWith('-') && arg.length > 1 && arg !== '-') {
-      // short flags: -e, -p, -h, -v (possibly clustered not supported for valued)
-      const short = arg.slice(1);
-      if (short === 'h') {
-        flags.help = true;
-        i++;
-        continue;
-      }
-      if (short === 'v') {
-        flags.version = true;
-        i++;
-        continue;
-      }
-      if (short === 'e') {
-        const value = argv[++i];
-        if (value === undefined) fail('-e requires a value');
-        flags.expiry = value;
-        i++;
-        continue;
-      }
-      if (short === 'p') {
-        const value = argv[++i];
-        if (value === undefined) fail('-p requires a value');
-        flags.password = requirePassword(value);
-        i++;
-        continue;
-      }
-      // multi-char short like -e7d not supported; treat as unknown
-      fail(`unknown flag -${short}`);
-    }
+		if (arg.startsWith('-') && arg.length > 1 && arg !== '-') {
+			// short flags: -e, -p, -h, -v (possibly clustered not supported for valued)
+			const short = arg.slice(1);
+			if (short === 'h') {
+				flags.help = true;
+				i++;
+				continue;
+			}
+			if (short === 'v') {
+				flags.version = true;
+				i++;
+				continue;
+			}
+			if (short === 'e') {
+				const value = argv[++i];
+				if (value === undefined) fail('-e requires a value');
+				flags.expiry = value;
+				i++;
+				continue;
+			}
+			if (short === 'p') {
+				const value = argv[++i];
+				if (value === undefined) fail('-p requires a value');
+				flags.password = requirePassword(value);
+				i++;
+				continue;
+			}
+			// multi-char short like -e7d not supported; treat as unknown
+			fail(`unknown flag -${short}`);
+		}
 
-    positionals.push(arg);
-    i++;
-  }
+		positionals.push(arg);
+		i++;
+	}
 
-  // strip trailing slash from host
-  flags.host = flags.host.replace(/\/+$/, '');
-  return { flags, positionals };
+	// strip trailing slash from host
+	flags.host = flags.host.replace(/\/+$/, '');
+	return { flags, positionals };
 }
 
 function readStdin() {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    process.stdin.on('data', (c) => chunks.push(c));
-    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-    process.stdin.on('error', reject);
-  });
+	return new Promise((resolve, reject) => {
+		const chunks = [];
+		process.stdin.on('data', (c) => chunks.push(c));
+		process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+		process.stdin.on('error', reject);
+	});
 }
 
 /**
@@ -185,266 +184,270 @@ function readStdin() {
  * filename is set only when input came from a real file argument (not `-` / stdin).
  */
 async function readInput(positionals) {
-  // priority: file arg > `-` > piped stdin
-  const fileArg = positionals.find((p) => p !== 'get');
-  // when command is create, positionals are just the file (if any)
-  // caller passes only non-get positionals
+	// priority: file arg > `-` > piped stdin
+	const fileArg = positionals.find((p) => p !== 'get');
+	// when command is create, positionals are just the file (if any)
+	// caller passes only non-get positionals
 
-  if (fileArg && fileArg !== '-') {
-    try {
-      const content = readFileSync(fileArg, 'utf8');
-      return { content, filename: fileArg };
-    } catch (err) {
-      fail(`cannot read file: ${fileArg} (${err.message})`);
-    }
-  }
+	if (fileArg && fileArg !== '-') {
+		try {
+			const content = readFileSync(fileArg, 'utf8');
+			return { content, filename: fileArg };
+		} catch (err) {
+			fail(`cannot read file: ${fileArg} (${err.message})`);
+		}
+	}
 
-  if (fileArg === '-' || !process.stdin.isTTY) {
-    const data = await readStdin();
-    return { content: data, filename: null };
-  }
+	if (fileArg === '-' || !process.stdin.isTTY) {
+		const data = await readStdin();
+		return { content: data, filename: null };
+	}
 
-  return null; // no input
+	return null; // no input
 }
 
 async function createPaste(plaintext, flags) {
-  const resolved = resolveExpiry(flags.expiry);
-  if (!resolved) {
-    fail(
-      `invalid expiry "${flags.expiry}" — use 1h|24h|7d|30d|1y or a duration like 2h30m, 3d, 1w2d`
-    );
-  }
-  if (resolved.snapped || resolved.capped) {
-    process.stderr.write(
-      `⏳ expiry ${flags.expiry} → applied ${resolved.bucket} (free tier uses fixed buckets; exact expiry is a premium feature)\n`
-    );
-  }
-  flags.expiry = resolved.bucket;
+	const resolved = resolveExpiry(flags.expiry);
+	if (!resolved) {
+		fail(
+			`invalid expiry "${flags.expiry}" — use 1h|24h|7d|30d|1y or a duration like 2h30m, 3d, 1w2d`
+		);
+	}
+	if (resolved.snapped || resolved.capped) {
+		process.stderr.write(
+			`⏳ expiry ${flags.expiry} → applied ${resolved.bucket} (free tier uses fixed buckets; exact expiry is a premium feature)\n`
+		);
+	}
+	flags.expiry = resolved.bucket;
 
-  if (flags.lang != null && !LANG_RE.test(flags.lang)) {
-    fail(`invalid --lang "${flags.lang}" — use 1-30 chars: letters, digits, _ or -`);
-  }
+	if (flags.lang != null && !LANG_RE.test(flags.lang)) {
+		fail(`invalid --lang "${flags.lang}" — use 1-30 chars: letters, digits, _ or -`);
+	}
 
-  const enc = await encrypt(plaintext, { password: flags.password || undefined });
+	const enc = await encrypt(plaintext, { password: flags.password || undefined });
 
-  const body = {
-    content: enc.contentBase64,
-    expiry: flags.expiry,
-  };
-  if (enc.saltBase64) body.salt = enc.saltBase64;
-  if (flags.burn) body.burnAfterRead = true;
-  if (flags.lang) body.language = flags.lang;
+	const body = {
+		content: enc.contentBase64,
+		expiry: flags.expiry
+	};
+	if (enc.saltBase64) body.salt = enc.saltBase64;
+	if (flags.burn) body.burnAfterRead = true;
+	if (flags.lang) body.language = flags.lang;
 
-  let res;
-  try {
-    res = await fetch(`${flags.host}/api/paste`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': UA,
-      },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    fail(`network error: ${err.message}`);
-  }
+	let res;
+	try {
+		res = await fetch(`${flags.host}/api/paste`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'User-Agent': UA
+			},
+			body: JSON.stringify(body)
+		});
+	} catch (err) {
+		fail(`network error: ${err.message}`);
+	}
 
-  if (res.status !== 201) {
-    let msg = `HTTP ${res.status}`;
-    try {
-      const j = await res.json();
-      if (j && j.error) msg = j.error;
-    } catch {
-      /* ignore */
-    }
-    fail(msg);
-  }
+	if (res.status !== 201) {
+		let msg = `HTTP ${res.status}`;
+		try {
+			const j = await res.json();
+			if (j && j.error) msg = j.error;
+		} catch {
+			/* ignore */
+		}
+		fail(msg);
+	}
 
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    fail('invalid JSON in create response');
-  }
-  if (!data.id) fail('server response missing id');
+	let data;
+	try {
+		data = await res.json();
+	} catch {
+		fail('invalid JSON in create response');
+	}
+	if (!data.id) fail('server response missing id');
 
-  let url = `${flags.host}/${data.id}`;
-  if (enc.keyBase64url) {
-    url += `#${enc.keyBase64url}`;
-  }
+	let url = `${flags.host}/${data.id}`;
+	if (enc.keyBase64url) {
+		url += `#${enc.keyBase64url}`;
+	}
 
-  process.stderr.write('🔒 Encrypted locally — server only received ciphertext\n');
-  if (flags.password) {
-    process.stderr.write('Password mode: recipient must supply the password to decrypt.\n');
-  }
-  process.stdout.write(url + '\n');
+	process.stderr.write('🔒 Encrypted locally — server only received ciphertext\n');
+	if (flags.password) {
+		process.stderr.write('Password mode: recipient must supply the password to decrypt.\n');
+	}
+	process.stdout.write(url + '\n');
 }
 
 function parsePasteRef(ref, defaultHost) {
-  try {
-    return parsePasteRefRaw(ref, defaultHost);
-  } catch (err) {
-    fail(err.message);
-  }
+	try {
+		return parsePasteRefRaw(ref, defaultHost);
+	} catch (err) {
+		fail(err.message);
+	}
 }
 
 async function burnPaste(host, id) {
-  let res;
-  try {
-    res = await fetch(`${host}/api/paste/${encodeURIComponent(id)}/burn`, {
-      method: 'POST',
-      headers: { 'User-Agent': UA },
-    });
-  } catch (err) {
-    fail(`network error: ${err.message}`);
-  }
-  if (res.status === 404 || res.status === 410) {
-    fail('paste was already read and deleted');
-  }
-  if (res.status !== 200) fail(`HTTP ${res.status}`);
-  try {
-    return await res.json();
-  } catch {
-    fail('invalid JSON in burn response');
-  }
+	let res;
+	try {
+		res = await fetch(`${host}/api/paste/${encodeURIComponent(id)}/burn`, {
+			method: 'POST',
+			headers: { 'User-Agent': UA }
+		});
+	} catch (err) {
+		fail(`network error: ${err.message}`);
+	}
+	if (res.status === 404 || res.status === 410) {
+		fail('paste was already read and deleted');
+	}
+	if (res.status !== 200) fail(`HTTP ${res.status}`);
+	try {
+		return await res.json();
+	} catch {
+		fail('invalid JSON in burn response');
+	}
 }
 
 async function getPaste(ref, flags) {
-  const { id, keyBase64url, host } = parsePasteRef(ref, flags.host);
+	const { id, keyBase64url, host } = parsePasteRef(ref, flags.host);
 
-  let res;
-  try {
-    res = await fetch(`${host}/api/paste/${encodeURIComponent(id)}`, {
-      method: 'GET',
-      headers: { 'User-Agent': UA },
-    });
-  } catch (err) {
-    fail(`network error: ${err.message}`);
-  }
+	let res;
+	try {
+		res = await fetch(`${host}/api/paste/${encodeURIComponent(id)}`, {
+			method: 'GET',
+			headers: { 'User-Agent': UA }
+		});
+	} catch (err) {
+		fail(`network error: ${err.message}`);
+	}
 
-  if (res.status === 404) {
-    fail('paste not found or expired');
-  }
-  if (res.status !== 200) {
-    let msg = `HTTP ${res.status}`;
-    try {
-      const j = await res.json();
-      if (j && j.error) msg = j.error;
-    } catch {
-      /* ignore */
-    }
-    fail(msg);
-  }
+	if (res.status === 404) {
+		fail('paste not found or expired');
+	}
+	if (res.status !== 200) {
+		let msg = `HTTP ${res.status}`;
+		try {
+			const j = await res.json();
+			if (j && j.error) msg = j.error;
+		} catch {
+			/* ignore */
+		}
+		fail(msg);
+	}
 
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    fail('invalid JSON in get response');
-  }
+	let data;
+	try {
+		data = await res.json();
+	} catch {
+		fail('invalid JSON in get response');
+	}
 
-  // Every check that can refuse the read runs before a burn. A burn deletes the paste, so
-  // failing afterwards (missing key, no password, file already exists) would lose it.
-  const hasPassword = !!data.hasPassword;
-  if (hasPassword && !flags.password) {
-    fail('this paste is password-protected; provide --password');
-  }
-  if (!hasPassword && !keyBase64url) {
-    fail('missing #key in URL');
-  }
-  if (flags.save && existsSync(flags.save) && !flags.force) {
-    fail(`refusing to overwrite ${flags.save}; use --force`);
-  }
+	// Every check that can refuse the read runs before a burn. A burn deletes the paste, so
+	// failing afterwards (missing key, no password, file already exists) would lose it.
+	const hasPassword = !!data.hasPassword;
+	if (hasPassword && !flags.password) {
+		fail('this paste is password-protected; provide --password');
+	}
+	if (!hasPassword && !keyBase64url) {
+		fail('missing #key in URL');
+	}
+	if (flags.save && existsSync(flags.save) && !flags.force) {
+		fail(`refusing to overwrite ${flags.save}; use --force`);
+	}
 
-  // A burn-after-read paste can be read once. Its content comes only from the burn
-  // endpoint, which deletes the paste in the same step, so ask for explicit consent.
-  if (data.burnAfterRead) {
-    if (!flags.burn) {
-      fail('this paste is burn-after-read; reading it deletes it. Re-run with --burn to read it.');
-    }
-    data = await burnPaste(host, id);
-  }
+	// A burn-after-read paste can be read once. Its content comes only from the burn
+	// endpoint, which deletes the paste in the same step, so ask for explicit consent.
+	if (data.burnAfterRead) {
+		if (!flags.burn) {
+			fail('this paste is burn-after-read; reading it deletes it. Re-run with --burn to read it.');
+		}
+		data = await burnPaste(host, id);
+	}
 
-  let plaintext;
-  try {
-    if (hasPassword) {
-      plaintext = await decrypt(data.content, {
-        password: flags.password,
-        saltBase64: data.salt,
-      });
-    } else {
-      plaintext = await decrypt(data.content, { keyBase64url });
-    }
-  } catch (err) {
-    fail(err.message);
-  }
+	let plaintext;
+	try {
+		if (hasPassword) {
+			plaintext = await decrypt(data.content, {
+				password: flags.password,
+				saltBase64: data.salt
+			});
+		} else {
+			plaintext = await decrypt(data.content, { keyBase64url });
+		}
+	} catch (err) {
+		fail(err.message);
+	}
 
-  if (flags.save) {
-    if (existsSync(flags.save) && !flags.force) {
-      fail(`refusing to overwrite ${flags.save}; use --force`);
-    }
-    // Write to a temp file and rename into place so a mid-write failure
-    // (disk full, quota, signal) never leaves a truncated file at the
-    // destination, and so the check-then-write has no TOCTOU window.
-    const tmp = `${flags.save}.${process.pid}.tmp`;
-    try {
-      writeFileSync(tmp, plaintext);
-      renameSync(tmp, flags.save);
-    } catch (err) {
-      try { unlinkSync(tmp); } catch { /* best effort */ }
-      fail(err.message);
-    }
-    process.stderr.write(`Saved to ${flags.save}\n`);
-  } else {
-    // print plaintext exactly — no extra trailing newline beyond content
-    process.stdout.write(plaintext);
-  }
+	if (flags.save) {
+		if (existsSync(flags.save) && !flags.force) {
+			fail(`refusing to overwrite ${flags.save}; use --force`);
+		}
+		// Write to a temp file and rename into place so a mid-write failure
+		// (disk full, quota, signal) never leaves a truncated file at the
+		// destination, and so the check-then-write has no TOCTOU window.
+		const tmp = `${flags.save}.${process.pid}.tmp`;
+		try {
+			writeFileSync(tmp, plaintext);
+			renameSync(tmp, flags.save);
+		} catch (err) {
+			try {
+				unlinkSync(tmp);
+			} catch {
+				/* best effort */
+			}
+			fail(err.message);
+		}
+		process.stderr.write(`Saved to ${flags.save}\n`);
+	} else {
+		// print plaintext exactly — no extra trailing newline beyond content
+		process.stdout.write(plaintext);
+	}
 }
 
 async function main() {
-  const { flags, positionals } = parseArgs(process.argv.slice(2));
+	const { flags, positionals } = parseArgs(process.argv.slice(2));
 
-  if (flags.help) {
-    process.stdout.write(usage());
-    process.exit(0);
-  }
-  if (flags.version) {
-    process.stdout.write(`cloakbin ${VERSION}\n`);
-    process.exit(0);
-  }
+	if (flags.help) {
+		process.stdout.write(usage());
+		process.exit(0);
+	}
+	if (flags.version) {
+		process.stdout.write(`cloakbin ${VERSION}\n`);
+		process.exit(0);
+	}
 
-  if (positionals[0] === 'get') {
-    const ref = positionals[1];
-    if (!ref) fail('usage: cloakbin get <url-or-id>');
-    await getPaste(ref, flags);
-    return;
-  }
+	if (positionals[0] === 'get') {
+		const ref = positionals[1];
+		if (!ref) fail('usage: cloakbin get <url-or-id>');
+		await getPaste(ref, flags);
+		return;
+	}
 
-  // create mode
-  const input = await readInput(positionals);
-  if (input === null) {
-    process.stderr.write(usage());
-    process.exit(1);
-  }
-  if (input.content === '') {
-    fail('no input');
-  }
+	// create mode
+	const input = await readInput(positionals);
+	if (input === null) {
+		process.stderr.write(usage());
+		process.exit(1);
+	}
+	if (input.content === '') {
+		fail('no input');
+	}
 
-  // auto-detect language from real file when --lang not given
-  if (flags.lang == null && input.filename) {
-    const detected = detectLanguage(input.filename);
-    if (detected != null && LANG_RE.test(detected)) {
-      flags.lang = detected;
-      const ext = input.filename.includes('.')
-        ? input.filename.slice(input.filename.lastIndexOf('.'))
-        : input.filename;
-      process.stderr.write(`🎨 language: ${detected} (auto-detected from ${ext})\n`);
-    }
-  }
+	// auto-detect language from real file when --lang not given
+	if (flags.lang == null && input.filename) {
+		const detected = detectLanguage(input.filename);
+		if (detected != null && LANG_RE.test(detected)) {
+			flags.lang = detected;
+			const ext = input.filename.includes('.')
+				? input.filename.slice(input.filename.lastIndexOf('.'))
+				: input.filename;
+			process.stderr.write(`🎨 language: ${detected} (auto-detected from ${ext})\n`);
+		}
+	}
 
-  await createPaste(input.content, flags);
+	await createPaste(input.content, flags);
 }
 
 main().catch((err) => {
-  fail(err.message || String(err));
+	fail(err.message || String(err));
 });

@@ -1,0 +1,5 @@
+# Bulk formatting commits, skipped by `git blame`.
+# Enable locally: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: run prettier --write across the repo (#49)
+470c8300b40ae97c0bc917351af05bcc82a1f30a
