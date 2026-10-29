@@ -1,6 +1,14 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { POST } from './+server';
 import { GET } from './[id]/+server';
+
+beforeEach(() => {
+	vi.stubEnv('CREATE_REQUIRES_LOGIN', 'false');
+});
+
+afterEach(() => {
+	vi.unstubAllEnvs();
+});
 
 /** Build the minimal RequestEvent the POST handler reads (request + locals). */
 function postEvent(body: unknown) {
