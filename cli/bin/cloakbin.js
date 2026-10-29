@@ -5,6 +5,7 @@ import { encrypt, decrypt } from '../src/crypto.js';
 import { detectLanguage } from '../src/lang-detect.js';
 import { resolveExpiry } from '../src/duration.js';
 import { validateHost as _validateHost } from '../src/host.js';
+import { parsePasteRef as parsePasteRefRaw } from '../src/paste-ref.js';
 
 const VERSION = '0.1.0';
 const DEFAULT_HOST = 'https://cloakbin.com';
@@ -280,35 +281,11 @@ async function createPaste(plaintext, flags) {
 }
 
 function parsePasteRef(ref, defaultHost) {
-  // full URL or bare id
-  let id;
-  let keyBase64url = null;
-  let host = defaultHost;
-
-  if (ref.includes('://') || ref.startsWith('//')) {
-    let u;
-    try {
-      u = new URL(ref);
-    } catch {
-      fail(`invalid URL: ${ref}`);
-    }
-    host = `${u.protocol}//${u.host}`;
-    // pathname like /id or /id/
-    id = u.pathname.replace(/^\/+|\/+$/g, '').split('/')[0];
-    if (u.hash && u.hash.length > 1) {
-      keyBase64url = decodeURIComponent(u.hash.slice(1));
-    }
-  } else if (ref.includes('#')) {
-    // id#key without scheme
-    const idx = ref.indexOf('#');
-    id = ref.slice(0, idx);
-    keyBase64url = decodeURIComponent(ref.slice(idx + 1));
-  } else {
-    id = ref;
+  try {
+    return parsePasteRefRaw(ref, defaultHost);
+  } catch (err) {
+    fail(err.message);
   }
-
-  if (!id) fail('missing paste id');
-  return { id, keyBase64url, host };
 }
 
 async function burnPaste(host, id) {
