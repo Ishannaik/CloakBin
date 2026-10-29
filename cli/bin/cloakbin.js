@@ -366,6 +366,19 @@ async function getPaste(ref, flags) {
     fail('invalid JSON in get response');
   }
 
+  // Every check that can refuse the read runs before a burn. A burn deletes the paste, so
+  // failing afterwards (missing key, no password, file already exists) would lose it.
+  const hasPassword = !!data.hasPassword;
+  if (hasPassword && !flags.password) {
+    fail('this paste is password-protected; provide --password');
+  }
+  if (!hasPassword && !keyBase64url) {
+    fail('missing #key in URL');
+  }
+  if (flags.save && existsSync(flags.save) && !flags.force) {
+    fail(`refusing to overwrite ${flags.save}; use --force`);
+  }
+
   // A burn-after-read paste can be read once. Its content comes only from the burn
   // endpoint, which deletes the paste in the same step, so ask for explicit consent.
   if (data.burnAfterRead) {
@@ -373,14 +386,6 @@ async function getPaste(ref, flags) {
       fail('this paste is burn-after-read; reading it deletes it. Re-run with --burn to read it.');
     }
     data = await burnPaste(host, id);
-  }
-
-  const hasPassword = !!data.hasPassword;
-  if (hasPassword && !flags.password) {
-    fail('this paste is password-protected; provide --password');
-  }
-  if (!hasPassword && !keyBase64url) {
-    fail('missing #key in URL');
   }
 
   let plaintext;
