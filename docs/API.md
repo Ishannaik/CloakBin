@@ -189,8 +189,8 @@ There is no request body.
 
 ```json
 {
-  "ok": true,
-  "db": "memory | mongodb"
+	"ok": true,
+	"db": "memory | mongodb"
 }
 ```
 
@@ -198,8 +198,8 @@ There is no request body.
 
 ### Error codes
 
-| Code | Error body |
-| ---- | ---------------------------------------------------------- |
+| Code | Error body                                       |
+| ---- | ------------------------------------------------ |
 | 503  | `{"ok": false, "error": "database unavailable"}` |
 
 ### Rate limits
