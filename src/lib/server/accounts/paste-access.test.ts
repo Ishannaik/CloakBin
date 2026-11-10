@@ -85,21 +85,30 @@ describe('home page with CREATE_REQUIRES_LOGIN', () => {
 	it('shows the editor to members without shared caching', () => {
 		process.env.CREATE_REQUIRES_LOGIN = 'true';
 		let headers: Record<string, string> = {};
-		const data = homeLoad({ locals: member, setHeaders: (h: Record<string, string>) => (headers = h) });
+		const data = homeLoad({
+			locals: member,
+			setHeaders: (h: Record<string, string>) => (headers = h)
+		});
 		expect(data).toEqual({ username: 'alice' });
 		expect(headers['cache-control']).toBe('private, no-store');
 	});
 
 	it('shows a signed-in member the sign-out button when the flag is off', () => {
 		let headers: Record<string, string> = {};
-		const data = homeLoad({ locals: member, setHeaders: (h: Record<string, string>) => (headers = h) });
+		const data = homeLoad({
+			locals: member,
+			setHeaders: (h: Record<string, string>) => (headers = h)
+		});
 		expect(data).toEqual({ username: 'alice' });
 		expect(headers['cache-control']).toBe('private, no-store');
 	});
 
 	it('keeps the cacheable open editor when the flag is off', () => {
 		let headers: Record<string, string> = {};
-		const data = homeLoad({ locals: anon, setHeaders: (h: Record<string, string>) => (headers = h) });
+		const data = homeLoad({
+			locals: anon,
+			setHeaders: (h: Record<string, string>) => (headers = h)
+		});
 		expect(data).toEqual({ username: null });
 		expect(headers['cache-control']).toContain('public');
 	});

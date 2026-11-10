@@ -36,9 +36,7 @@
 
 	{#if trend}
 		<div class="mt-3 flex items-center gap-1.5">
-			<span
-				class="text-xs font-medium {trend.isPositive ? 'text-emerald-400' : 'text-red-400'}"
-			>
+			<span class="text-xs font-medium {trend.isPositive ? 'text-emerald-400' : 'text-red-400'}">
 				{trend.isPositive ? '+' : ''}{trend.value}%
 			</span>
 			<span class="text-xs text-zinc-500">vs last week</span>

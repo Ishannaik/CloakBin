@@ -180,7 +180,9 @@ body {
 
 /* Bouncing dots loader - bounce then pause */
 @keyframes bounce-dot {
-	0%, 20%, 100% {
+	0%,
+	20%,
+	100% {
 		transform: translateY(0);
 	}
 	10% {
@@ -241,9 +243,23 @@ body {
 
 /* Shake animation for invalid input */
 @keyframes shake {
-	0%, 100% { transform: translateX(0); }
-	10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-	20%, 40%, 60%, 80% { transform: translateX(3px); }
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-3px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(3px);
+	}
 }
 
 .animate-shake {

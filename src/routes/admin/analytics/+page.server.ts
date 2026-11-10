@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		'7d': 7,
 		'30d': 30,
 		'1y': 365,
-		'all': 365
+		all: 365
 	};
 	const days = daysMap[range] || 7;
 
@@ -36,7 +36,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			withPassword: stats?.withPassword ?? 0,
 			burnAfterRead: stats?.burnAfterRead ?? 0,
 			totalSizeBytes: stats?.totalSizeBytes ?? 0,
-			avgSizeBytes: stats?.avgSizeBytes ?? 0,
+			avgSizeBytes: stats?.avgSizeBytes ?? 0
 		},
 		dailyCounts,
 		range

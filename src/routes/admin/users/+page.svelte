@@ -18,7 +18,11 @@
 
 	function confirmDelete(username: string) {
 		return ({ cancel }: { cancel: () => void }) => {
-			if (!confirm(`Delete ${username}? They are signed out at once. Their pastes stay until they expire.`)) {
+			if (
+				!confirm(
+					`Delete ${username}? They are signed out at once. Their pastes stay until they expire.`
+				)
+			) {
 				cancel();
 			}
 		};
@@ -31,7 +35,9 @@
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 		<div>
 			<h1 class="text-xl font-semibold text-zinc-100 sm:text-2xl">Users</h1>
-			<p class="mt-1 text-sm text-zinc-400">Members sign in at /login. New members join through an invite link.</p>
+			<p class="mt-1 text-sm text-zinc-400">
+				Members sign in at /login. New members join through an invite link.
+			</p>
 		</div>
 		<form method="POST" action="?/invite" use:enhance>
 			<button
@@ -44,11 +50,14 @@
 	</div>
 
 	{#if !data.requiresLogin}
-		<div class="flex gap-3 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 text-sm text-zinc-300">
+		<div
+			class="flex gap-3 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 text-sm text-zinc-300"
+		>
 			<Info class="mt-0.5 h-4 w-4 shrink-0 text-teal-400" />
 			<p>
-				Anyone can create pastes on this instance right now. To limit paste creation to members,
-				set <code class="rounded bg-zinc-900 px-1">CREATE_REQUIRES_LOGIN=true</code> and restart.
+				Anyone can create pastes on this instance right now. To limit paste creation to members, set <code
+					class="rounded bg-zinc-900 px-1">CREATE_REQUIRES_LOGIN=true</code
+				> and restart.
 			</p>
 		</div>
 	{/if}
@@ -91,7 +100,9 @@
 			Members ({data.users.length})
 		</h2>
 		{#if data.users.length === 0}
-			<p class="px-5 py-6 text-sm text-zinc-500">No members yet. Create an invite link to add the first one.</p>
+			<p class="px-5 py-6 text-sm text-zinc-500">
+				No members yet. Create an invite link to add the first one.
+			</p>
 		{:else}
 			<ul class="divide-y divide-zinc-800">
 				{#each data.users as user (user.id)}
@@ -133,7 +144,10 @@
 						</p>
 						<form method="POST" action="?/revokeInvite" use:enhance>
 							<input type="hidden" name="id" value={invite.id} />
-							<button type="submit" class="rounded-lg px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200">
+							<button
+								type="submit"
+								class="rounded-lg px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+							>
 								Revoke
 							</button>
 						</form>

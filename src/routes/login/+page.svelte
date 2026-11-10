@@ -11,7 +11,9 @@
 <main class="flex min-h-screen items-center justify-center bg-bg p-4">
 	<div class="w-full max-w-sm rounded-xl border border-zinc-800 bg-bg-secondary p-8">
 		<div class="mb-6 text-center">
-			<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/10">
+			<div
+				class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/10"
+			>
 				<Lock class="h-6 w-6 text-teal-400" />
 			</div>
 			<h1 class="text-xl font-semibold text-zinc-100">Sign in to CloakBin</h1>
@@ -23,7 +25,9 @@
 		</div>
 
 		{#if form?.error}
-			<p role="alert" class="mb-4 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{form.error}</p>
+			<p role="alert" class="mb-4 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">
+				{form.error}
+			</p>
 		{/if}
 
 		<form

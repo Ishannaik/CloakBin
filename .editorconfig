@@ -1,0 +1,19 @@
+# Mirrors .prettierrc so editors and Prettier agree on whitespace.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+max_line_length = 100
+
+# YAML does not allow tabs; Prettier always indents it with 2 spaces.
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Trailing double spaces are hard line breaks in Markdown.
+[*.md]
+trim_trailing_whitespace = false

@@ -7,7 +7,7 @@ afterEach(() => {
 
 function stubReducedMotion(reduced: boolean) {
 	vi.stubGlobal('window', {
-		matchMedia: () => ({ matches: reduced }),
+		matchMedia: () => ({ matches: reduced })
 	});
 }
 
@@ -34,7 +34,7 @@ function stubRaf() {
 		},
 		get cancelled() {
 			return cancelled;
-		},
+		}
 	};
 }
 

@@ -84,8 +84,6 @@ function isRateLimited(
 	const key = ip;
 	const entry = rateLimitStore.get(key);
 
-
-
 	// First request or window expired
 	if (!entry || now > entry.resetTime) {
 		rateLimitStore.set(key, {
@@ -102,7 +100,11 @@ function isRateLimited(
 
 	// Increment count
 	entry.count++;
-	return { limited: false, remaining: limit.requests - entry.count, resetIn: entry.resetTime - now };
+	return {
+		limited: false,
+		remaining: limit.requests - entry.count,
+		resetIn: entry.resetTime - now
+	};
 }
 
 /**
@@ -166,7 +168,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const { limited, resetIn } = isRateLimited(`${ip}:${limitType}`, limit);
 
 		if (limited) {
-			console.warn(`Rate limited: IP=${ip}, type=${limitType}, resetIn=${Math.ceil(resetIn / 1000)}s`);
+			console.warn(
+				`Rate limited: IP=${ip}, type=${limitType}, resetIn=${Math.ceil(resetIn / 1000)}s`
+			);
 			return new Response(
 				JSON.stringify({
 					error: 'Too many requests',
@@ -183,9 +187,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				}
 			);
 		}
-
 	}
-
 
 	// ============================================
 	// CSRF PROTECTION
@@ -215,13 +217,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 				}
 			} catch {
 				// Invalid origin URL
-				return new Response(
-					JSON.stringify({ error: 'CSRF protection failed: invalid origin' }),
-					{
-						status: 403,
-						headers: { 'Content-Type': 'application/json' }
-					}
-				);
+				return new Response(JSON.stringify({ error: 'CSRF protection failed: invalid origin' }), {
+					status: 403,
+					headers: { 'Content-Type': 'application/json' }
+				});
 			}
 		}
 
@@ -301,10 +300,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// includeSubDomains = applies to all subdomains too
 	// Only set this in production (breaks localhost)
 	if (!event.url.hostname.includes('localhost')) {
-		response.headers.set(
-			'Strict-Transport-Security',
-			'max-age=31536000; includeSubDomains'
-		);
+		response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 	}
 
 	// 8. Content-Security-Policy (CSP): Control what resources can load

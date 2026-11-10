@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			expiresAt: paste.expiresAt.toISOString(),
 			encryptedSize: contentSize,
 			hasPassword: paste.hasPassword,
-			burnAfterRead: paste.burnAfterRead,
+			burnAfterRead: paste.burnAfterRead
 			// Note: We don't track these in the current schema, so set defaults
 			// viewCount: 0, // Not tracked (zero-knowledge)
 			// lastViewedAt: null, // Not tracked

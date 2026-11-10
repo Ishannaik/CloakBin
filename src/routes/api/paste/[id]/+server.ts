@@ -23,38 +23,26 @@ export const GET: RequestHandler = async ({ params }) => {
 
 		// Validate ID
 		if (!id || typeof id !== 'string' || id.trim().length === 0) {
-			return json(
-				{ error: 'Invalid paste ID' },
-				{ status: 400 }
-			);
+			return json({ error: 'Invalid paste ID' }, { status: 400 });
 		}
 
 		// Fetch paste from database
 		const result = await db.getPaste(id);
 
 		if (!result.success) {
-			return json(
-				{ error: result.error },
-				{ status: 500 }
-			);
+			return json({ error: result.error }, { status: 500 });
 		}
 
 		const paste = result.data;
 
 		// Check if paste exists
 		if (!paste) {
-			return json(
-				{ error: 'Paste not found' },
-				{ status: 404 }
-			);
+			return json({ error: 'Paste not found' }, { status: 404 });
 		}
 
 		// Check if paste has expired
 		if (new Date() > paste.expiresAt) {
-			return json(
-				{ error: 'Paste has expired' },
-				{ status: 404 }
-			);
+			return json({ error: 'Paste has expired' }, { status: 404 });
 		}
 
 		// Prepare response data
@@ -91,13 +79,9 @@ export const GET: RequestHandler = async ({ params }) => {
 			status: 200,
 			headers: responseHeaders
 		});
-
 	} catch (error) {
 		console.error('Error retrieving paste:', error);
-		return json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
+		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };
 

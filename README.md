@@ -66,15 +66,16 @@ The encryption key lives in the URL fragment (`#`), which **browsers never send 
 
 ## Security Model
 
-| Component | What it sees |
-|-----------|-------------|
-| Your Browser | ✅ Plaintext (you control it) |
-| Network/ISP | 🔒 Encrypted ciphertext only |
-| CloakBin Server | 🔒 Encrypted ciphertext only |
-| Database | 🔒 Encrypted ciphertext only |
-| URL Recipient | ✅ Plaintext (they have the key) |
+| Component       | What it sees                     |
+| --------------- | -------------------------------- |
+| Your Browser    | ✅ Plaintext (you control it)    |
+| Network/ISP     | 🔒 Encrypted ciphertext only     |
+| CloakBin Server | 🔒 Encrypted ciphertext only     |
+| Database        | 🔒 Encrypted ciphertext only     |
+| URL Recipient   | ✅ Plaintext (they have the key) |
 
 **Cryptographic Details:**
+
 - **Encryption**: AES-256-GCM (authenticated encryption)
 - **Key Derivation**: PBKDF2 with 100,000 iterations (for password-protected pastes)
 - **Random Generation**: Web Crypto API (`crypto.getRandomValues`)
@@ -142,15 +143,15 @@ ADMIN_PASS=your-secure-password
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | SvelteKit 2.0, Svelte 5 |
-| Language | TypeScript |
-| Styling | Tailwind CSS 4.0 |
-| Database | MongoDB |
-| Encryption | Web Crypto API |
-| Editor | CodeMirror 6 |
-| Hosting | Vercel |
+| Layer      | Technology              |
+| ---------- | ----------------------- |
+| Framework  | SvelteKit 2.0, Svelte 5 |
+| Language   | TypeScript              |
+| Styling    | Tailwind CSS 4.0        |
+| Database   | MongoDB                 |
+| Encryption | Web Crypto API          |
+| Editor     | CodeMirror 6            |
+| Hosting    | Vercel                  |
 
 ## Project Structure
 
@@ -201,17 +202,17 @@ docker run -p 127.0.0.1:3000:3000 \
   ghcr.io/ishannaik/cloakbin:latest
 ```
 
-| Variable | Required | Notes |
-| --- | --- | --- |
-| `DB_TYPE` | yes | `mongodb` or `memory` |
-| `MONGODB_URI` | with `mongodb` | Set for you by `docker-compose.yml` |
-| `ADMIN_USER`, `ADMIN_PASS` | yes | Admin panel login at `/admin` |
-| `ORIGIN` | yes | Public URL, e.g. `https://paste.example.com`. Admin login is rejected if it does not match the browser's address. |
-| `MAX_PASTE_BYTES` | no | Default 10 MiB |
-| `CREATE_REQUIRES_LOGIN` | no | `true` lets only signed-in members create pastes. Default `false`. See [Members-only paste creation](#members-only-paste-creation). |
-| `PORT` | no | Host port for Compose, default `3000` |
-| `BIND_ADDRESS` | no | Host interface for Compose, default `127.0.0.1`. Set `0.0.0.0` only if nothing else should sit in front. |
-| `BODY_SIZE_LIMIT` | no | Largest request accepted, default `12M`. Raise it if you raise `MAX_PASTE_BYTES`. |
+| Variable                   | Required       | Notes                                                                                                                               |
+| -------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `DB_TYPE`                  | yes            | `mongodb` or `memory`                                                                                                               |
+| `MONGODB_URI`              | with `mongodb` | Set for you by `docker-compose.yml`                                                                                                 |
+| `ADMIN_USER`, `ADMIN_PASS` | yes            | Admin panel login at `/admin`                                                                                                       |
+| `ORIGIN`                   | yes            | Public URL, e.g. `https://paste.example.com`. Admin login is rejected if it does not match the browser's address.                   |
+| `MAX_PASTE_BYTES`          | no             | Default 10 MiB                                                                                                                      |
+| `CREATE_REQUIRES_LOGIN`    | no             | `true` lets only signed-in members create pastes. Default `false`. See [Members-only paste creation](#members-only-paste-creation). |
+| `PORT`                     | no             | Host port for Compose, default `3000`                                                                                               |
+| `BIND_ADDRESS`             | no             | Host interface for Compose, default `127.0.0.1`. Set `0.0.0.0` only if nothing else should sit in front.                            |
+| `BODY_SIZE_LIMIT`          | no             | Largest request accepted, default `12M`. Raise it if you raise `MAX_PASTE_BYTES`.                                                   |
 
 Compose publishes CloakBin on `127.0.0.1` only, so put a reverse proxy with HTTPS (Caddy, Nginx, Traefik) in front of it to make it public. The decryption key lives in the URL fragment, which browsers never send to the server, so HTTPS protects the ciphertext and the admin login.
 
@@ -239,11 +240,13 @@ Members sign in at `/login`. Passwords are hashed with scrypt, sessions last 30 
 For container orchestrators (Docker, Kubernetes, Fly.io, Railway, etc.) to monitor readiness and trigger restarts:
 
 **Healthy** — `200`:
+
 ```json
 { "ok": true, "db": "mongodb" }
 ```
 
 **Unhealthy** — `503` (e.g. database unreachable):
+
 ```json
 { "ok": false, "error": "database unavailable" }
 ```

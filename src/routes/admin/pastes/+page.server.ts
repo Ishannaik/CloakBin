@@ -39,9 +39,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	// Map frontend column names to database field names
 	const sortFieldMap: Record<string, string> = {
-		'created': 'createdAt',
-		'expires': 'expiresAt',
-		'size': 'encryptedSize'
+		created: 'createdAt',
+		expires: 'expiresAt',
+		size: 'encryptedSize'
 	};
 	const sortBy = sortFieldMap[sortParam] || 'createdAt';
 

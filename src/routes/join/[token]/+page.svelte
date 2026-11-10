@@ -18,7 +18,9 @@
 <main class="flex min-h-screen items-center justify-center bg-bg p-4">
 	<div class="w-full max-w-sm rounded-xl border border-zinc-800 bg-bg-secondary p-8">
 		<div class="mb-6 text-center">
-			<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/10">
+			<div
+				class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/10"
+			>
 				<UserPlus class="h-6 w-6 text-teal-400" />
 			</div>
 			<h1 class="text-xl font-semibold text-zinc-100">Create your account</h1>
@@ -28,10 +30,14 @@
 			<p class="text-center text-sm text-zinc-400">
 				This invite link is invalid, already used, or expired. Ask for a new one.
 			</p>
-			<a href="/login" class="mt-6 block text-center text-sm text-teal-400 hover:text-teal-300">Go to sign in</a>
+			<a href="/login" class="mt-6 block text-center text-sm text-teal-400 hover:text-teal-300"
+				>Go to sign in</a
+			>
 		{:else}
 			{#if form?.error}
-				<p role="alert" class="mb-4 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{form.error}</p>
+				<p role="alert" class="mb-4 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">
+					{form.error}
+				</p>
 			{/if}
 			<form
 				method="POST"
@@ -57,16 +63,34 @@
 						value={form?.username ?? ''}
 						class={inputClass}
 					/>
-					<span class="mt-1 block text-xs text-zinc-500">Lowercase letters, numbers, dot, dash or underscore</span>
+					<span class="mt-1 block text-xs text-zinc-500"
+						>Lowercase letters, numbers, dot, dash or underscore</span
+					>
 				</label>
 				<label class="block">
 					<span class="mb-1.5 block text-sm text-zinc-400">Password</span>
-					<input type="password" name="password" required minlength={data.passwordMin} autocomplete="new-password" class={inputClass} />
-					<span class="mt-1 block text-xs text-zinc-500">At least {data.passwordMin} characters</span>
+					<input
+						type="password"
+						name="password"
+						required
+						minlength={data.passwordMin}
+						autocomplete="new-password"
+						class={inputClass}
+					/>
+					<span class="mt-1 block text-xs text-zinc-500"
+						>At least {data.passwordMin} characters</span
+					>
 				</label>
 				<label class="block">
 					<span class="mb-1.5 block text-sm text-zinc-400">Confirm password</span>
-					<input type="password" name="confirm" required minlength={data.passwordMin} autocomplete="new-password" class={inputClass} />
+					<input
+						type="password"
+						name="confirm"
+						required
+						minlength={data.passwordMin}
+						autocomplete="new-password"
+						class={inputClass}
+					/>
 				</label>
 				<button
 					type="submit"

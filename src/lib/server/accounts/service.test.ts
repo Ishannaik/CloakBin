@@ -94,7 +94,10 @@ describe('login and sessions', () => {
 
 	it('gives the same answer for a wrong password and an unknown user', async () => {
 		await memberWithSession(store);
-		expect(await login(store, 'alice', 'not the password')).toEqual({ ok: false, reason: 'invalid' });
+		expect(await login(store, 'alice', 'not the password')).toEqual({
+			ok: false,
+			reason: 'invalid'
+		});
 		expect(await login(store, 'nobody', PASSWORD)).toEqual({ ok: false, reason: 'invalid' });
 	});
 

@@ -1,8 +1,5 @@
 <script lang="ts">
-	import {
-		FileText, HardDrive,
-		Clock, Lock, Flame, Calendar
-	} from 'lucide-svelte';
+	import { FileText, HardDrive, Clock, Lock, Flame, Calendar } from 'lucide-svelte';
 	import { page } from '$app/stores';
 
 	let { data } = $props();
@@ -18,7 +15,7 @@
 		{ value: '7d', label: '7 Days' },
 		{ value: '30d', label: '30 Days' },
 		{ value: '1y', label: '1 Year' },
-		{ value: 'all', label: 'All Time' },
+		{ value: 'all', label: 'All Time' }
 	];
 
 	// Format bytes to human readable
@@ -59,7 +56,10 @@
 						href="?range={range.value}"
 						data-sveltekit-replacestate
 						data-sveltekit-noscroll
-						class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors {selectedRange === range.value ? 'bg-teal-500 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'}"
+						class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors {selectedRange ===
+						range.value
+							? 'bg-teal-500 text-zinc-900'
+							: 'text-zinc-400 hover:text-zinc-200'}"
 					>
 						{range.label}
 					</a>
@@ -68,14 +68,15 @@
 		</div>
 	</div>
 
-
 	<!-- Key Metrics -->
 	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 		<div class="rounded-lg border border-zinc-800 bg-bg-secondary p-5">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-zinc-400">Total Pastes</p>
-					<p class="mt-1 text-2xl font-semibold text-zinc-100">{data.stats.pastesTotal.toLocaleString()}</p>
+					<p class="mt-1 text-2xl font-semibold text-zinc-100">
+						{data.stats.pastesTotal.toLocaleString()}
+					</p>
 				</div>
 				<div class="rounded-lg bg-zinc-800/50 p-2.5">
 					<FileText class="h-5 w-5 text-teal-400" />
@@ -90,7 +91,9 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-zinc-400">With Password</p>
-					<p class="mt-1 text-2xl font-semibold text-zinc-100">{data.stats.withPassword.toLocaleString()}</p>
+					<p class="mt-1 text-2xl font-semibold text-zinc-100">
+						{data.stats.withPassword.toLocaleString()}
+					</p>
 				</div>
 				<div class="rounded-lg bg-zinc-800/50 p-2.5">
 					<Lock class="h-5 w-5 text-amber-400" />
@@ -105,7 +108,9 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-zinc-400">Burn After Read</p>
-					<p class="mt-1 text-2xl font-semibold text-zinc-100">{data.stats.burnAfterRead.toLocaleString()}</p>
+					<p class="mt-1 text-2xl font-semibold text-zinc-100">
+						{data.stats.burnAfterRead.toLocaleString()}
+					</p>
 				</div>
 				<div class="rounded-lg bg-zinc-800/50 p-2.5">
 					<Flame class="h-5 w-5 text-red-400" />
@@ -120,14 +125,18 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-zinc-400">Total Storage</p>
-					<p class="mt-1 text-2xl font-semibold text-zinc-100">{formatBytes(data.stats.totalSizeBytes)}</p>
+					<p class="mt-1 text-2xl font-semibold text-zinc-100">
+						{formatBytes(data.stats.totalSizeBytes)}
+					</p>
 				</div>
 				<div class="rounded-lg bg-zinc-800/50 p-2.5">
 					<HardDrive class="h-5 w-5 text-teal-400" />
 				</div>
 			</div>
 			<div class="mt-3 flex items-center gap-1.5">
-				<span class="text-xs text-zinc-500">Avg: {formatBytes(data.stats.avgSizeBytes)} per paste</span>
+				<span class="text-xs text-zinc-500"
+					>Avg: {formatBytes(data.stats.avgSizeBytes)} per paste</span
+				>
 			</div>
 		</div>
 	</div>
@@ -165,7 +174,9 @@
 					<HardDrive class="h-5 w-5 text-teal-400" />
 					<span class="text-sm text-zinc-400">Avg. Size</span>
 				</div>
-				<p class="mt-2 text-2xl font-semibold text-zinc-100">{formatBytes(data.stats.avgSizeBytes)}</p>
+				<p class="mt-2 text-2xl font-semibold text-zinc-100">
+					{formatBytes(data.stats.avgSizeBytes)}
+				</p>
 				<p class="text-xs text-zinc-500">per paste</p>
 			</div>
 		</div>
@@ -192,7 +203,9 @@
 						</tr>
 					{:else}
 						<tr>
-							<td colspan="2" class="px-5 py-8 text-center text-sm text-zinc-500">No activity data available</td>
+							<td colspan="2" class="px-5 py-8 text-center text-sm text-zinc-500"
+								>No activity data available</td
+							>
 						</tr>
 					{/each}
 				</tbody>

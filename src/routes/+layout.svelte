@@ -9,7 +9,18 @@
 	let { children } = $props();
 
 	// Easter egg state
-	const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+	const KONAMI = [
+		'ArrowUp',
+		'ArrowUp',
+		'ArrowDown',
+		'ArrowDown',
+		'ArrowLeft',
+		'ArrowRight',
+		'ArrowLeft',
+		'ArrowRight',
+		'b',
+		'a'
+	];
 	let konamiSequence = $state<string[]>([]);
 	let showMatrixRain = $state(false);
 	let cloakBuffer = $state('');

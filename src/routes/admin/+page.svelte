@@ -1,12 +1,6 @@
 <script lang="ts">
 	import StatsCard from '$lib/components/admin/StatsCard.svelte';
-	import {
-		FileText,
-		HardDrive,
-		Lock,
-		Flame,
-		TrendingUp
-	} from 'lucide-svelte';
+	import { FileText, HardDrive, Lock, Flame, TrendingUp } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -94,9 +88,7 @@
 		<h2 class="mb-4 text-lg font-medium text-zinc-200">Recent Pastes</h2>
 		<div class="rounded-lg border border-zinc-800 bg-bg-secondary">
 			{#if data.recentPastes.length === 0}
-				<div class="px-5 py-8 text-center text-zinc-500">
-					No pastes yet
-				</div>
+				<div class="px-5 py-8 text-center text-zinc-500">No pastes yet</div>
 			{:else}
 				<div class="divide-y divide-zinc-800">
 					{#each data.recentPastes as paste}
@@ -107,7 +99,9 @@
 								</div>
 								<div>
 									<p class="text-sm text-zinc-200">
-										Paste <a href="/admin/pastes/{paste.id}" class="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-teal-400 hover:bg-zinc-700 hover:text-teal-300 transition-colors"
+										Paste <a
+											href="/admin/pastes/{paste.id}"
+											class="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-teal-400 hover:bg-zinc-700 hover:text-teal-300 transition-colors"
 											>{paste.id}</a
 										>
 									</p>

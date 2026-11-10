@@ -58,7 +58,8 @@ function getModel(): Model<PasteDocument> {
 	if (!PasteModel) {
 		// Check if model already exists (hot reload scenario)
 		// Using 'CloakPaste' to avoid conflicts with old collections
-		PasteModel = mongoose.models.CloakPaste || mongoose.model<PasteDocument>('CloakPaste', pasteSchema);
+		PasteModel =
+			mongoose.models.CloakPaste || mongoose.model<PasteDocument>('CloakPaste', pasteSchema);
 	}
 	return PasteModel;
 }
@@ -240,7 +241,6 @@ export class MongoDBAdapter implements AdminAdapter {
 			return { success: false, error: 'MongoDB health check failed' };
 		}
 	}
-
 
 	// ============================================
 	// Admin methods

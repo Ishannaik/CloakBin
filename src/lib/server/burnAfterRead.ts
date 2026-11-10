@@ -8,9 +8,7 @@
  *
  * Omitting the field entirely is valid and defaults to `false`.
  */
-export type BurnAfterReadValidation =
-	| { valid: true; value: boolean }
-	| { valid: false };
+export type BurnAfterReadValidation = { valid: true; value: boolean } | { valid: false };
 
 export function validateBurnAfterRead(value: unknown): BurnAfterReadValidation {
 	if (value === undefined) {

@@ -126,7 +126,9 @@
 		background: #5eead4;
 		border: 0;
 		border-radius: 6px;
-		font: 600 13px system-ui, sans-serif;
+		font:
+			600 13px system-ui,
+			sans-serif;
 		cursor: pointer;
 	}
 

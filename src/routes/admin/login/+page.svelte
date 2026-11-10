@@ -10,7 +10,9 @@
 		<div class="rounded-xl border border-zinc-800 bg-bg-secondary p-8">
 			<!-- Header -->
 			<div class="mb-6 text-center">
-				<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/10">
+				<div
+					class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/10"
+				>
 					<Lock class="h-6 w-6 text-teal-400" />
 				</div>
 				<h1 class="text-xl font-semibold text-zinc-100">Admin Login</h1>
@@ -62,9 +64,7 @@
 
 			<!-- Back link -->
 			<div class="mt-6 text-center">
-				<a href="/" class="text-sm text-zinc-500 hover:text-zinc-300">
-					&larr; Back to CloakBin
-				</a>
+				<a href="/" class="text-sm text-zinc-500 hover:text-zinc-300"> &larr; Back to CloakBin </a>
 			</div>
 		</div>
 	</div>

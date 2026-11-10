@@ -114,7 +114,11 @@ export async function login(
 	return { ok: true, token, user: { id: user.id, username: user.username } };
 }
 
-async function startSession(store: AccountStore, userId: string, now: Date): Promise<string | null> {
+async function startSession(
+	store: AccountStore,
+	userId: string,
+	now: Date
+): Promise<string | null> {
 	const token = randomBytes(32).toString('base64url');
 	const created = await store.createSession({
 		tokenHash: hashToken(token),
@@ -125,7 +129,10 @@ async function startSession(store: AccountStore, userId: string, now: Date): Pro
 }
 
 /** Resolve a session cookie to its user. Deleted users and expired sessions resolve to null. */
-export async function resolveSession(store: AccountStore, token: string): Promise<SessionUser | null> {
+export async function resolveSession(
+	store: AccountStore,
+	token: string
+): Promise<SessionUser | null> {
 	// Tokens are 43 base64url chars; reject junk before touching the store.
 	if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
 	const session = await store.getSession(hashToken(token));
@@ -191,12 +198,16 @@ export async function redeemInvite(
 		await store.createInvite(consumed.data);
 		return {
 			ok: false,
-			error: created.error === 'username_taken' ? 'That username is taken' : 'Something went wrong. Try again.'
+			error:
+				created.error === 'username_taken'
+					? 'That username is taken'
+					: 'Something went wrong. Try again.'
 		};
 	}
 
 	const token = await startSession(store, created.data.id, now);
-	if (!token) return { ok: false, error: 'Account created, but sign-in failed. Sign in on the login page.' };
+	if (!token)
+		return { ok: false, error: 'Account created, but sign-in failed. Sign in on the login page.' };
 	await store.touchLogin(created.data.id, now);
 	return { ok: true, token, user: { id: created.data.id, username: created.data.username } };
 }

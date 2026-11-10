@@ -30,9 +30,9 @@ import { createRequiresLogin } from '$lib/server/accounts/env';
 const MAX_PASTE_BYTES = resolveMaxPasteBytes(env.MAX_PASTE_BYTES);
 
 const EXPIRY_DURATIONS = {
-	'1h': 60 * 60 * 1000,           // 1 hour in ms
-	'24h': 24 * 60 * 60 * 1000,     // 24 hours in ms
-	'7d': 7 * 24 * 60 * 60 * 1000   // 7 days in ms
+	'1h': 60 * 60 * 1000, // 1 hour in ms
+	'24h': 24 * 60 * 60 * 1000, // 24 hours in ms
+	'7d': 7 * 24 * 60 * 60 * 1000 // 7 days in ms
 } as const;
 
 type ExpiryOption = keyof typeof EXPIRY_DURATIONS;
@@ -49,10 +49,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		// Checked before the body is read, so anonymous callers cannot make the server parse uploads.
 		if (!canCreatePaste(createRequiresLogin(), locals)) {
-			return json(
-				{ error: 'Sign in to create pastes on this instance' },
-				{ status: 401 }
-			);
+			return json({ error: 'Sign in to create pastes on this instance' }, { status: 401 });
 		}
 
 		// Parse request body
@@ -60,27 +57,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		try {
 			body = await request.json();
 		} catch {
-			return json(
-				{ error: 'Invalid JSON in request body' },
-				{ status: 400 }
-			);
+			return json({ error: 'Invalid JSON in request body' }, { status: 400 });
 		}
 
 		const { content, expiry, salt, burnAfterRead, language } = body;
 
 		// Validate content
 		if (typeof content !== 'string') {
-			return json(
-				{ error: 'Content must be a string' },
-				{ status: 400 }
-			);
+			return json({ error: 'Content must be a string' }, { status: 400 });
 		}
 
 		if (content.length === 0) {
-			return json(
-				{ error: 'Content cannot be empty' },
-				{ status: 400 }
-			);
+			return json({ error: 'Content cannot be empty' }, { status: 400 });
 		}
 
 		if (utf8ByteLength(content) > MAX_PASTE_BYTES) {
@@ -92,10 +80,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		// Validate expiry
 		if (!expiry || !(expiry in EXPIRY_DURATIONS)) {
-			return json(
-				{ error: 'Expiry must be one of: "1h", "24h", "7d"' },
-				{ status: 400 }
-			);
+			return json({ error: 'Expiry must be one of: "1h", "24h", "7d"' }, { status: 400 });
 		}
 
 		// Calculate expiration date
@@ -106,10 +91,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// misbehaving client would silently burn a paste meant to be kept.
 		const burnAfterReadValidation = validateBurnAfterRead(burnAfterRead);
 		if (!burnAfterReadValidation.valid) {
-			return json(
-				{ error: 'burnAfterRead must be a boolean' },
-				{ status: 400 }
-			);
+			return json({ error: 'burnAfterRead must be a boolean' }, { status: 400 });
 		}
 
 		// Allowlist language ids; unknown / malicious values fall back to plaintext
@@ -126,23 +108,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		});
 
 		if (!result.success) {
-			return json(
-				{ error: result.error },
-				{ status: 500 }
-			);
+			return json({ error: result.error }, { status: 500 });
 		}
 
 		// Return paste ID
-		return json(
-			{ id: result.data.id },
-			{ status: 201 }
-		);
-
+		return json({ id: result.data.id }, { status: 201 });
 	} catch (error) {
 		console.error('Error creating paste:', error);
-		return json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
+		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };

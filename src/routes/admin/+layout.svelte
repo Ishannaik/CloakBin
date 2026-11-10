@@ -11,7 +11,7 @@
 		ExternalLink
 	} from 'lucide-svelte';
 	import { page } from '$app/stores';
-	
+
 	let { children } = $props();
 	let sidebarOpen = $state(false);
 
@@ -57,7 +57,11 @@
 					<span class="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-400">Admin</span>
 				</div>
 				<div class="flex items-center gap-1">
-					<a href="/" class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors" title="Back to Site">
+					<a
+						href="/"
+						class="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+						title="Back to Site"
+					>
 						<ExternalLink class="h-4 w-4" />
 					</a>
 					<!-- Close button (mobile only) -->
@@ -79,9 +83,7 @@
 						href={item.href}
 						data-sveltekit-preload-data="viewport"
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors
-						{active
-							? 'bg-teal-500/10 text-teal-400'
-							: 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}"
+						{active ? 'bg-teal-500/10 text-teal-400' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}"
 					>
 						<item.icon class="h-5 w-5" />
 						{item.label}
@@ -115,7 +117,9 @@
 
 	<!-- Main content -->
 	<div class="flex-1 {isLoginPage ? '' : 'lg:ml-0'}">
-		<div class="mx-auto max-w-7xl {isLoginPage ? 'p-0' : 'p-4 pt-16 sm:p-6 sm:pt-16 lg:p-8 lg:pt-8'}">
+		<div
+			class="mx-auto max-w-7xl {isLoginPage ? 'p-0' : 'p-4 pt-16 sm:p-6 sm:pt-16 lg:p-8 lg:pt-8'}"
+		>
 			{@render children()}
 		</div>
 	</div>

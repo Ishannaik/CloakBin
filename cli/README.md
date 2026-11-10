@@ -55,15 +55,15 @@ When uploading a real file (not stdin/`-`), the CLI auto-detects a syntax langua
 
 ## Flags
 
-| Flag | Description |
-|------|-------------|
+| Flag                              | Description                                                                                                                                                                                                                                                                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-e, --expiry <bucket\|duration>` | Paste lifetime (default: `7d`). Exact free-tier buckets: `1h`, `24h`, `7d`, `30d`, `1y`. Or a human duration like `2h30m`, `3d`, `1w2d`, `45m` (units `w`/`d`/`h`/`m`, each at most once, any order). Durations snap **up** to the smallest bucket that fits; values over 1 year cap at `1y`. Exact custom expiry is a premium feature. |
-| `--burn` | Create: burn after the first read. Get: confirm reading a burn-after-read paste, which deletes it |
-| `-p, --password <pw>` | Password mode (PBKDF2); no `#key` in URL |
-| `--lang <language>` | Language hint (`[a-zA-Z0-9_-]{1,30}`); auto-detected from file extension when omitted |
-| `--host <url>` | API base URL (default: `https://cloakbin.com`) |
-| `-h, --help` | Show help |
-| `-v, --version` | Show version |
+| `--burn`                          | Create: burn after the first read. Get: confirm reading a burn-after-read paste, which deletes it                                                                                                                                                                                                                                       |
+| `-p, --password <pw>`             | Password mode (PBKDF2); no `#key` in URL                                                                                                                                                                                                                                                                                                |
+| `--lang <language>`               | Language hint (`[a-zA-Z0-9_-]{1,30}`); auto-detected from file extension when omitted                                                                                                                                                                                                                                                   |
+| `--host <url>`                    | API base URL (default: `https://cloakbin.com`)                                                                                                                                                                                                                                                                                          |
+| `-h, --help`                      | Show help                                                                                                                                                                                                                                                                                                                               |
+| `-v, --version`                   | Show version                                                                                                                                                                                                                                                                                                                            |
 
 ## How the crypto works
 

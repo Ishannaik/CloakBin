@@ -1,7 +1,7 @@
 name: Adapter proposal
 description: Propose a new storage adapter for self-hosters
-title: "[adapter]: "
-labels: ["enhancement", "adapter"]
+title: '[adapter]: '
+labels: ['enhancement', 'adapter']
 body:
   - type: markdown
     attributes:
