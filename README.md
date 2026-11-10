@@ -177,6 +177,8 @@ CloakBin is open source. Deploy your own instance:
 3. Set up MongoDB (Atlas free tier works)
 4. Configure environment variables
 
+Deploying to Fly.io? See **[docs/deploy-fly.md](docs/deploy-fly.md)**.
+
 ### Docker
 
 The quickest way to run your own instance is Docker Compose, which starts CloakBin and MongoDB together:
