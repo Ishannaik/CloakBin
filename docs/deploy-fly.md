@@ -6,14 +6,14 @@ You need [`flyctl`](https://fly.io/docs/flyctl/install/) (signed in with `fly au
 
 ## Environment variables
 
-| Variable                   | Required       | Where to set it   | Notes                                                                                         |
-| -------------------------- | -------------- | ----------------- | --------------------------------------------------------------------------------------------- |
-| `DB_TYPE`                  | yes            | `[env]`           | `mongodb`, or `memory` to try it out (pastes are lost when the machine stops)                 |
-| `MONGODB_URI`              | with `mongodb` | `fly secrets set` | `mongodb+srv://...`                                                                           |
-| `ADMIN_USER`, `ADMIN_PASS` | yes            | `fly secrets set` | Admin panel login at `/admin`                                                                 |
-| `ORIGIN`                   | yes            | `[env]`           | Public URL, e.g. `https://my-cloakbin.fly.dev`. Admin login is rejected if it does not match. |
-| `MAX_PASTE_BYTES`          | no             | `[env]`           | Default 10 MiB                                                                                |
-| `CREATE_REQUIRES_LOGIN`    | no             | `[env]`           | `true` lets only signed-in members create pastes                                              |
+| Variable                   | Required       | Where to set it   | Notes                                                                                                                           |
+| -------------------------- | -------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `DB_TYPE`                  | yes            | `[env]`           | `mongodb`, or `memory` to try it out (pastes are lost when the machine stops)                                                   |
+| `MONGODB_URI`              | with `mongodb` | `fly secrets set` | `mongodb+srv://...`                                                                                                             |
+| `ADMIN_USER`, `ADMIN_PASS` | yes            | `fly secrets set` | Admin panel login at `/admin`                                                                                                   |
+| `ORIGIN`                   | yes            | `[env]`           | Public URL, e.g. `https://my-cloakbin.fly.dev`. Admin login is rejected if it does not match.                                   |
+| `MAX_PASTE_BYTES`          | no             | `[env]`           | Default 10 MiB. If you raise it, raise `BODY_SIZE_LIMIT` (default `12M`) above it too, with room for the JSON around the paste. |
+| `CREATE_REQUIRES_LOGIN`    | no             | `[env]`           | `true` lets only signed-in members create pastes                                                                                |
 
 The image already sets `PORT=3000`, `HOST=0.0.0.0` and `BODY_SIZE_LIMIT=12M`. See `.env.example` for the full list.
 
@@ -41,7 +41,7 @@ primary_region = "cdg"
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
   [[http_service.checks]]
     method = "GET"
@@ -81,7 +81,7 @@ fly deploy --ha=false
 
 Put a database name in `MONGODB_URI` (`cloakbin` above, before the `?`). Without one, pastes go to a database called `test`.
 
-`--ha=false` tells Fly not to create spare machines. Keep CloakBin on one machine: rate limits and sign-in lockouts live in the server's memory, so each extra machine keeps its own count. Check with `fly status` that only one machine is listed, then:
+`--ha=false` tells Fly not to create spare machines. Keep CloakBin on one machine: rate limits and sign-in lockouts live in the server's memory, so each extra machine keeps its own count. `min_machines_running = 1` keeps that machine running when the app is idle: if Fly stopped it, the restart would clear the counters, and someone locked out after failed sign-ins could try again before the 15 minutes are up. Deploys and restarts still clear them. Check with `fly status` that only one machine is listed, then:
 
 ```bash
 curl https://my-cloakbin.fly.dev/api/health
