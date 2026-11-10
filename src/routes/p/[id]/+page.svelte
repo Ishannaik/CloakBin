@@ -5,11 +5,9 @@
 	import { decrypt, base64ToKey, deriveKeyFromPassword } from '$lib/crypto';
 	import { loadFontSize, saveFontSize, clampFontSize } from '$lib/fontSize';
 	import LazyCodeMirror from '$lib/components/LazyCodeMirror.svelte';
-	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
-	import type { Extension } from '@codemirror/state';
 	import type { LanguageSupport } from '@codemirror/language';
-	import { isAllowedPasteLanguage } from '$lib/languages';
+	import { loadLanguageExtension } from '$lib/utils/codemirror';
 	import {
 		dracula,
 		cobalt,
@@ -46,7 +44,7 @@
 	let showBurnWarning = $state(false);
 	let pasteData = $state<{ content: string; hasPassword: boolean; salt?: string; burnAfterRead: boolean; createdAt: string; expiresAt: string; language?: string } | null>(null);
 	let detectedLanguage = $state('javascript');
-	let languageExtension = $state<LanguageSupport>(javascript());
+	let languageExtension = $state<LanguageSupport | null>(null);
 	let wrapLines = $state(typeof localStorage !== 'undefined' ? localStorage.getItem('cloakbin_wrap') !== '0' : true);
 
 	function toggleWrap() {
@@ -84,57 +82,6 @@
 			localStorage.setItem('cloakbin_theme', selectedTheme);
 		}
 	});
-
-	// Load language extension dynamically
-	async function loadLanguageExtension(lang: string): Promise<LanguageSupport> {
-		try {
-			// Guard: only load highlighters for allowlisted language ids
-			if (!isAllowedPasteLanguage(lang)) {
-				return javascript();
-			}
-			switch (lang) {
-				case 'javascript':
-				case 'js':
-					return (await import('@codemirror/lang-javascript')).javascript();
-				case 'typescript':
-				case 'ts':
-					return (await import('@codemirror/lang-javascript')).javascript({ typescript: true });
-				case 'python':
-				case 'py':
-					return (await import('@codemirror/lang-python')).python();
-				case 'json':
-					return (await import('@codemirror/lang-json')).json();
-				case 'html':
-				case 'xml':
-					return (await import('@codemirror/lang-html')).html();
-				case 'css':
-					return (await import('@codemirror/lang-css')).css();
-				case 'markdown':
-				case 'md':
-					return (await import('@codemirror/lang-markdown')).markdown();
-				case 'sql':
-					return (await import('@codemirror/lang-sql')).sql();
-				case 'java':
-					return (await import('@codemirror/lang-java')).java();
-				case 'cpp':
-				case 'c':
-					return (await import('@codemirror/lang-cpp')).cpp();
-				case 'rust':
-				case 'rs':
-					return (await import('@codemirror/lang-rust')).rust();
-				case 'go':
-					return (await import('@codemirror/lang-go')).go();
-				case 'php':
-					return (await import('@codemirror/lang-php')).php();
-				default:
-					// Fallback to javascript for unknown languages
-					return javascript();
-			}
-		} catch {
-			// If dynamic import fails, fallback to javascript
-			return javascript();
-		}
-	}
 
 	// Format relative time
 	function formatRelativeTime(date: Date, now: Date): string {

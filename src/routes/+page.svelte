@@ -5,15 +5,13 @@
 	import ExpirySelect from '$lib/components/ExpirySelect.svelte';
 	import EncryptionOverlay from '$lib/components/EncryptionOverlay.svelte';
 	import ImportModal from '$lib/components/ImportModal.svelte';
-	import { javascript } from '@codemirror/lang-javascript';
 	import { oneDark } from '@codemirror/theme-one-dark';
 	import { EditorView, keymap } from '@codemirror/view';
-	import type { Extension } from '@codemirror/state';
 	import type { LanguageSupport } from '@codemirror/language';
+	import { loadLanguageExtension } from '$lib/utils/codemirror';
 	import {
 		detectLanguageFromFilename,
 		LANGUAGE_PICKER_OPTIONS,
-		isAllowedPasteLanguage,
 		isPickerLanguage
 	} from '$lib/languages';
 	import {
@@ -38,60 +36,6 @@
 
 	// Dynamic language extension for CodeMirror (null = plaintext/no highlighting)
 	let languageExtension = $state<LanguageSupport | null>(null);
-
-	// Load language extension dynamically
-	async function loadLanguageExtension(lang: string): Promise<LanguageSupport | null> {
-		try {
-			if (!isAllowedPasteLanguage(lang) && lang !== 'auto') {
-				return null;
-			}
-			switch (lang) {
-				case 'javascript':
-				case 'js':
-					return (await import('@codemirror/lang-javascript')).javascript();
-				case 'typescript':
-				case 'ts':
-					return (await import('@codemirror/lang-javascript')).javascript({ typescript: true });
-				case 'python':
-				case 'py':
-					return (await import('@codemirror/lang-python')).python();
-				case 'json':
-					return (await import('@codemirror/lang-json')).json();
-				case 'html':
-				case 'xml':
-					return (await import('@codemirror/lang-html')).html();
-				case 'css':
-					return (await import('@codemirror/lang-css')).css();
-				case 'markdown':
-				case 'md':
-					return (await import('@codemirror/lang-markdown')).markdown();
-				case 'sql':
-					return (await import('@codemirror/lang-sql')).sql();
-				case 'java':
-					return (await import('@codemirror/lang-java')).java();
-				case 'cpp':
-				case 'c':
-					return (await import('@codemirror/lang-cpp')).cpp();
-				case 'rust':
-				case 'rs':
-					return (await import('@codemirror/lang-rust')).rust();
-				case 'go':
-					return (await import('@codemirror/lang-go')).go();
-				case 'php':
-					return (await import('@codemirror/lang-php')).php();
-				case 'yaml':
-				case 'yml':
-					return (await import('@codemirror/lang-yaml')).yaml();
-				case 'auto':
-				case 'plaintext':
-				default:
-					// No syntax highlighting for auto/plaintext
-					return null;
-			}
-		} catch {
-			return null;
-		}
-	}
 
 	// Update language extension when selectedLanguage changes
 	$effect(() => {
