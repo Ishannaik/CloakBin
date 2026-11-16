@@ -6,16 +6,21 @@ You need [`flyctl`](https://fly.io/docs/flyctl/install/) (signed in with `fly au
 
 ## Environment variables
 
-| Variable                   | Required       | Where to set it   | Notes                                                                                                                           |
-| -------------------------- | -------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `DB_TYPE`                  | yes            | `[env]`           | `mongodb`, or `memory` to try it out (pastes are lost when the machine stops)                                                   |
-| `MONGODB_URI`              | with `mongodb` | `fly secrets set` | `mongodb+srv://...`                                                                                                             |
-| `ADMIN_USER`, `ADMIN_PASS` | yes            | `fly secrets set` | Admin panel login at `/admin`                                                                                                   |
-| `ORIGIN`                   | yes            | `[env]`           | Public URL, e.g. `https://my-cloakbin.fly.dev`. Admin login is rejected if it does not match.                                   |
-| `MAX_PASTE_BYTES`          | no             | `[env]`           | Default 10 MiB. If you raise it, raise `BODY_SIZE_LIMIT` (default `12M`) above it too, with room for the JSON around the paste. |
-| `CREATE_REQUIRES_LOGIN`    | no             | `[env]`           | `true` lets only signed-in members create pastes                                                                                |
+| Variable                   | Required       | Where to set it   | Notes                                                                                         |
+| -------------------------- | -------------- | ----------------- | --------------------------------------------------------------------------------------------- |
+| `DB_TYPE`                  | yes            | `[env]`           | `mongodb`, or `memory` to try it out (pastes are lost when the machine stops)                 |
+| `MONGODB_URI`              | with `mongodb` | `fly secrets set` | `mongodb+srv://...`                                                                           |
+| `ADMIN_USER`, `ADMIN_PASS` | yes            | `fly secrets set` | Admin panel login at `/admin`                                                                 |
+| `ORIGIN`                   | yes            | `[env]`           | Public URL, e.g. `https://my-cloakbin.fly.dev`. Admin login is rejected if it does not match. |
+| `MAX_PASTE_BYTES`          | no             | `[env]`           | Default 10 MiB. Read the note below before raising it.                                        |
+| `CREATE_REQUIRES_LOGIN`    | no             | `[env]`           | `true` lets only signed-in members create pastes                                              |
 
 The image already sets `PORT=3000`, `HOST=0.0.0.0` and `BODY_SIZE_LIMIT=12M`. See `.env.example` for the full list.
+
+Two limits apply if you raise `MAX_PASTE_BYTES`:
+
+- Raise `BODY_SIZE_LIMIT` above it too, with room for the JSON around the paste, or larger pastes are rejected before they reach the app.
+- Keep it well below 16 MiB, for example at most 15 MiB. MongoDB stores each paste as one document, and a document cannot exceed 16 MiB including the paste's other fields. A larger paste passes the size check and then fails when it is saved.
 
 ## 1. Create the app and `fly.toml`
 
