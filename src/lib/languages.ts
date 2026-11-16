@@ -74,7 +74,10 @@ export const LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
 	rs: 'rust',
 	htm: 'html',
 	sh: 'bash',
-	zsh: 'bash'
+	zsh: 'bash',
+	cs: 'csharp',
+	kt: 'kotlin',
+	ps1: 'powershell'
 };
 
 /** Options shown in the create-page language picker (UI only). */
