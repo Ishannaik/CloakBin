@@ -29,6 +29,9 @@ describe('normalizePasteLanguage', () => {
 		expect(normalizePasteLanguage('ts')).toBe('typescript');
 		expect(normalizePasteLanguage('py')).toBe('python');
 		expect(normalizePasteLanguage('yml')).toBe('yaml');
+		expect(normalizePasteLanguage('cs')).toBe('csharp');
+		expect(normalizePasteLanguage('kt')).toBe('kotlin');
+		expect(normalizePasteLanguage('ps1')).toBe('powershell');
 	});
 
 	it('rejects unknown / malicious language strings', () => {
