@@ -82,7 +82,7 @@ Point the client at your own instance:
 cloakbin file.txt --host https://paste.example.com
 ```
 
-Trailing slashes on `--host` are stripped. The API contract is `POST /api/paste` and `GET /api/paste/:id`.
+`--host` must be an absolute URL that includes the `http://` or `https://` scheme. A bare hostname like `paste.example.com` is rejected rather than guessed (see `validateHost` in `src/host.js`). Trailing slashes on `--host` are stripped. The API contract is `POST /api/paste` and `GET /api/paste/:id`.
 
 ## License
 
