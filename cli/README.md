@@ -49,7 +49,7 @@ cloakbin get abc123 --host https://cloakbin.com   # needs #key in full URL form
 cloakbin get 'https://cloakbin.com/abc123' --password 's3cret'
 ```
 
-Only the final URL (or decrypted plaintext for `get`) goes to stdout. Status and errors go to stderr.
+Only the final URL (or decrypted plaintext for `get`) goes to stdout, so `url=$(cloakbin file.txt)` captures just the URL. Status lines and errors go to stderr; status lines lose their emoji prefix when `NO_COLOR` is set or stderr is not a terminal. The exit code is 0 on success and 1 on any error.
 
 When uploading a real file (not stdin/`-`), the CLI auto-detects a syntax language from the extension (e.g. `.py` → `python`, `Dockerfile` → `dockerfile`). Pass `--lang` to override; stdin input sends no language unless `--lang` is set.
 

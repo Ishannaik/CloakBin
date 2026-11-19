@@ -6,6 +6,7 @@ import { detectLanguage } from '../src/lang-detect.js';
 import { resolveExpiry } from '../src/duration.js';
 import { validateHost as _validateHost } from '../src/host.js';
 import { parsePasteRef as parsePasteRefRaw } from '../src/paste-ref.js';
+import { statusLine } from '../src/status.js';
 
 const VERSION = '0.1.0';
 const DEFAULT_HOST = 'https://cloakbin.com';
@@ -215,7 +216,10 @@ async function createPaste(plaintext, flags) {
 	}
 	if (resolved.snapped || resolved.capped) {
 		process.stderr.write(
-			`⏳ expiry ${flags.expiry} → applied ${resolved.bucket} (free tier uses fixed buckets; exact expiry is a premium feature)\n`
+			statusLine(
+				'⏳',
+				`expiry ${flags.expiry} → applied ${resolved.bucket} (free tier uses fixed buckets; exact expiry is a premium feature)`
+			)
 		);
 	}
 	flags.expiry = resolved.bucket;
@@ -272,7 +276,7 @@ async function createPaste(plaintext, flags) {
 		url += `#${enc.keyBase64url}`;
 	}
 
-	process.stderr.write('🔒 Encrypted locally — server only received ciphertext\n');
+	process.stderr.write(statusLine('🔒', 'Encrypted locally — server only received ciphertext'));
 	if (flags.password) {
 		process.stderr.write('Password mode: recipient must supply the password to decrypt.\n');
 	}
@@ -441,7 +445,7 @@ async function main() {
 			const ext = input.filename.includes('.')
 				? input.filename.slice(input.filename.lastIndexOf('.'))
 				: input.filename;
-			process.stderr.write(`🎨 language: ${detected} (auto-detected from ${ext})\n`);
+			process.stderr.write(statusLine('🎨', `language: ${detected} (auto-detected from ${ext})`));
 		}
 	}
 

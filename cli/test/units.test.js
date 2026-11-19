@@ -3,7 +3,7 @@
  * Run: node test/units.test.js
  */
 
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
@@ -13,6 +13,7 @@ import { detectLanguage, LANGUAGE_MAP } from '../src/lang-detect.js';
 import { parseDuration, resolveExpiry } from '../src/duration.js';
 import { validateHost } from '../src/host.js';
 import { parsePasteRef } from '../src/paste-ref.js';
+import { statusLine } from '../src/status.js';
 
 const cliPath = fileURLToPath(new URL('../bin/cloakbin.js', import.meta.url));
 let passed = 0;
@@ -324,6 +325,25 @@ async function run() {
 		assert.match(out, /Usage:/);
 		assert.equal(readdirSync(dir).length, 0, 'no temp file should be left for a failed save');
 		rmSync(dir, { recursive: true, force: true });
+	});
+
+	await test('status lines drop the emoji under NO_COLOR or a non-TTY stderr', () => {
+		const dir = mkdtempSync(join(tmpdir(), 'cloakbin-status-'));
+		const file = join(dir, 'script.py');
+		writeFileSync(file, 'print(1)\n');
+		let err;
+		try {
+			execFileSync(process.execPath, [cliPath, file, '--host', 'http://127.0.0.1:9'], {
+				stdio: ['ignore', 'pipe', 'pipe']
+			});
+		} catch (caught) {
+			err = caught;
+		}
+		rmSync(dir, { recursive: true, force: true });
+		assert.ok(err, 'expected the upload to fail against a closed port');
+		assert.match(String(err.stderr), /^language: python \(auto-detected from \.py\)$/m);
+		assert.equal(statusLine('🎨', 'msg', { env: { NO_COLOR: '1' }, isTTY: true }), 'msg\n');
+		assert.equal(statusLine('🎨', 'msg', { env: { NO_COLOR: '' }, isTTY: true }), '🎨 msg\n');
 	});
 
 	// --- parsePasteRef ---
